@@ -834,7 +834,7 @@ function experimentmail__get_customized_mailtext($type,$experiment_id,$maillang=
 	if ($fulltext) {
 		$mailtext['subject']=str_replace(strstr($fulltext,"\n"),"",$fulltext);
 		$mailtext['body']=substr($fulltext,strpos($fulltext,"\n")+1,strlen($fulltext));
-		return $fulltext;
+		return $mailtext;
 	} else {
 		return false;
 	}
