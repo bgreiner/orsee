@@ -52,7 +52,17 @@ $site__database_ssl_ca='/etc/mysql/ssl/ca-cert.pem';
 // List of timezones: http://php.net/manual/en/timezones.php
 date_default_timezone_set("Australia/Sydney");
 
-// EMAIL MODULE
+// OUTGOING EMAIL
+// Per default, ORSEE uses PHP's mail() function to send emails, and thus relies on
+// whatever is configured for PHP / the server. However, if this does not work properly
+// (e.g., the "envelope sender address" is not set correctly and mail delivery is refused
+// by the configured mail server, ORSEE can try to send emails directly via the local 
+// sendmail program (only on Linux servers). To do this, set "Type of sending emails" to
+// "indirect" in Options/General settings. ORSEE will look for the local sendmail program
+// in the following path.
+$settings__sendmail_path="/usr/sbin/sendmail";
+
+// INCOMING EMAIL MODULE
 // These settings are only needed when you plan to enable the email module
 // to retrieve emails from an external email account and process them in ORSEE
 $settings__email_server_type="pop3"; // either pop3 or imap
