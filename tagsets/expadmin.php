@@ -74,6 +74,7 @@ function admin__check_login($username,$password) {
     }
 
     if ($continue) {
+        session_regenerate_id(true); 
         $_SESSION['expadmindata']=$expadmindata;
         $done=admin__track_successful_login($admin);
         return true;
