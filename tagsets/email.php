@@ -1291,8 +1291,8 @@ function email__send_reply_email($email) {
         $s['from_address']=$settings['support_mail'];
         $s['to_address']=implode(",",$to_adds);
         $s['cc_address']=implode(",",$cc_adds);
-        $s['subject']=$subject;
-        $s['body']=$body;
+        $s['subject']=email__strip_html($subject);
+        $s['body']=email__strip_html($body);
 
         $s['mailbox']=$email['mailbox'];
         $s['experiment_id']=$email['experiment_id'];
