@@ -74,6 +74,8 @@ $settings__email_ssl=FALSE; // whether to use SSL to connect to IMAP/POP3 server
 // E.g. for gmail, use TRUE for ssl setting. You may have to allow 
 // "Access for less secure apps" in your google account settings.
 
+// SECURITY SETTINGS
+session_set_cookie_params(array('httponly'=>true,'samesite'=>'Strict'));
 
 // STOP SITE, TRACKING, DEBUGGING
 // If below is set to "y", the admin part of ORSEE won't be reachable for anybody
