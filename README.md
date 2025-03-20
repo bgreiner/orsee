@@ -4,7 +4,7 @@ Online Recruitment System for Economic Experiments (ORSEE)
 ORSEE is a web-based Online Recruitment System, specifically designed for
 organizing economic experiments.
 
-For installation and usage manual see [wiki documentation](http://www.orsee.org/wiki/doku.php).
+For installation and usage manual see [wiki documentation](https://www.orsee.org/web/doc.php).
 
 Please use the [ORSEE bug tracker](http://www.orsee.org/web/tracker.php) for reporting issues.
 
