@@ -119,5 +119,6 @@ if ($proceed) {
             </script>';
 
 }
+
 include ("footer.php");
 ?>

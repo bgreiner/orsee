@@ -253,15 +253,6 @@ $system__options_general[]=array(
 );
 
 $system__options_general[]=array(
-'option_name'=>'email_sendmail_path',
-'option_text'=>'If indirect: path to sendmail program/wrapper?',
-'type'=>'textline',
-'default_value'=>'/usr/sbin/sendmail',
-'size'=>'30',
-'maxlength'=>'200',
-);
-
-$system__options_general[]=array(
 'option_name'=>'mail_queue_number_send_per_time',
 'option_text'=>'Number of mails send from mail queue on each processing:',
 'type'=>'textline',

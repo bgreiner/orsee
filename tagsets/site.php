@@ -51,6 +51,7 @@ function redirect($url) {
         ob_end_flush();
     }
     session_write_close();
+    exit(1);
 }
 
 function thisdoc() {
