@@ -1197,7 +1197,7 @@ class fMailbox
      */
     public function enableDebugging($flag)
     {
-        $this->debug = (boolean) $flag;
+        $this->debug = (bool) $flag;
     }
 
 
