@@ -2044,7 +2044,7 @@ class PHPlot
             $ry = $qy + $r10 * $width_factor + $r11 * $font_height;
 
             // Finally, draw the text:
-            ImageTTFText($this->img, $font_size, $angle, $rx, $ry, $color, $font_file, $lines[$i]);
+            ImageTTFText($this->img, $font_size, $angle, (int)$rx, (int)$ry, (int)$color, $font_file, $lines[$i]);
 
             // Step to position of next line.
             // This is a rotation of (x=0,y=height+line_spacing) by $angle:
@@ -2588,7 +2588,7 @@ class PHPlot
      * Additional values in $args[] depend on the formatting type. All further paramters except
      * for the callback are optional.
      * For type='data': $args[1] = precision, $args[2] = prefix, $args[3] = suffix.
-     * For type 'time': $args[1] = format string for strftime().
+     * For type 'time': $args[1] = format string for date().
      * For type 'printf': $args[1:3] = 1, 2, or 3 format strings for sprintf().
      * For type 'custom': $args[1] = the callback (required), $args[2] = pass-through argument.
      *
@@ -2617,7 +2617,7 @@ class PHPlot
             if (isset($args[1]))
                 $format['time_format'] = $args[1];
             elseif (!isset($format['time_format']))
-                $format['time_format'] = '%H:%M:%S';
+                $format['time_format'] = 'H:i:s';
             break;
 
         case 'printf':
@@ -2734,7 +2734,7 @@ class PHPlot
      * SetXLabelType('time'). But since you can pass the formatting string
      * to SetXLabelType() also, there is no need to use SetXTimeFormat().
      *
-     * @param string $which_xtf  Formatting string to use (see PHP function strftime())
+     * @param string $which_xtf  Formatting string to use (see PHP function date())
      * @return bool  True always
      */
     function SetXTimeFormat($which_xtf)
@@ -2750,7 +2750,7 @@ class PHPlot
      * SetYLabelType('time'). But since you can pass the formatting string
      * to SetYLabelType() also, there is no need to use SetYTimeFormat().
      *
-     * @param string $which_ytf  Formatting string (see PHP function strftime())
+     * @param string $which_ytf  Formatting string (see PHP function date())
      * @return bool  True always
      */
     function SetYTimeFormat($which_ytf)
@@ -5378,7 +5378,7 @@ class PHPlot
                            . $format['suffix'];
                 break;
             case 'time':
-                $which_lab = strftime($format['time_format'], $which_lab);
+                $which_lab = date($format['time_format'], $which_lab);
                 break;
             case 'printf':
                 if (!is_array($format['printf_format'])) {
@@ -7193,7 +7193,7 @@ class PHPlot
         }
 
         // Draw the bar
-        ImageFilledRectangle($this->img, $x1, $y1, $x2, $y2, $data_color);
+        ImageFilledRectangle($this->img, (int)$x1, (int)$y1, (int)$x2, (int)$y2, (int)$data_color);
 
         // Draw a shade, if shading is on.
         if (isset($shade_color)) {
