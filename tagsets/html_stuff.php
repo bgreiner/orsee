@@ -543,7 +543,7 @@ function html__build_menu($menu,$logged_in,$current_user_data_box,$orientation="
                 $item['content']='<FONT class="menu_title" color="'.$color['menu_title'].'">'.$current_user_data_box.'</FONT>';
                 $item['bg']='';
             } else {
-                if (preg_match("/^".$item['menu_area']."/i",$menu__area)) $item['bg']=' bgcolor="'.$color['menu_item_highlighted_background'].'"';
+                if (preg_match("/^".$item['menu_area']."/i",(string)$menu__area)) $item['bg']=' bgcolor="'.$color['menu_item_highlighted_background'].'"';
                 else $item['bg']="";
                 if (!isset($item['link'])) $link='';
                 elseif (substr($item['link'],0,1)=='/') $link=$settings__root_url.$item['link'].$addp;
