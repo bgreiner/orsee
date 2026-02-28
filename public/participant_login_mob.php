@@ -17,6 +17,9 @@ if ($proceed) {
         $_SESSION['requested_url']=$_REQUEST['requested_url'];
 
     if (isset($_REQUEST['login']) && isset($_REQUEST['email']) && isset($_REQUEST['password'])) {
+        if (!csrf__validate_request_message()) {
+            redirect("public/participant_login_mob.php");
+        }
         $logged_in=participant__check_login($_REQUEST['email'],$_REQUEST['password']);
         if ($logged_in) {
             if (isset($_SESSION['requested_url']) && $_SESSION['requested_url']) {
@@ -56,6 +59,7 @@ if ($proceed) {
         echo '<ons-list modifier="inset">';
 
         echo '<form action="'.thisdoc().'" method="post" id="login_form">';
+        echo csrf__field();
         echo '<INPUT name="login" type="submit" id="login_submit" style="display: none;">';
 
         echo '<ons-list-item>

@@ -13,6 +13,9 @@ if ($proceed) {
     if (isset($_REQUEST['s']) && $_REQUEST['s']) $session_id=trim($_REQUEST['s']); else $session_id="";
 
     if (isset($_REQUEST['register']) && $_REQUEST['register']) {
+        if (!csrf__validate_request_message()) {
+            redirect("public/participant_show_mob.php".$token_string);
+        }
         $continue=true;
         if (!$session_id) {
             $continue=false;
@@ -84,6 +87,9 @@ if ($proceed) {
         }
     } elseif (isset($_REQUEST['cancel']) && $_REQUEST['cancel'] &&
             isset($settings['allow_subject_cancellation']) && $settings['allow_subject_cancellation']=='y') {
+        if (!csrf__validate_request_message()) {
+            redirect("public/participant_show_mob.php".$token_string);
+        }
         $continue=true;
         if (!$session_id) {
             $continue=false;
@@ -263,10 +269,11 @@ echo '
                   <div class="center">'.lang('mobile_session_details').'</div>
                 </ons-toolbar>';
 
-        echo '<form action="'.thisdoc().'" method="get" id="form-'.$s['session_id'].'">';
+        echo '<form action="'.thisdoc().'" method="post" id="form-'.$s['session_id'].'">';
         echo '<INPUT type=hidden name="s" value="'.$s['session_id'].'">';
         if ($token_string) echo '<INPUT type=hidden name="p" value="'.$participant['participant_id_crypt'].'">';
         echo '<INPUT type="hidden" name="register" value="true">';
+        echo csrf__field();
         echo '<INPUT type="submit" id="regsubmit-'.$s['session_id'].'" style="display: none;">';
 
         echo '<ons-list modifier="inset">';
@@ -373,10 +380,11 @@ echo '
       if (isset($settings['allow_subject_cancellation']) && $settings['allow_subject_cancellation']=='y') {
             $s['cancellation_deadline']=sessions__get_cancellation_deadline($s);
             if ($s['cancellation_deadline']>time()) {
-                echo '<form action="'.thisdoc().'" method="get" id="cancel-'.$s['session_id'].'">';
+                echo '<form action="'.thisdoc().'" method="post" id="cancel-'.$s['session_id'].'">';
                 echo '<INPUT type=hidden name="s" value="'.$s['session_id'].'">';
                 if ($token_string) echo '<INPUT type=hidden name="p" value="'.$participant['participant_id_crypt'].'">';
                 echo '<INPUT type="hidden" name="cancel" value="true">';
+                echo csrf__field();
                 echo '<INPUT type="submit" id="cancelsubmit-'.$s['session_id'].'" style="display: none;">';
         
                 echo '<ons-list-item>';
