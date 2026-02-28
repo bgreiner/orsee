@@ -156,10 +156,10 @@ function html__show_style_header($area='public',$title="") {
     $tpl=file_get_contents('../style/'.$settings['style'].'/html_header.php');
 
     // fill colors
-    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",$o,$tpl);
+    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",($o ?? ''),$tpl);
 
     // add title
-    $tpl=str_replace("#title#",$title,$tpl);
+    $tpl=str_replace("#title#",($title ?? ''),$tpl);
 
 
     // prepare menu
@@ -205,7 +205,7 @@ function html__show_style_footer($area='public') {
     $tpl=file_get_contents('../style/'.$settings['style'].'/html_footer.php');
 
     // fill colors
-    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",$o,$tpl);
+    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",($o ?? ''),$tpl);
 
     // fill in language terms if any
         $pattern="/lang\[([^\]]+)\]/i";

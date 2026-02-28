@@ -888,7 +888,7 @@ function process_mail_template($template,$vararray) {
     foreach ($vars as $key) {
         $i=0;
         foreach ($output as $outputline) {
-            $output[$i]=str_replace("#".$key."#",$vararray[$key],$output[$i]);
+            $output[$i]=str_replace("#".$key."#",($vararray[$key] ?? ''),$output[$i]);
             $i++;
         }
     }
