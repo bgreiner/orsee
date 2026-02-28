@@ -204,8 +204,9 @@ function email__show_email($email,$open_reply=false,$open_note=false) {
 
     echo '</TD></TR>';
     echo '<TR class="emailtable"><TD>';
-    echo '  <FORM action="'.thisdoc().'" METHOD="POST"">
+    echo '  <FORM action="'.thisdoc().'" METHOD="POST">
         <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
+    echo csrf__field();
     if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
         echo '<INPUT type="hidden" name="hide_header" value="true">';
     }
@@ -367,6 +368,7 @@ function email__show_email($email,$open_reply=false,$open_note=false) {
         show_message();
         echo '<FORM name="send_email" action="'.thisdoc().'#replyform" method="POST">
              <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
+        echo csrf__field();
         if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
             echo '<INPUT type="hidden" name="hide_header" value="true">';
         }
@@ -437,6 +439,7 @@ function email__show_email($email,$open_reply=false,$open_note=false) {
         show_message();
         echo '<FORM name="add_note" action="'.thisdoc().'#noteform" method="POST">
              <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
+        echo csrf__field();
         if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
             echo '<INPUT type="hidden" name="hide_header" value="true">';
         }
@@ -527,8 +530,9 @@ function email__show_buttons($email,$reply_all_button=false,$delete_button=false
     }
     if ($delete_button) {
         if ($email['flag_deleted']) {
-            echo '<FORM action="'.thisdoc().'">
+            echo '<FORM action="'.thisdoc().'" method="POST">
                 <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
+            echo csrf__field();
             if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
                 echo '<INPUT type="hidden" name="hide_header" value="true">';
             }
@@ -536,8 +540,9 @@ function email__show_buttons($email,$reply_all_button=false,$delete_button=false
                 <INPUT type="submit" class="button" name="undelete" value="'.lang('undelete').'">
                 </TD></FORM>';
         } else {
-            echo '<FORM action="'.thisdoc().'">
+            echo '<FORM action="'.thisdoc().'" method="POST">
                 <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
+            echo csrf__field();
             if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
                 echo '<INPUT type="hidden" name="hide_header" value="true">';
             }

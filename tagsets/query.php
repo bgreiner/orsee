@@ -26,6 +26,7 @@ function query__show_form($hide_modules,$experiment=array(),$load_query="",$butt
 
     // display form table
     echo '  <form id="queryForm" action="'.thisdoc().'" method="POST">';
+    echo csrf__field();
     if ($formextra) echo $formextra;
     if ($experiment_id) echo '<INPUT type="hidden" name="experiment_id" value="'.$experiment_id.'">';
     echo '  <TABLE border=0 width=100%>
@@ -753,6 +754,7 @@ function query__resulthead_participantsearch() {
     // save query button
     $cgivars=array();
     $cgivars[]="save_query=true";
+    $cgivars[]='csrf_token='.urlencode(csrf__get_token());
     if(isset($_REQUEST['search_sort'])) $cgivars[]='search_sort='.urlencode($_REQUEST['search_sort']);
     if (isset($_REQUEST['active']) && $_REQUEST['active']) $cgivars[]='active=true';
     if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
