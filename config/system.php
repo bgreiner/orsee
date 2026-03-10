@@ -2,7 +2,7 @@
 // part of orsee. see orsee.org
 // THIS FILE WILL CHANGE FROM VERSION TO VERSION. BETTER NOT EDIT.
 $system__version="3.2.0";
-$system__database_version=2024031100;
+$system__database_version=2026031004;
 
 // implemented experiment types
 $system__experiment_types=array('laboratory','online-survey','internet');
@@ -175,6 +175,7 @@ $system__admin_rights=array(
 "session_nonempty_delete:delete a session independent of participant signups:experiment_show,session_edit",
 "session_send_reminder:send session reminder manually:experiment_show,experiment_show_participants",
 "settings_edit:edit general settings and defaults",
+"settings_oauth_edit:configure OAuth token settings",
 "settings_edit_colors:edit color values for ORSEE styles",
 "settings_view:view general settings and defaults",
 "settings_view_colors:view color values for ORSEE styles",
