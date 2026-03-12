@@ -6,7 +6,7 @@ organizing economic experiments.
 
 For installation and usage manual see [wiki documentation](https://www.orsee.org/web/doc.php).
 
-Please use the [ORSEE bug tracker](http://www.orsee.org/web/tracker.php) for reporting issues.
+Please use the [ORSEE Github issues](https://github.com/orsee/orsee/issues) for reporting issues.
 
 Becoming a developer
 ------------
