@@ -18,6 +18,9 @@ if ($proceed) {
     show_message();
 
     if (isset($_REQUEST['adminname']) && isset($_REQUEST['password'])) {
+        if (!csrf__validate_request_message()) {
+            redirect("admin/admin_login.php");
+        }
         $logged_in=admin__check_login($_REQUEST['adminname'],$_REQUEST['password']);
         if ($logged_in) {
             $expadmindata['admin_id']=$_SESSION['expadmindata']['admin_id'];

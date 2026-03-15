@@ -21,6 +21,11 @@ if ($proceed) {
         if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
             redirect("public/participant_show.php".$token_string);
         }
+        if (isset($_REQUEST['reallyregister']) && $_REQUEST['reallyregister']) {
+            if (!csrf__validate_request_message()) {
+                redirect("public/participant_show.php".$token_string);
+            }
+        }
 
         if ($proceed) {
             if (!$session_id) {
@@ -105,11 +110,12 @@ if ($proceed) {
                         </TD></TABLE>';
 
                 echo '<BR><BR>
-                    <form action="participant_show.php">
+                    <form action="participant_show.php" method="POST">
                     <INPUT type=hidden name="s" value="'.$_REQUEST['s'].'">';
 
                 if ($token_string) echo '<INPUT type=hidden name="p" value="'.$participant['participant_id_crypt'].'">';
                 echo '<INPUT type=hidden name="register" value="true">
+                    '.csrf__field().'
                     <TABLE class="or_formtable">
                     <TR>
                         <TD colspan=2 align=center>
@@ -164,6 +170,11 @@ if ($proceed) {
 
         if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
             redirect("public/participant_show.php".$token_string);
+        }
+        if (isset($_REQUEST['reallycancel']) && $_REQUEST['reallycancel']) {
+            if (!csrf__validate_request_message()) {
+                redirect("public/participant_show.php".$token_string);
+            }
         }
 
         if ($proceed) {
@@ -224,11 +235,12 @@ if ($proceed) {
                         </TD>';
 
                 echo '<BR><BR>
-                    <form action="participant_show.php">
+                    <form action="participant_show.php" method="POST">
                     <INPUT type="hidden" name="s" value="'.$_REQUEST['s'].'">';
 
                 if ($token_string) echo '<INPUT type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
                 echo '<INPUT type=hidden name="cancel" value="true">
+                    '.csrf__field().'
                     <TABLE style="outline: 1px solid black;">
                     <TR>
                         <TD colspan=2 align=center>
