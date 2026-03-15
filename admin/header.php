@@ -19,19 +19,16 @@ if ($proceed) {
     $settings['style']=$settings['orsee_admin_style'];
     $color=load_colors();
 
-    session_set_save_handler("orsee_session_open",
-                 "orsee_session_close",
-                 "orsee_session_read",
-                 "orsee_session_write",
-                 "orsee_session_destroy",
-                 "orsee_session_gc");
+    orsee_session_register_handler();
 
     session_start();
 
     if (isset($_SESSION['expadmindata'])) $expadmindata=$_SESSION['expadmindata']; else $expadmindata=array();
 
     $tmparr=explode("/",$_SERVER['PHP_SELF']); $tmpnum=count($tmparr);
-    $requested_url=$tmparr[$tmpnum-2]."/".$tmparr[$tmpnum-1].'?'.$_SERVER['QUERY_STRING'];
+    if (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING']) $query_string='?'.$_SERVER['QUERY_STRING'];
+    else $query_string='';
+    $requested_url=$tmparr[$tmpnum-2]."/".$tmparr[$tmpnum-1].$query_string;
 
     // Check for login
     if ((!(isset($expadmindata['adminname']) && $expadmindata['adminname'])) && $document!="admin_login.php") {

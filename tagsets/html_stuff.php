@@ -156,10 +156,10 @@ function html__show_style_header($area='public',$title="") {
     $tpl=file_get_contents('../style/'.$settings['style'].'/html_header.php');
 
     // fill colors
-    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",$o,$tpl);
+    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",($o ?? ''),$tpl);
 
     // add title
-    $tpl=str_replace("#title#",$title,$tpl);
+    $tpl=str_replace("#title#",($title ?? ''),$tpl);
 
 
     // prepare menu
@@ -205,7 +205,7 @@ function html__show_style_footer($area='public') {
     $tpl=file_get_contents('../style/'.$settings['style'].'/html_footer.php');
 
     // fill colors
-    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",$o,$tpl);
+    foreach ($color as $k=>$o) $tpl=str_replace("#".$k."#",($o ?? ''),$tpl);
 
     // fill in language terms if any
         $pattern="/lang\[([^\]]+)\]/i";
@@ -543,7 +543,7 @@ function html__build_menu($menu,$logged_in,$current_user_data_box,$orientation="
                 $item['content']='<FONT class="menu_title" color="'.$color['menu_title'].'">'.$current_user_data_box.'</FONT>';
                 $item['bg']='';
             } else {
-                if (preg_match("/^".$item['menu_area']."/i",$menu__area)) $item['bg']=' bgcolor="'.$color['menu_item_highlighted_background'].'"';
+                if (preg_match("/^".$item['menu_area']."/i",(string)$menu__area)) $item['bg']=' bgcolor="'.$color['menu_item_highlighted_background'].'"';
                 else $item['bg']="";
                 if (!isset($item['link'])) $link='';
                 elseif (substr($item['link'],0,1)=='/') $link=$settings__root_url.$item['link'].$addp;

@@ -888,7 +888,7 @@ function process_mail_template($template,$vararray) {
     foreach ($vars as $key) {
         $i=0;
         foreach ($output as $outputline) {
-            $output[$i]=str_replace("#".$key."#",$vararray[$key],$output[$i]);
+            $output[$i]=str_replace("#".$key."#",($vararray[$key] ?? ''),$output[$i]);
             $i++;
         }
     }
@@ -936,7 +936,7 @@ function experimentmail__send_invitations_to_queue($experiment_id,$whom="not-inv
         case "all":             $aquery=""; break;
         default:                $aquery=" AND ".table('participants').".participant_id='0' ";
     }
-    mt_srand((double)microtime()*1000000);
+    mt_srand((float)microtime()*1000000);
     $order="ORDER BY rand(".mt_rand().") ";
     $now=time();
     $status_query=participant_status__get_pquery_snippet("eligible_for_experiments");

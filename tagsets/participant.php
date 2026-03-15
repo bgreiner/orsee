@@ -447,7 +447,7 @@ function load_form_template($tpl_name,$out,$template='current_template') {
 
 
     // fill in the vars
-    foreach ($out as $k=>$o) $tpl=str_replace("#".$k."#",$o,$tpl);
+    foreach ($out as $k=>$o) $tpl=str_replace("#".$k."#",($o ?? ''),$tpl);
 
     // fill in language terms
         $pattern="/lang\[([^\]]+)\]/i";
