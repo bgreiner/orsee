@@ -2,18 +2,203 @@
 // part of orsee. see orsee.org
 
 function experimentmail__mail($recipient,$subject,$message,$headers,$env_sender="") {
-    global $settings;
     $headers .= "Content-Type: text/plain; charset=\"UTF-8\"\r\n";
     $message=html_entity_decode($message,ENT_COMPAT,'UTF-8');
     $subject=html_entity_decode($subject,ENT_COMPAT,'UTF-8');
-    $subject='=?UTF-8?B?'.base64_encode($subject).'?=';
-    $done=experimentmail__send($recipient,$subject,$message,$headers,$env_sender="");
+    if (!experimentmail__use_phpmailer()) {
+        $subject='=?UTF-8?B?'.base64_encode($subject).'?=';
+    }
+    $done=experimentmail__send($recipient,$subject,$message,$headers,$env_sender);
     return $done;
 }
 
+function experimentmail__use_phpmailer() {
+    global $settings__mail_transport;
+    return (isset($settings__mail_transport) && strtolower((string)$settings__mail_transport)=="phpmailer");
+}
+
+function experimentmail__phpmailer_debug_enabled() {
+    global $settings__phpmailer_debug;
+    return (isset($settings__phpmailer_debug) && strtolower((string)$settings__phpmailer_debug)=="y");
+}
+
+function experimentmail__phpmailer_debug_log($line) {
+    if (!experimentmail__phpmailer_debug_enabled()) {
+        return;
+    }
+    error_log("ORSEE PHPMailer: ".$line);
+}
+
+function experimentmail__split_addresses($addresses) {
+    if (!is_string($addresses) || !$addresses) {
+        return array();
+    }
+    $parts=preg_split("/[,;]+/",$addresses);
+    $result=array();
+    foreach ($parts as $part) {
+        $addr=trim($part);
+        if ($addr) {
+            $result[]=$addr;
+        }
+    }
+    return $result;
+}
+
+function experimentmail__parse_headers($headers) {
+    $parsed=array();
+    if (!is_string($headers) || !$headers) {
+        return $parsed;
+    }
+    $lines=preg_split("/\r\n|\n|\r/",$headers);
+    foreach ($lines as $line) {
+        if (!$line || strpos($line,":")===false) {
+            continue;
+        }
+        list($name,$value)=explode(":",$line,2);
+        $name=trim($name);
+        $value=trim($value);
+        if ($name!=="" && $value!=="") {
+            $parsed[]=array("name"=>$name,"value"=>$value);
+        }
+    }
+    return $parsed;
+}
+
+function experimentmail__extract_email_address($value) {
+    if (!is_string($value) || !$value) {
+        return "";
+    }
+    $value=trim($value);
+    if (preg_match("/<([^>]+)>/",$value,$matches)) {
+        $value=trim($matches[1]);
+    }
+    if (filter_var($value,FILTER_VALIDATE_EMAIL)) {
+        return $value;
+    }
+    return "";
+}
+
+function experimentmail__apply_header_addresses(&$mailer,$header_name,$header_value) {
+    $addresses=experimentmail__split_addresses($header_value);
+    foreach ($addresses as $address_line) {
+        $address=experimentmail__extract_email_address($address_line);
+        if (!$address) {
+            continue;
+        }
+        if ($header_name=="cc") {
+            $mailer->addCC($address);
+        } elseif ($header_name=="bcc") {
+            $mailer->addBCC($address);
+        } elseif ($header_name=="reply-to") {
+            $mailer->addReplyTo($address);
+        }
+    }
+}
+
+function experimentmail__send_via_phpmailer($recipient,$subject,$message,$headers,$env_sender="",$attachments=array()) {
+    global $settings, $settings__phpmailer_host, $settings__phpmailer_port,
+        $settings__phpmailer_smtp_secure, $settings__phpmailer_smtp_auth, $settings__phpmailer_username,
+        $settings__phpmailer_password, $settings__phpmailer_timeout;
+
+    try {
+        $mailer = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mailer->CharSet = "UTF-8";
+        $mailer->isSMTP();
+        $mailer->Host       = (isset($settings__phpmailer_host) && $settings__phpmailer_host) ? $settings__phpmailer_host : "127.0.0.1";
+        $mailer->Port       = (isset($settings__phpmailer_port) && (int)$settings__phpmailer_port > 0) ? (int)$settings__phpmailer_port : 587;
+        $mailer->SMTPAuth   = (isset($settings__phpmailer_smtp_auth) && $settings__phpmailer_smtp_auth=="y");
+        $mailer->Username   = (isset($settings__phpmailer_username)) ? (string)$settings__phpmailer_username : "";
+        $mailer->Password   = (isset($settings__phpmailer_password)) ? (string)$settings__phpmailer_password : "";
+        $mailer->SMTPSecure = (isset($settings__phpmailer_smtp_secure)) ? (string)$settings__phpmailer_smtp_secure : "";
+        $mailer->Timeout    = (isset($settings__phpmailer_timeout) && (int)$settings__phpmailer_timeout > 0) ? (int)$settings__phpmailer_timeout : 15;
+
+        if (experimentmail__phpmailer_debug_enabled()) {
+            $mailer->SMTPDebug = 2;
+            $mailer->Debugoutput = function ($str,$level) {
+                experimentmail__phpmailer_debug_log("SMTP[".$level."] ".$str);
+            };
+        }
+
+        $parsed_headers=experimentmail__parse_headers($headers);
+
+        $from_address=$env_sender;
+        if (!$from_address && isset($settings["support_mail"])) {
+            $from_address=$settings["support_mail"];
+        }
+        foreach ($parsed_headers as $header) {
+            if (strtolower($header["name"])=="from") {
+                $header_from=experimentmail__extract_email_address($header["value"]);
+                if ($header_from) {
+                    $from_address=$header_from;
+                }
+                break;
+            }
+        }
+        if (!$from_address || !filter_var($from_address,FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+        $mailer->setFrom($from_address);
+        $mailer->Sender=$from_address;
+
+        $recipient_addresses=experimentmail__split_addresses($recipient);
+        foreach ($recipient_addresses as $recipient_address_line) {
+            $recipient_address=experimentmail__extract_email_address($recipient_address_line);
+            if ($recipient_address) {
+                $mailer->addAddress($recipient_address);
+            }
+        }
+        if (count($mailer->getToAddresses())<1) {
+            return false;
+        }
+
+        if (isset($settings["bcc_all_outgoing_emails"]) && $settings["bcc_all_outgoing_emails"]=="y"
+            && isset($settings["bcc_all_outgoing_emails__address"]) && $settings["bcc_all_outgoing_emails__address"]) {
+            $bcc_address=experimentmail__extract_email_address($settings["bcc_all_outgoing_emails__address"]);
+            if ($bcc_address) {
+                $mailer->addBCC($bcc_address);
+            }
+        }
+
+        foreach ($parsed_headers as $header) {
+            $header_name_lower=strtolower($header["name"]);
+            if ($header_name_lower=="from" || $header_name_lower=="content-type" || $header_name_lower=="return-path") {
+                continue;
+            }
+            if ($header_name_lower=="cc" || $header_name_lower=="bcc" || $header_name_lower=="reply-to") {
+                experimentmail__apply_header_addresses($mailer,$header_name_lower,$header["value"]);
+            } else {
+                $mailer->addCustomHeader($header["name"],$header["value"]);
+            }
+        }
+
+        $mailer->Subject=$subject;
+        $mailer->Body=$message;
+        $mailer->isHTML(false);
+
+        foreach ($attachments as $attachment) {
+            if (isset($attachment["filename"]) && isset($attachment["content"])) {
+                $mailer->addStringAttachment($attachment["content"],$attachment["filename"]);
+            }
+        }
+
+        if (!$mailer->send()) {
+            experimentmail__phpmailer_debug_log("send failed: ".$mailer->ErrorInfo);
+            return false;
+        }
+        experimentmail__phpmailer_debug_log("send ok");
+        return true;
+    } catch (Exception $e) {
+        experimentmail__phpmailer_debug_log("exception: ".$e->getMessage());
+        return false;
+    }
+}
 
 function experimentmail__send($recipient,$subject,$message,$headers,$env_sender="") {
     global $settings;
+    experimentmail__phpmailer_debug_log("experimentmail__send transport=".(experimentmail__use_phpmailer() ? "phpmailer" : "legacy"));
+    if (experimentmail__use_phpmailer()) {
+        return experimentmail__send_via_phpmailer($recipient,$subject,$message,$headers,$env_sender);
+    }
     if (isset($settings['bcc_all_outgoing_emails']) && $settings['bcc_all_outgoing_emails']=='y'
         && isset($settings['bcc_all_outgoing_emails__address']) && $settings['bcc_all_outgoing_emails__address']) {
         $headers=$headers."Bcc: ".$settings['bcc_all_outgoing_emails__address']."\r\n";
@@ -40,6 +225,16 @@ function experimentmail__send($recipient,$subject,$message,$headers,$env_sender=
 
 
 function experimentmail__mail_attach($to, $from, $subject, $message, $filename, $filecontent,$lb="\n") {
+    if (experimentmail__use_phpmailer()) {
+        $headers = "From: ".$from."\r\n";
+        $message=html_entity_decode($message,ENT_COMPAT,'UTF-8');
+        $subject=html_entity_decode($subject,ENT_COMPAT,'UTF-8');
+        if (experimentmail__send_via_phpmailer($to,$subject,$message,$headers,"",array(array("filename"=>$filename,"content"=>$filecontent)))) {
+            return true;
+        }
+        return false;
+    }
+
     $mime_boundary = "<<<:" . md5(uniqid(mt_rand(), 1));
     $data = chunk_split(base64_encode($filecontent),60,"\r\n");
     $header = "From: ".$from.$lb;

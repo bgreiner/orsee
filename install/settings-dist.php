@@ -93,4 +93,19 @@ $settings__query_debugging_enabled="n";
 // Include path for tagsets. Leave as is, only change when you know what you are doing.
 ini_set("include_path",ini_get("include_path").":./tagsets:./../tagsets:./../../tagsets");
 
+// MAIL TRANSPORT
+// mail: use legacy transport (mail() / sendmail wrapper, configured in General Settings).
+// phpmailer: use PHPMailer + SMTP settings below.
+$settings__mail_transport="mail";
+
+// PHPMailer SMTP settings (used only when $settings__mail_transport = "phpmailer").
+$settings__phpmailer_host="your.smtp.mailserver.com";
+$settings__phpmailer_port=587;
+$settings__phpmailer_smtp_secure="tls"; // "", "tls", or "ssl"
+$settings__phpmailer_smtp_auth="n"; // y/n
+$settings__phpmailer_username="";
+$settings__phpmailer_password="";
+$settings__phpmailer_timeout=15;
+$settings__phpmailer_debug="n"; // y/n
+
 ?>
