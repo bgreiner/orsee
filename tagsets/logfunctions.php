@@ -137,6 +137,9 @@ function log__show_log($log) {
     }
 
     if (isset($_REQUEST['delete']) && $_REQUEST['delete'] && isset($_REQUEST['days']) && $_REQUEST['days']) {
+        if (!csrf__validate_request_message()) {
+            redirect ("admin/statistics_show_log.php?log=".$log);
+        }
 
         $allow=check_allow('log_file_'.$log.'_delete','statistics_show_log.php?log='.$log);
         if (isset($_REQUEST['days']) && $_REQUEST['days']=="all") $where_clause="";
@@ -173,8 +176,9 @@ function log__show_log($log) {
 
     if (check_allow('log_file_'.$log.'_delete')) {
         echo '
-            <FORM action="statistics_show_log.php">
+            <FORM action="statistics_show_log.php" method="POST">
             <INPUT type=hidden name="log" value="'.$log.'">
+            '.csrf__field().'
             '.lang('delete_log_entries_older_than').'
             <select name="days">
             <option value="all">'.lang('all_entries').'</option>';

@@ -17,7 +17,7 @@ if ($proceed) {
     $settings=load_settings();
     $settings['style']=$settings['orsee_admin_style'];
     $color=load_colors();
-    session_set_save_handler("orsee_session_open", "orsee_session_close", "orsee_session_read", "orsee_session_write", "orsee_session_destroy", "orsee_session_gc");
+    orsee_session_register_handler();
     session_start();
     if (isset($_SESSION['expadmindata'])) $expadmindata=$_SESSION['expadmindata']; else $expadmindata=array();
 

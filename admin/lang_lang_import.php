@@ -17,6 +17,16 @@ if ($proceed) {
     $tlang_name=load_language_symbol('lang_name',$lang_id);
 
     if (isset($_REQUEST['upload']) && $_REQUEST['upload']) {
+        if (!csrf__validate_request_message()) {
+            $proceed=false;
+        }
+    }
+}
+
+if ($proceed) {
+    $tlang_name=load_language_symbol('lang_name',$lang_id);
+
+    if (isset($_REQUEST['upload']) && $_REQUEST['upload']) {
         if(!isset($_REQUEST['action'])) $_REQUEST['action']="";
         switch ($_REQUEST['action']) {
             case 'upgrade': $do_upgrade=true; $do_update=false; break;
@@ -160,6 +170,7 @@ if ($proceed) {
 
     echo '  <form method=post enctype="multipart/form-data" action="lang_lang_import.php">
                 <input type=hidden name="lang_id" value="'.$lang_id.'">
+                '.csrf__field().'
 
         <table class="or_formtable">
             <TR><TD colspan="2">
