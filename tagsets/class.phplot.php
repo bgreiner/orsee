@@ -1445,9 +1445,9 @@ class phplot
     public function SetLineWidths($which_lw = null)
     {
         if (is_array($which_lw)) {
-            $this->line_widths = $which_lw; // Use provided array
+            $this->line_widths = array_map('intval', $which_lw); // Use provided array, normalized to ints
         } elseif (!is_null($which_lw)) {
-            $this->line_widths = array($which_lw); // Convert value to array
+            $this->line_widths = array((int)$which_lw); // Convert value to array, normalized to int
         }
         return true;
     }
@@ -3529,7 +3529,7 @@ class phplot
      */
     public function SetErrorBarLineWidth($which_seblw)
     {
-        $this->error_bar_line_width = $which_seblw;
+        $this->error_bar_line_width = (int)$which_seblw;
         return true;
     }
 
@@ -7496,7 +7496,7 @@ class phplot
 
                     case 'line':
                         // Draw a short line segment with proper color, width, and style
-                        imagesetthickness($this->img, $this->line_widths[$lws_index]);
+                        imagesetthickness($this->img, (int)$this->line_widths[$lws_index]);
                         $style = $this->SetDashedStyle(
                             $this->ndx_data_colors[$color_index],
                             $this->line_styles[$lws_index] == 'dashed'
@@ -7904,7 +7904,7 @@ class phplot
         $x2p = $this->xtr($x + $error_plus);
         $x2m = $this->xtr($x - $error_minus);
 
-        imagesetthickness($this->img, $this->error_bar_line_width);
+        imagesetthickness($this->img, (int)$this->error_bar_line_width);
         imageline($this->img, (int)$x2p, (int)$y1, (int)$x2m, (int)$y1, (int)$color);
         if ($this->error_bar_shape == 'tee') {
             $e = $this->error_bar_size;
@@ -7933,7 +7933,7 @@ class phplot
         $y2p = $this->ytr($y + $error_plus);
         $y2m = $this->ytr($y - $error_minus);
 
-        imagesetthickness($this->img, $this->error_bar_line_width);
+        imagesetthickness($this->img, (int)$this->error_bar_line_width);
         imageline($this->img, (int)$x1, (int)$y2p, (int)$x1, (int)$y2m, (int)$color);
         if ($this->error_bar_shape == 'tee') {
             $e = $this->error_bar_size;
@@ -8542,7 +8542,7 @@ class phplot
             // Proceed with dependent values
             for ($idx = 0; $rec < $this->num_recs[$row]; $rec++, $idx++) {
                 if (is_numeric($dv = $this->data[$row][$rec])) {          // Allow for missing data
-                    ImageSetThickness($this->img, $this->line_widths[$idx]);
+                    ImageSetThickness($this->img, (int)$this->line_widths[$idx]);
 
                     // Select the color:
                     $this->GetDataColor($row, $idx, $gcvars, $data_color);
@@ -8734,7 +8734,7 @@ class phplot
 
                     if ($start_lines[$idx]) {
                         // Set line width, revert it to normal at the end
-                        ImageSetThickness($this->img, $this->line_widths[$idx]);
+                        ImageSetThickness($this->img, (int)$this->line_widths[$idx]);
 
                         // Select solid color or dashed line
                         $style = $this->SetDashedStyle($data_color, $line_style == 'dashed');
@@ -8862,7 +8862,7 @@ class phplot
 
                     if ($start_lines[$idx]) {
                         // Set line width, revert it to normal at the end
-                        ImageSetThickness($this->img, $this->line_widths[$idx]);
+                        ImageSetThickness($this->img, (int)$this->line_widths[$idx]);
 
                         // Select the color:
                         $this->GetDataColor($row, $idx, $gcvars, $data_color);
@@ -9438,7 +9438,7 @@ class phplot
                 $this->GetDataColor($row, 0, $gcvars, $body_color); // Color 0 for body, closing down
                 $this->GetDataColor($row, 2, $gcvars, $ext_color);  // Color 2 for wicks/ticks
             }
-            imagesetthickness($this->img, $body_thickness);
+            imagesetthickness($this->img, (int)$body_thickness);
 
             if ($draw_candles) {
                 // Note: Unlike ImageFilledRectangle, ImageRectangle 'requires' its arguments in
@@ -9461,7 +9461,7 @@ class phplot
                 $draw_body($this->img, (int)$x_left, (int)$yb1_pixels, (int)$x_right, (int)$yb2_pixels, (int)$body_color);
 
                 // Draw upper and lower wicks, if they have height. (In device coords, that's dY<0)
-                imagesetthickness($this->img, $wick_thickness);
+                imagesetthickness($this->img, (int)$wick_thickness);
                 if ($yh_pixels < $yb1_pixels) {
                     imageline($this->img, $x_now_pixels, $yb1_pixels, $x_now_pixels, $yh_pixels, $ext_color);
                 }
@@ -9471,7 +9471,7 @@ class phplot
             } else {
                 // Basic OHLC
                 imageline($this->img, $x_now_pixels, $yl_pixels, $x_now_pixels, $yh_pixels, $body_color);
-                imagesetthickness($this->img, $wick_thickness);
+                imagesetthickness($this->img, (int)$wick_thickness);
                 imageline($this->img, $x_left, $yo_pixels, $x_now_pixels, $yo_pixels, $ext_color);
                 imageline($this->img, $x_right, $yc_pixels, $x_now_pixels, $yc_pixels, $ext_color);
             }
@@ -9625,26 +9625,26 @@ class phplot
 
             // Draw the lower whisker and T
             if (isset($yd[0]) && $yd[0] > $yd[1]) {   // Note device Y coordinates are inverted (*-1)
-                imagesetthickness($this->img, $whisker_thickness);
+                imagesetthickness($this->img, (int)$whisker_thickness);
                 imageline($this->img, $xd, $yd[0], $xd, $yd[1], $whisker_style);
                 imageline($this->img, $xd - $width2, $yd[0], $xd + $width2, $yd[0], $whisker_color);
             }
 
             // Draw the upper whisker and T
             if (isset($yd[4]) && $yd[3] > $yd[4]) {   // Meaning: Yworld[3] < Yworld[4]
-                imagesetthickness($this->img, $whisker_thickness);
+                imagesetthickness($this->img, (int)$whisker_thickness);
                 imageline($this->img, $xd, $yd[3], $xd, $yd[4], $whisker_style);
                 imageline($this->img, $xd - $width2, $yd[4], $xd + $width2, $yd[4], $whisker_color);
             }
 
             // Draw the median belt (before the box, so the ends of the belt don't break up the box.)
             if (isset($yd[2])) {
-                imagesetthickness($this->img, $belt_thickness);
+                imagesetthickness($this->img, (int)$belt_thickness);
                 imageline($this->img, $x_left, $yd[2], $x_right, $yd[2], $belt_color);
             }
 
             // Draw the box
-            imagesetthickness($this->img, $box_thickness);
+            imagesetthickness($this->img, (int)$box_thickness);
             imagerectangle($this->img, $x_left, $yd[3], $x_right, $yd[1], $box_color);
             imagesetthickness($this->img, 1);
 
