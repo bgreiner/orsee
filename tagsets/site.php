@@ -3,7 +3,7 @@
 
 // messages
 function message($new_message,$icon="") {
-    if(isset($_SESSION['message_text'])) {
+    if (isset($_SESSION['message_text']) && $_SESSION['message_text'] !== "") {
         $message_text = $_SESSION['message_text'];
         $separator = "<BR>";
     } else {
