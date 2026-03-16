@@ -3,10 +3,15 @@
 
 // messages
 function message($new_message,$icon="") {
-    $message_text=$_SESSION['message_text'];
-    if ($message_text) $seperator="<BR>"; else $seperator="";
+    if (isset($_SESSION['message_text']) && $_SESSION['message_text'] !== "") {
+        $message_text = $_SESSION['message_text'];
+        $separator = "<BR>";
+    } else {
+        $message_text = "";
+        $separator = "";
+    }
     if ($icon) $new_message=icon($icon).' '.$new_message;
-    $_SESSION['message_text']=$message_text.$seperator.$new_message;
+    $_SESSION['message_text']=$message_text.$separator.$new_message;
 }
 
 function show_message() {
