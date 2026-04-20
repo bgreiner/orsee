@@ -44,8 +44,6 @@ function orsee_session_register_handler() {
 }
 
 function orsee_session_open($aSavaPath, $aSessionName) {
-       global $aTime;
-       orsee_session_gc( $aTime );
        return true;
 }
 
@@ -85,9 +83,21 @@ function orsee_session_destroy( $aKey ) {
 }
 
 function orsee_session_gc( $aMaxLifeTime ) {
+    global $settings;
     site__database_config();
-    if (!isset($aMaxLifeTime) || (!$aMaxLifeTime)) $aMaxLifeTime=60*60;
-    $pars=array(':aMaxLifeTime'=>$aMaxLifeTime);
+    $min_timeout_minutes=15;
+    $max_timeout_minutes=43200;
+    $orsee_timeout_minutes=(isset($settings['session_timeout_minutes']) ? (int)$settings['session_timeout_minutes'] : 0);
+
+    if ($orsee_timeout_minutes >= $min_timeout_minutes && $orsee_timeout_minutes <= $max_timeout_minutes) {
+        $effective_lifetime=$orsee_timeout_minutes*60;
+    } else {
+        $effective_lifetime=(int)$aMaxLifeTime;
+        if ($effective_lifetime < $min_timeout_minutes*60) $effective_lifetime=$min_timeout_minutes*60;
+        if ($effective_lifetime > $max_timeout_minutes*60) $effective_lifetime=$max_timeout_minutes*60;
+    }
+
+    $pars=array(':aMaxLifeTime'=>$effective_lifetime);
     $query = "DELETE FROM ".table('http_sessions')." WHERE UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(LastUpdated) > :aMaxLifeTime";
     $done=or_query($query,$pars);
     return pdo_num_rows($done);
