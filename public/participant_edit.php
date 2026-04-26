@@ -37,22 +37,30 @@ if ($proceed) {
         foreach ($_REQUEST as $k=>$v) {
             if(!is_array($v)) $_REQUEST[$k]=trim($v);
         }
-        $errors__dataform=participantform__check_fields($_REQUEST,'profile_form_public_edit');
+        $check_result=participantform__check_fields($_REQUEST,'profile_form_public_edit');
+        $errors__dataform=$check_result['errors'];
+        $form_input=$check_result['sanitized'];
+        $allowed_fields=$check_result['allowed_fields'];
         $error_count=count($errors__dataform);
         if ($error_count>0) $continue=false;
 
-        $response=participantform__check_unique($_REQUEST,"edit",$_REQUEST['participant_id']);
+        $response=participantform__check_unique($form_input,"edit",$form_input['participant_id']);
         if($response['problem']) { $continue=false; }
 
         if ($continue) {
             if (isset($participant['pending_profile_update_request']) && $participant['pending_profile_update_request']=='y') {
-                $_REQUEST['pending_profile_update_request']='n';
-                $_REQUEST['profile_update_request_new_pool']=NULL;
+                $form_input['pending_profile_update_request']='n';
+                $form_input['profile_update_request_new_pool']=NULL;
                 message(lang('profile_confirmed').'<BR>');
             }
-            $participant=$_REQUEST;
+            $participant=$form_input;
 
             $participant['last_profile_update']=time();
+            $save_allowed_fields=array_values(array_unique(array_merge(
+                $allowed_fields,
+                array('participant_id','subpool_id','language','pending_profile_update_request','profile_update_request_new_pool','last_profile_update')
+            )));
+            $participant=array_filter_allowed($participant,$save_allowed_fields);
 
             $done=orsee_db_save_array($participant,"participants",$participant['participant_id'],"participant_id");
 
@@ -69,7 +77,7 @@ if ($proceed) {
     if ((!isset($_REQUEST['add']) || !$_REQUEST['add']) &&
         (!isset($_REQUEST['submit']) || !$_REQUEST['submit']) &&
         !(isset($_REQUEST['doit']) && $_REQUEST['doit'])) {
-        $_REQUEST=$participant;
+        $form_input=$participant;
     }
 }
 
@@ -77,7 +85,7 @@ if ($proceed) {
     if (isset($participant['pending_profile_update_request']) && $participant['pending_profile_update_request']=='y') {
         message(lang('profile_update_request_message').'<BR>','warning');
         if (isset($participant['profile_update_request_new_pool']) && $participant['profile_update_request_new_pool']) {
-            $_REQUEST['subpool_id']=$participant['profile_update_request_new_pool'];
+            $form_input['subpool_id']=$participant['profile_update_request_new_pool'];
         }
     }
 }
@@ -174,7 +182,7 @@ if ($proceed) {
                                 <form id="orsee-public-unsubscribe-form" action="'.$edit_url.'" method="POST" class="orsee-public-profile-form">
                                     '.csrf__field().'
                                     <div class="orsee-form-shell orsee-public-profile-shell">';
-        participant__show_inner_form($_REQUEST,$errors__dataform,'profile_form_public_edit');
+        participant__show_inner_form($form_input,$errors__dataform,'profile_form_public_edit');
         echo '                      <div class="orsee-public-profile-actions">
                                         <button class="button orsee-public-btn" name="add" type="submit" value="true">'.lang('save').'</button>
                                     </div>

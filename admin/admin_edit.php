@@ -90,10 +90,17 @@ if ($proceed) {
             foreach (array('fname','lname') as $k) {
                 $_REQUEST[$k]=trim($_REQUEST[$k]);
             }
-            $done=orsee_db_save_array($_REQUEST,"admin",$admin_id,"admin_id");
+            $save_allowed_fields=array('fname','lname','email','language','get_calendar_mail','get_statistics_mail');
+            if (check_allow('admin_edit')) {
+                $save_allowed_fields=array_merge($save_allowed_fields,array('adminname','admin_type','experimenter_list','disabled','locked','pw_update_requested'));
+            }
+            if (isset($_REQUEST['password_crypt']) && $_REQUEST['password_crypt']) $save_allowed_fields[]='password_crypt';
+            $form_fields=array_filter_allowed($_REQUEST,$save_allowed_fields);
+            $done=orsee_db_save_array($form_fields,"admin",$admin_id,"admin_id");
             message(lang('changes_saved'));
-            log__admin("admin_edit",$_REQUEST['adminname']);
-            if ($admin_id==$expadmindata['admin_id']) $nl="&new_language=".$_REQUEST['language']; else $nl="";
+            if (isset($form_fields['adminname'])) $log_adminname=$form_fields['adminname']; else $log_adminname=$admin['adminname'];
+            log__admin("admin_edit",$log_adminname);
+            if ($admin_id==$expadmindata['admin_id']) $nl="&new_language=".$form_fields['language']; else $nl="";
             redirect ("admin/admin_edit.php?admin_id=".$admin_id.$nl);
             $proceed=false;
         }

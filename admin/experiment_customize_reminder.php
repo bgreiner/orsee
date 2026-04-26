@@ -56,8 +56,12 @@ if ($proceed) {
         }
 
         // is unknown or known?
-        if (!$id) $done=lang__insert_to_lang($sitem);
-        else $done=orsee_db_save_array($sitem,"lang",$id,"lang_id");
+        $allowed_fields=array('content_type','content_name');
+        foreach ($installed_langs as $inst_lang) $allowed_fields[]=$inst_lang;
+        $form_fields=array_filter_allowed($sitem,$allowed_fields);
+
+        if (!$id) $done=lang__insert_to_lang($form_fields);
+        else $done=orsee_db_save_array($form_fields,"lang",$id,"lang_id");
 
         if ($done) message(lang('mail_text_saved'));
         else message (lang('database_error'),'error');

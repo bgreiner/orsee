@@ -93,8 +93,32 @@ if ($proceed) {
             $_REQUEST['experiment_ext_type']=trim($exptypes[1]);
 
             $edit=$_REQUEST;
+            $save_allowed_fields=array(
+                    'experiment_id','experiment_name','experiment_public_name',
+                    'experiment_description','experiment_link_to_paper',
+                    'experiment_class','experimenter','experimenter_mail',
+                    'experiment_type','experiment_ext_type','experiment_finished',
+                    'hide_in_stats','hide_in_cal','access_restricted',
+                    'payment_types','payment_budgets');
+            if (or_setting('allow_public_experiment_note') &&
+                    check_allow('experiment_edit_add_public_experiment_note')) {
+                $save_allowed_fields[]='public_experiment_note';
+            }
+            if ($settings['enable_editing_of_experiment_sender_email']=='y' &&
+                    check_allow('experiment_change_sender_address')) {
+                $save_allowed_fields[]='sender_mail';
+            }
+            if ($settings['enable_ethics_approval_module']=='y' &&
+                    check_allow('experiment_edit_ethics_approval_details')) {
+                $save_allowed_fields[]='ethics_by';
+                $save_allowed_fields[]='ethics_number';
+                $save_allowed_fields[]='ethics_exempt';
+                $save_allowed_fields[]='ethics_expire_date';
+            }
+            $form_fields=array_filter_allowed($edit,$save_allowed_fields);
 
-            $done=orsee_db_save_array($edit,"experiments",$edit['experiment_id'],"experiment_id");
+            $done=orsee_db_save_array($form_fields,"experiments",
+                    $form_fields['experiment_id'],"experiment_id");
 
             if ($done) {
                 message (lang('changes_saved'));
@@ -187,7 +211,7 @@ if ($proceed) {
                         </div>
                     </div>';
 
-    if (or_setting('allow_public_experiment_note') && check_allow('session_edit_add_public_session_note')) {
+    if (or_setting('allow_public_experiment_note') && check_allow('experiment_edit_add_public_experiment_note')) {
         echo '      <div class="field">
                         <label class="label" for="public_experiment_note">'.lang('public_experiment_note').':</label>
                         <p class="help">'.lang('public_experiment_note_note').'</p>

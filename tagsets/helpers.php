@@ -355,6 +355,12 @@ function id_array_to_db_string($id_array) {
     return $db_string;
 }
 
+function array_filter_allowed($array,$whitelist) {
+    if (!is_array($array)) return array();
+    if (!is_array($whitelist) || count($whitelist)===0) return array();
+    return array_intersect_key($array,array_flip($whitelist));
+}
+
 function db_string_to_id_array($db_string) {
     $in_array=explode(",",$db_string); $out_array=array();
     foreach ($in_array as $k=>$v) {

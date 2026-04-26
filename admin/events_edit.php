@@ -36,9 +36,17 @@ if ($proceed) {
             $continue=false;
         }
 
+        if (!trim((string)$edit['reason'])) {
+            message(lang('error_event_description_required'),'error');
+            $continue=false;
+        }
+
 
         if ($continue) {
-            $done=orsee_db_save_array($edit,"events",$edit['event_id'],"event_id");
+            $form_fields=array_filter_allowed($edit,array(
+                    'event_id','laboratory_id','event_category','event_start','event_stop',
+                    'experimenter','reason','reason_public','number_of_participants'));
+            $done=orsee_db_save_array($form_fields,"events",$form_fields['event_id'],"event_id");
             if ($done) {
                 log__admin("events_edit","event_id:".$event_id);
                 message (lang('changes_saved'));
@@ -52,7 +60,7 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if ($event_id) {
+    if ($event_id && !isset($edit['event_id'])) {
         $edit=orsee_db_load_array("events",$event_id,"event_id");
         if (!isset($edit['event_id'])) redirect('admin/calendar_main.php');
     }

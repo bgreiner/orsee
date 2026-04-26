@@ -86,7 +86,10 @@ if ($proceed) {
 
             foreach ($languages as $language) $lsub[$language]=$selfdesc[$language];
 
-            $done=orsee_db_save_array($exptype,"experiment_types",$exptype_id,"exptype_id");
+            $form_fields=array_filter_allowed($exptype,array(
+                    'exptype_id','exptype_name','exptype_description','exptype_mapping'));
+            $form_fields['exptype_id']=$exptype_id;
+            $done=orsee_db_save_array($form_fields,"experiment_types",$exptype_id,"exptype_id");
 
             if ($new_entry) $done=lang__insert_to_lang($lsub);
             else $done=orsee_db_save_array($lsub,"lang",$lsub['lang_id'],"lang_id");

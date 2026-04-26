@@ -100,7 +100,10 @@ if ($proceed) {
             if ($not_assigned) {
                 $pstatus=$_REQUEST;
                 $pstatus['pstatus_id']=$pstatus_id;
-                $done=orsee_db_save_array($pstatus,"participation_statuses",$pstatus_id,"pstatus_id");
+                $form_fields=array_filter_allowed($pstatus,array(
+                        'pstatus_id','participated','noshow','participateagain'));
+                $form_fields['pstatus_id']=$pstatus_id;
+                $done=orsee_db_save_array($form_fields,"participation_statuses",$pstatus_id,"pstatus_id");
             }
             message (lang('changes_saved'));
             log__admin("participation_status_edit","pstatus_id:".$pstatus['pstatus_id']);

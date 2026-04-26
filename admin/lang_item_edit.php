@@ -164,8 +164,12 @@ if ($proceed) {
                 }
             }
 
-            if ($new) { $id=lang__insert_to_lang($sitem); $done=(bool)$id; }
-            else $done=orsee_db_save_array($sitem,"lang",$id,"lang_id");
+            $allowed_fields=array('content_type','content_name');
+            foreach ($languages as $language) $allowed_fields[]=$language;
+            $form_fields=array_filter_allowed($sitem,$allowed_fields);
+
+            if ($new) { $id=lang__insert_to_lang($form_fields); $done=(bool)$id; }
+            else $done=orsee_db_save_array($form_fields,"lang",$id,"lang_id");
 
             if (!$new && $new_id=="time") $sitem['content_name']=trim($_REQUEST['content_shortcut']);
 

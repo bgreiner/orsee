@@ -6,7 +6,6 @@ $menu__area="options";
 $title="edit_symbol";
 include ("header.php");
 if ($proceed) {
-
     if (isset($_REQUEST['lang_id']) && $_REQUEST['lang_id']) $lang_id=$_REQUEST['lang_id']; else $lang_id="";
 
     if ($lang_id) $allow=check_allow('lang_symbol_edit','lang_main.php');
@@ -14,8 +13,6 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    $languages=get_languages();
-
     if (isset($_REQUEST['save']) && $_REQUEST['save']) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
@@ -26,30 +23,46 @@ if ($proceed) {
 if ($proceed) {
     $languages=get_languages();
 
-    if (isset($_REQUEST['save']) && $_REQUEST['save']) {
-
-        $continue=true;
-        $_REQUEST['content_type']="lang";
-
-        if ($lang_id) {
-            $done=orsee_db_save_array($_REQUEST,"lang",$lang_id,"lang_id");
-        } else {
-            $lang_id=lang__insert_to_lang($_REQUEST);
-        }
-        message(lang('changes_saved'));
-
-        log__admin("language_symbol_edit","lang_id:lang,".$_REQUEST['content_name']);
-        redirect ("admin/lang_symbol_edit.php?lang_id=".$lang_id);
-    }
-}
-
-if ($proceed) {
-    // if lang id given, load data
     if ($lang_id) $content=orsee_db_load_array("lang",$lang_id,"lang_id"); else $content=array('content_name'=>'');
     if ($lang_id && (!isset($content['lang_id']))) redirect ("admin/lang_main.php");
-}
 
-if ($proceed) {
+    if (isset($_REQUEST['save']) && $_REQUEST['save']) {
+        $continue=true;
+        $can_edit_content_name=(!$lang_id || check_allow('lang_symbol_add'));
+
+        if ($can_edit_content_name) {
+            if (!isset($_REQUEST['content_name']) || trim((string)$_REQUEST['content_name'])==='') {
+                message(lang('error_lang_symbol_name_required'),'error');
+                $continue=false;
+            } else {
+                $_REQUEST['content_name']=trim((string)$_REQUEST['content_name']);
+            }
+        }
+
+        if ($continue) {
+            $_REQUEST['content_type']="lang";
+            $allowed_fields=array('content_type');
+            if ($can_edit_content_name) $allowed_fields[]='content_name';
+            foreach ($languages as $language) $allowed_fields[]=$language;
+            $form_fields=array_filter_allowed($_REQUEST,$allowed_fields);
+
+            if ($lang_id) {
+                $done=orsee_db_save_array($form_fields,"lang",$lang_id,"lang_id");
+            } else {
+                $lang_id=lang__insert_to_lang($form_fields);
+            }
+            message(lang('changes_saved'));
+
+            if (!$can_edit_content_name) $form_fields['content_name']=$content['content_name'];
+            log__admin("language_symbol_edit","lang_id:lang,".$form_fields['content_name']);
+            redirect ("admin/lang_symbol_edit.php?lang_id=".$lang_id);
+        } else {
+            $content=$_REQUEST;
+        }
+    }
+
+    show_message();
+
     echo '<div class="orsee-panel">
             <div class="orsee-panel-title"><div>'.lang('edit_symbol');
     if ($lang_id) echo ' '.$content['content_name'];
