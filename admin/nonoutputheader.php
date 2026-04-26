@@ -8,8 +8,8 @@ include ("../config/requires.php");
 $proceed=true;
 if ($proceed) {
     $document=thisdoc();
-    if ($settings__stop_admin_site=="y" && $document!="error_temporaly_disabled.php")
-        redirect("errors/error_temporaly_disabled.php");
+    if ($settings__stop_admin_site=="y" && $document!="error_temporarily_disabled.php")
+        redirect("admin/error_temporarily_disabled.php");
 }
 
 if ($proceed) {

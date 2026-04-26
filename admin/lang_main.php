@@ -4,6 +4,7 @@ ob_start();
 
 $menu__area="options";
 $title="languages";
+$lang_icons_prepare=true;
 include ("header.php");
 if ($proceed) {
 
@@ -79,87 +80,79 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<center>';
-
-    echo '  <BR><BR>
-        <TABLE border=0 width=80%>
-            <TR>';
-        if (check_allow('lang_symbol_add')) echo '
-            <TD>
-                        '.button_link('lang_symbol_edit.php?go=true',
-                        lang('add_symbol'),'plus-circle').'
-            </TD>';
-        if (check_allow('lang_lang_add')) echo '
-            <TD>
-                        '.button_link('lang_lang_add.php',
-                        lang('add_language'),'plus').'
-                        </TD>';
-        if (check_allow('lang_lang_delete')) echo '
-            <TD>
-                    '.button_link('lang_lang_delete.php',
-                        lang('delete_language'),'times').'
-                        </TD>';
-    echo '      </TR>
-        </TABLE><BR><BR>
-        ';
+    echo '<div class="orsee-panel">';
+    echo '<div class="orsee-options-actions-end">';
+    if (check_allow('lang_symbol_add')) {
+        echo button_link('lang_symbol_edit.php?go=true',lang('add_symbol'),'plus-circle').' ';
+    }
+    if (check_allow('lang_lang_add')) {
+        echo button_link('lang_lang_add.php',lang('add_language'),'plus').' ';
+    }
+    if (check_allow('lang_lang_delete')) {
+        echo button_link('lang_lang_delete.php',lang('delete_language'),'times');
+    }
+    echo '</div>';
 
 
         // show languages
 
     echo '<FORM action="'.thisdoc().'" method="POST">'.csrf__field();
-    echo '<TABLE class="or_listtable" style="width: 80%;"><thead>
-            <TR style="background: '.$color['list_header_background'].'; color: '.$color['list_header_textcolor'].';">
-                <TD colspan=2>'.lang('installed_languages').'</TD>
-                <TD>'.lang('available_in_public_area').'</TD>
-                <TD>'.lang('available_for_participants').'</TD>
-                <TD></TD>
-                <TD></TD>
-            </TR></thead>
-            <tbody>';
+    echo '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
+    echo '<div class="orsee-table-row orsee-table-head">';
+    echo '<div class="orsee-table-cell">'.lang('installed_languages').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('default').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('available_in_public_area').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('available_for_participants').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('action').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('action').'</div>';
+    echo '</div>';
 
     $shade=false;
     foreach ($languages as $language) {
-        echo '<TR';
-        if ($shade) { echo ' bgcolor="'.$color['list_shade1'].'"'; $shade=false; }
-        else { echo ' bgcolor="'.$color['list_shade2'].'"'; $shade=true; }
-        echo '>
-                <TD>'.$lang_names[$language].' - '.$language.'</TD>
-                <TD>';
+        $row_class='orsee-table-row';
+        if ($shade) {
+            $row_class.=' is-alt';
+            $shade=false;
+        } else {
+            $shade=true;
+        }
+        echo '<div class="'.$row_class.'">';
+        echo '<div class="orsee-table-cell" data-label="'.lang('installed_languages').'"><span class="languageicon langicon-'.$language.'">'.$lang_names[$language].'</span> - '.$language.'</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('default').'">';
         if ($language==$settings['admin_standard_language']) echo '[default admin] ';
         if ($language==$settings['public_standard_language']) echo '[default public] ';
-        echo '  </TD>
-                <TD>
-                    <INPUT type=checkbox name="enabled_public['.$language.']" value="'.$language.'"';
+        echo '</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('available_in_public_area').'">';
+        echo '<INPUT type=checkbox name="enabled_public['.$language.']" value="'.$language.'"';
         if ($language==$settings['public_standard_language'] || !check_allow('lang_avail_edit')) echo ' DISABLED';
         if (in_array($language,$enabled_pub)) echo ' CHECKED';
-        echo '>
-                </TD>
-                <TD>
-                    <INPUT type=checkbox name="enabled_participants['.$language.']" value="'.$language.'"';
+        echo '>';
+        echo '</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('available_for_participants').'">';
+        echo '<INPUT type=checkbox name="enabled_participants['.$language.']" value="'.$language.'"';
         if ($language==$settings['public_standard_language'] || !check_allow('lang_avail_edit')) echo ' DISABLED';
         if (in_array($language,$enabled_part)) echo ' CHECKED';
-        echo '>
-                </TD>
-                <TD>';
-        if (check_allow('lang_lang_edit')) echo '<A HREF="lang_lang_edit.php?elang='.$language.'">'.lang('edit_basic_data').'</A>';
-        echo '  </TD>
-                <TD>';
-        if (check_allow('lang_symbol_edit')) echo '<A HREF="lang_edit.php?el='.$language.'">'.lang('edit_words_for').' "'.$language.'"</A>';
-        echo '  </TD>
-                </TD>
-            </TR>';
+        echo '>';
+        echo '</div>';
+        echo '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'">';
+        if (check_allow('lang_lang_edit')) echo button_link('lang_lang_edit.php?elang='.$language,lang('edit_basic_data'),'pencil-square-o');
+        echo '</div>';
+        echo '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'">';
+        if (check_allow('lang_symbol_edit')) echo button_link('lang_edit.php?el='.$language,lang('edit_words_for').' "'.$language.'"','pencil-square-o');
+        echo '</div>';
+        echo '</div>';
     }
 
-    echo '</tbody>';
+    echo '</div>';
     if (check_allow('lang_avail_edit')) {
-        echo '  <tfoot><TR><TD colspan=2></TD><TD align=center colspan=2>
-                <INPUT class="button" type=submit name="change_def" value="'.lang('change').'">
-                </TD><TD></TD>
-                </TR></tfoot>';
+        echo '<div class="orsee-options-actions-center" style="margin-top: 0.84rem;">';
+        echo '<INPUT class="button orsee-btn" type=submit name="change_def" value="'.lang('change').'">';
+        echo '</div>';
     }
 
-    echo '</TABLE></FORM>';
-    echo '</center>';
+    echo '</FORM>';
+    echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
+    echo '</div>';
 
 }
 include ("footer.php");

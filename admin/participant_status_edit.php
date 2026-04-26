@@ -45,7 +45,7 @@ if ($proceed) {
         }
 
         if ($not_unconfirmed && $_REQUEST['is_default_active']=="y" && $_REQUEST['is_default_inactive']=="y") {
-            message(lang('error_participant_status_cannot_be_default_for_both_active_and_inactive'));
+            message(lang('error_participant_status_cannot_be_default_for_both_active_and_inactive'),'error');
             $_REQUEST['is_default_active']="n"; $_REQUEST['is_default_inactive']="n";
             $continue=false;
         }
@@ -53,7 +53,7 @@ if ($proceed) {
         $status_name=$_REQUEST['status_name'];
         foreach ($languages as $language) {
             if (!$status_name[$language]) {
-                    message (lang('missing_language').': "'.lang('name').'" - '.$language);
+                    message (lang('missing_language').': "'.lang('name').'" - '.$language,'error');
                     $continue=false;
             }
         }
@@ -61,7 +61,7 @@ if ($proceed) {
             $status_error=$_REQUEST['status_error'];
             foreach ($languages as $language) {
                 if ($_REQUEST['access_to_profile']!='y' && !$status_error[$language]) {
-                    message (lang('missing_language').': "'.lang('error_message_to_participant_when_access_is_denied').'" - '.$language);
+                    message (lang('missing_language').': "'.lang('error_message_to_participant_when_access_is_denied').'" - '.$language,'error');
                     $continue=false;
                 }
             }
@@ -133,179 +133,136 @@ if ($proceed) {
 
 if ($proceed) {
     // form
-
-    echo '  <CENTER>';
     show_message();
     echo '
-            <FORM action="participant_status_edit.php" method="POST">'.csrf__field();
-    if (isset($status_id)) echo '<INPUT type=hidden name="status_id" value="'.$status_id.'">';
+            <form action="participant_status_edit.php" method="POST">'.csrf__field();
+    if (isset($status_id)) echo '<input type="hidden" name="status_id" value="'.$status_id.'">';
 
     echo '
-        <TABLE class="or_formtable">
-            <TR><TD colspan="2">
-                <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                            '.lang('edit_participant_status');
+                <div class="orsee-panel">
+                    <div class="orsee-panel-title">
+                        <div class="orsee-panel-title-main">'.lang('edit_participant_status');
     if (isset($status_id)) echo ' '.$status_name[lang('lang')];
-    echo '
-                        </TD>
-                </TR></TABLE>
-            </TD></TR>';
+    echo '              </div>
+                    </div>
+                    <div class="orsee-form-shell">';
 
-        if (isset($status_id)) {
-            echo '
-                <TR>
-                    <TD>
-                        '.lang('id').':
-                    </TD>
-                    <TD>
-                        '.$status_id.'
-                    </TD>
-                </TR>';
-        }
+    if (isset($status_id)) {
+        echo '          <div class="field">
+                            <div class="control"><span class="orsee-dense-id-tag">'.lang('id').': '.$status_id.'</span></div>
+                        </div>';
+    }
 
-        echo '
-            <TR>
-                <TD valign="top">
-                    '.lang('name').':
-                </TD>
-                <TD>';
-
-                    echo '<TABLE border=0>';
-                    foreach ($languages as $language) {
-                        if (!isset($status_name[$language])) $status_name[$language]='';
-                        echo '  <TR><TD>'.$language.':</TD>
-                                <TD><INPUT name="status_name['.$language.']" type=text size=40 maxlength=200 value="'.
-                                stripslashes($status_name[$language]).'">
-                                </TD>
-                            </TR>';
-                    }
-                    echo '</TABLE>
-                </TD>
-            </TR>';
+    echo '              <div class="field">
+                            <label class="label">'.lang('name').':</label>
+                            <div class="control">';
+    foreach ($languages as $language) {
+        if (!isset($status_name[$language])) $status_name[$language]='';
+        echo '                  <div class="field">
+                                    <label class="label">'.$language.':</label>
+                                    <div class="control">
+                                        <input class="input is-primary orsee-input orsee-input-text" name="status_name['.$language.']" type="text" maxlength="200" value="'.htmlspecialchars(stripslashes($status_name[$language])).'">
+                                    </div>
+                                </div>';
+    }
+    echo '                  </div>
+                        </div>';
 
     if ($not_unconfirmed) {
-        echo '
-                <TR>
-                <TD valign=top>
-                    '.lang('is_default_for_participants_becoming_active').'
-                </TD>
-                    <TD>';
-                    if ($status['is_default_active']=="y" || $status['is_default_inactive']=="y") {
-                        if ($status['is_default_active']=="y") echo lang('yes');
-                        else echo lang('no');
-                    } else {
-                        echo '
-                            <INPUT type=radio name="is_default_active" value="y"';
-                            if ($status['is_default_active']=="y") echo ' CHECKED';
-                            echo '>'.lang('yes').'
-                            &nbsp;&nbsp;
-                            <INPUT type=radio name="is_default_active" value="n"';
-                            if ($status['is_default_active']!="y") echo ' CHECKED';
-                            echo '>'.lang('no');
-                    }
-        echo '      </TD>
-                </TR>';
+        echo '          <div class="field">
+                            <label class="label">'.lang('is_default_for_participants_becoming_active').'</label>
+                            <div class="control">';
+        if ($status['is_default_active']=="y" || $status['is_default_inactive']=="y") {
+            if ($status['is_default_active']=="y") echo lang('yes');
+            else echo lang('no');
+        } else {
+            echo '              <label class="radio"><input type="radio" name="is_default_active" value="y"';
+            if ($status['is_default_active']=="y") echo ' CHECKED';
+            echo '>'.lang('yes').'</label>&nbsp;&nbsp;
+                                <label class="radio"><input type="radio" name="is_default_active" value="n"';
+            if ($status['is_default_active']!="y") echo ' CHECKED';
+            echo '>'.lang('no').'</label>';
+        }
+        echo '              </div>
+                        </div>';
 
-        echo '
-                <TR>
-                <TD valign=top>
-                    '.lang('is_default_for_participants_becoming_inactive').'
-                </TD>
-                    <TD>';
-                    if ($status['is_default_active']=="y" || $status['is_default_inactive']=="y") {
-                        if ($status['is_default_inactive']=="y") echo lang('yes');
-                        else echo lang('no');
-                    } else {
-                        echo '
-                            <INPUT type=radio name="is_default_inactive" value="y"';
-                            if ($status['is_default_inactive']=="y") echo ' CHECKED';
-                            echo '>'.lang('yes').'
-                            &nbsp;&nbsp;
-                            <INPUT type=radio name="is_default_inactive" value="n"';
-                            if ($status['is_default_inactive']!="y") echo ' CHECKED';
-                            echo '>'.lang('no');
-                    }
-        echo '      </TD>
-                </TR>';
+        echo '          <div class="field">
+                            <label class="label">'.lang('is_default_for_participants_becoming_inactive').'</label>
+                            <div class="control">';
+        if ($status['is_default_active']=="y" || $status['is_default_inactive']=="y") {
+            if ($status['is_default_inactive']=="y") echo lang('yes');
+            else echo lang('no');
+        } else {
+            echo '              <label class="radio"><input type="radio" name="is_default_inactive" value="y"';
+            if ($status['is_default_inactive']=="y") echo ' CHECKED';
+            echo '>'.lang('yes').'</label>&nbsp;&nbsp;
+                                <label class="radio"><input type="radio" name="is_default_inactive" value="n"';
+            if ($status['is_default_inactive']!="y") echo ' CHECKED';
+            echo '>'.lang('no').'</label>';
+        }
+        echo '              </div>
+                        </div>';
 
-        echo '
-            <TR>
-                <TD>
-                    '.lang('access_to_profile').'
-                </TD>
-                <TD>
-                    <INPUT type=radio name="access_to_profile" value="y"';
-                        if ($status['access_to_profile']=="y") echo ' CHECKED';
-                        echo '>'.lang('yes').'
-                    &nbsp;&nbsp;
-                    <INPUT type=radio name="access_to_profile" value="n"';
-                         if ($status['access_to_profile']!="y") echo ' CHECKED';
-                        echo '>'.lang('no').'
-                </TD>
-            </TR>
-            <TR>
-                <TD valign="top">
-                    '.lang('error_message_to_participant_when_access_is_denied').'
-                </TD>
-                <TD>';
-                    echo '<TABLE border=0>';
-                    foreach ($languages as $language) {
-                        if (!isset($status_error[$language])) $status_error[$language]='';
-                        echo '  <TR><TD>'.$language.':</TD>
-                                <TD><INPUT name="status_error['.$language.']" type=text size=40 maxlength=200 value="'.
-                                stripslashes($status_error[$language]).'">
-                                </TD>
-                            </TR>';
-                    }
-                    echo '</TABLE>
-                </TD></TR>';
+        echo '          <div class="field">
+                            <label class="label">'.lang('access_to_profile').'</label>
+                            <div class="control">
+                                <label class="radio"><input type="radio" name="access_to_profile" value="y"';
+        if ($status['access_to_profile']=="y") echo ' CHECKED';
+        echo '>'.lang('yes').'</label>&nbsp;&nbsp;
+                                <label class="radio"><input type="radio" name="access_to_profile" value="n"';
+        if ($status['access_to_profile']!="y") echo ' CHECKED';
+        echo '>'.lang('no').'</label>
+                            </div>
+                        </div>';
 
-            echo '
-                <TR>
-                <TD valign=top>
-                    '.lang('eligible_for_experiments').'
-                </TD>
-                    <TD>
-                    <INPUT type=radio name="eligible_for_experiments" value="y"';
-                        if ($status['eligible_for_experiments']=="y") echo ' CHECKED';
-                        echo '>'.lang('yes').'
-                    &nbsp;&nbsp;
-                    <INPUT type=radio name="eligible_for_experiments" value="n"';
-                         if ($status['eligible_for_experiments']!="y") echo ' CHECKED';
-                        echo '>'.lang('no').'   </TD>
-                </TR>';
+        echo '          <div class="field">
+                            <label class="label">'.lang('error_message_to_participant_when_access_is_denied').'</label>
+                            <div class="control">';
+        foreach ($languages as $language) {
+            if (!isset($status_error[$language])) $status_error[$language]='';
+            echo '              <div class="field">
+                                    <label class="label">'.$language.':</label>
+                                    <div class="control">
+                                        <input class="input is-primary orsee-input orsee-input-text" style="width: 100%; max-width: 100%;" name="status_error['.$language.']" type="text" maxlength="200" value="'.htmlspecialchars(stripslashes($status_error[$language])).'">
+                                    </div>
+                                </div>';
+        }
+        echo '              </div>
+                        </div>';
+
+        echo '          <div class="field">
+                            <label class="label">'.lang('eligible_for_experiments').'</label>
+                            <div class="control">
+                                <label class="radio"><input type="radio" name="eligible_for_experiments" value="y"';
+        if ($status['eligible_for_experiments']=="y") echo ' CHECKED';
+        echo '>'.lang('yes').'</label>&nbsp;&nbsp;
+                                <label class="radio"><input type="radio" name="eligible_for_experiments" value="n"';
+        if ($status['eligible_for_experiments']!="y") echo ' CHECKED';
+        echo '>'.lang('no').'</label>
+                            </div>
+                        </div>';
     }
-        echo '
-            <TR>
-                <TD COLSPAN=2 align=center>
-                    <INPUT class="button" name="edit" type="submit" value="';
-                    if (!isset($status_id)) echo lang('add'); else echo lang('change');
-                    echo '">
-                </TD>
-            </TR>
 
-
-        </table>
-        </FORM>
-        <BR>';
-
+    echo '              <div class="field orsee-form-row-grid orsee-form-row-grid--3 orsee-form-actions">
+                            <div class="orsee-form-row-col has-text-left">
+                                '.button_back('participant_status_main.php').'
+                            </div>
+                            <div class="orsee-form-row-col has-text-centered">
+                                <input class="button orsee-btn" name="edit" type="submit" value="';
+    if (!isset($status_id)) echo lang('add'); else echo lang('change');
+    echo '                      ">
+                            </div>
+                            <div class="orsee-form-row-col has-text-right">';
     if (isset($status_id) && check_allow('participantstatus_delete') && $not_unconfirmed) {
-
-            echo '<table>
-                <TR>
-                    <TD>
-                        '.button_link('participant_status_delete.php?status_id='.urlencode($status_id),
-                            lang('delete'),'trash-o').'
-                    <TD>
-                </TR>
-                </table>';
-
+        echo button_link('participant_status_delete.php?status_id='.urlencode($status_id),
+                            lang('delete'),'trash-o','','','orsee-btn--delete');
     }
-
-        echo '<BR><BR>
-                <A href="participant_status_main.php">'.icon('back').' '.lang('back').'</A><BR><BR>
-                </center>';
+    echo '                  </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <br>';
 
 }
 include ("footer.php");

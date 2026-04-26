@@ -2,7 +2,7 @@
 // part of orsee. see orsee.org
 
 function sessions__format_alist($session,$experiment) {
-    global $lang, $color, $settings, $sessionlinecolor, $preloaded_laboratories;
+    global $lang, $settings, $sessionlinecolor, $preloaded_laboratories;
 
     if (!(is_array($preloaded_laboratories) && count($preloaded_laboratories)>0))
         $preloaded_laboratories=laboratories__get_laboratories();
@@ -18,11 +18,11 @@ function sessions__format_alist($session,$experiment) {
 
     $reg=$regcount;
     if ($reg < $part_needed) {
-        $regfontcolor=$color['session_not_enough_participants'];
+        $regfontcolor='var(--color-session-not-enough-participants)';
     }  elseif ($reg < $part_needed + $part_reserve) {
-        $regfontcolor=$color['session_not_enough_reserve'];
+        $regfontcolor='var(--color-session-not-enough-reserve)';
     } else {
-        $regfontcolor=$color['session_complete'];
+        $regfontcolor='var(--color-session-complete)';
     }
 
 
@@ -33,13 +33,13 @@ function sessions__format_alist($session,$experiment) {
 
         if ($reminder_sent=="y") {
             $reminder_state=lang('session_reminder_state__sent');
-            $reminder_statecolor=$color['session_reminder_state_sent_text'];
+            $reminder_statecolor='var(--color-session-reminder-state-sent)';
         } elseif ($reminder_checked=="y" && $reminder_sent=="n") {
             $reminder_state=lang('session_reminder_state__checked_but_not_sent');
-            $reminder_statecolor=$color['session_reminder_state_checked_text'];
+            $reminder_statecolor='var(--color-session-reminder-state-checked)';
         } else {
             $reminder_state=lang('session_reminder_state__waiting');
-            $reminder_statecolor=$color['session_reminder_state_waiting_text'];
+            $reminder_statecolor='var(--color-session-reminder-state-waiting)';
         }
     } else {
         $reminder_state='';
@@ -48,80 +48,74 @@ function sessions__format_alist($session,$experiment) {
 
     if ($settings['enable_payment_module']=="y" &&  check_allow('payments_view')
         && ($session_status=='completed' || $session_status=='balanced')) {
-        if ($session_status=='balanced') $payments=lang('total_payment_abbr').': '.$total_payment;
-        else $payments=lang('total_payment_abbr').': '.lang('three_questionmarks');
+        if ($session_status=='balanced') {
+            $payment_types=payments__load_paytypes();
+            $payment_parts=array();
+            foreach ($payments_by_type as $paytype=>$payamount) {
+                if (isset($payment_types[$paytype])) $paytype_name=$payment_types[$paytype];
+                else $paytype_name=lang('unknown');
+                $payment_parts[]=or__format_number($payamount,2).' ('.$paytype_name.')';
+            }
+            if (count($payment_parts)>0) {
+                $payments=implode(', ',$payment_parts);
+                if (count($payment_parts)>1) $payments='<span class="orsee-font-compact">'.$payments.'</span>';
+            } else $payments='-';
+        } else $payments=lang('total_payment_abbr').': '.lang('three_questionmarks');
     } else {
         $payments='';
     }
 
     $ssicons=array("planned"=>"wrench","live"=>"spinner fa-spin fa-fw","completed"=>"thumbs-o-up","balanced"=>"money");
 
-    if ($sessionlinecolor=='empty') $rowspec=' bgcolor="'.$color['list_shade2'].'"'; else $rowspec=' bgcolor="'.$color['list_shade1'].'"';
+    if ($sessionlinecolor=='empty') $rowclass=' is-odd'; else $rowclass='';
 
     if ($settings['enable_ethics_approval_module']=='y') {
+        $ethicsclass='';
         if ($experiment['ethics_by'] || $experiment['ethics_number']) {
             if ($experiment['ethics_exempt']!='y' && $session_start>$experiment['ethics_expire_date']) {
-                $rowspec=' bgcolor="'.$color['ethics_approval_expired'].'"';
+                $ethicsclass=' is-ethics-expired';
             }
         }
+    } else {
+        $ethicsclass='';
     }
 
 
-    echo '<tr'.$rowspec.'>
-            <td><input name="sel['.$session_id.']" type="checkbox" value="y"></td>
-            <td><B>'.$session_time;
-            if (count($preloaded_laboratories)>1) {
-                echo ' '.$preloaded_laboratories[$laboratory_id]['lab_name'];
-            }
-            echo '</B></td>
-            <td>
-                '.lang('session_status').': <B><span class="session_status_'.$session_status.'">'.
-                    '<i class="fa fa-'.$ssicons[$session_status].'"></i>&nbsp;'.
-                    $lang['session_status_'.$session_status].'</span></B>
-            </td>
-            <td>';
-                if ($reg_state) echo $reg_state;
-            echo '</td>
-            <td>';
-            if (check_allow('session_edit')) echo
-                button_link('session_edit.php?session_id='.$session_id,
-                        lang('edit'),'pencil-square-o','margin: 0; ').'
-                    </A>';
-            echo '</td>
-            </tr>';
+    echo '<div class="orsee-dense-row orsee-dense-row--session'.$rowclass.$ethicsclass.'">';
+    echo '<div class="orsee-dense-session-grid">';
+    echo '<div class="orsee-dense-session-select"><input name="sel['.$session_id.']" type="checkbox" value="y"></div>';
+    echo '<div class="orsee-dense-session-name"><strong>'.$session_time;
+    if (count($preloaded_laboratories)>1) {
+        echo ' '.$preloaded_laboratories[$laboratory_id]['lab_name'];
+    }
+    echo '</strong></div>';
+    echo '<div class="orsee-dense-session-statusline">'.lang('session_status').': <strong><span class="session_status_'.$session_status.'">'.
+        '<i class="fa fa-'.$ssicons[$session_status].'"></i>&nbsp;'.$lang['session_status_'.$session_status].'</span></strong></div>';
 
     $allow_sp=check_allow('experiment_show_participants');
 
-
-    echo '  <TR'.$rowspec.'>
-            <TD></TD>    
-            <TD>';
-                if ($allow_sp) echo '
-                    <A HREF="experiment_participants_show.php?experiment_id='.
-                        $experiment_id.'&session_id='.$session_id.'">';
-                echo lang('registered_subjects');
-                if ($allow_sp) echo '</A>';
-                echo ':
-                <FONT color="'.$regfontcolor.'">
-                '.$reg.' ('.$part_needed.','.$part_reserve.')</FONT>
-            </TD>
-            <TD>';
+    echo '<div class="orsee-dense-session-signedup">';
+    if ($allow_sp) echo '<a href="experiment_participants_show.php?experiment_id='.$experiment_id.'&session_id='.$session_id.'">';
+    echo lang('registered_subjects');
+    if ($allow_sp) echo '</a>';
+    echo ': <span style="color: '.$regfontcolor.'">'.$reg.' ('.$part_needed.','.$part_reserve.')</span>';
+    echo '</div>';
+    echo '<div class="orsee-dense-session-regstate">';
+    if ($reg_state) echo $reg_state;
+    echo '</div>';
+    echo '<div class="orsee-dense-session-reminder">';
+    if($reminder_state) echo '<span style="color: '.$reminder_statecolor.'"><i class="fa fa-bell" style="padding-inline-end: 3px;"></i>'.lang('session_reminder').': '.$reminder_state.'</span>';
+    echo '</div>';
+    echo '<div class="orsee-dense-session-payment">';
     if ($payments) echo $payments;
-    echo '      </TD>
-            <TD>';
-                if($reminder_state) echo '<FONT color="'.$reminder_statecolor.'">'.
-                    '<I class="fa fa-bell" style="padding-right: 3px;"></I>'.
-                    lang('session_reminder').': '.$reminder_state.'</FONT>';
-    echo '      </TD>
-            <TD>';
-    echo '  </TD>
-        </TR>';
-
-    echo '  <TR'.$rowspec.'>
-            <TD colspan=5 class=small>
-                &nbsp;
-            </TD>
-        </TR>';
+    echo '</div>';
+    echo '<div class="orsee-dense-session-action">';
+    if (check_allow('session_edit')) {
+        echo button_link('session_edit.php?session_id='.$session_id, lang('edit'),'pencil-square-o');
+    }
+    echo '</div>';
+    echo '</div>';
+    echo '</div>';
 }
 
 function session__get_signup_time_left($s) {
@@ -144,7 +138,7 @@ function session__session_status_select($fieldname,$value='') {
         $output="";
         $states=array('planned','live','completed');
         if (isset($settings['enable_payment_module']) && $settings['enable_payment_module']=='y') $states[]='balanced';
-        $output.='<SELECT name="'.$fieldname.'">';
+        $output.='<span class="select is-primary select-compact"><select name="'.$fieldname.'">';
         foreach ($states as $state) {
                 $output.='<OPTION value="'.$state.'"';
                 if ($state==$value ||
@@ -152,7 +146,7 @@ function session__session_status_select($fieldname,$value='') {
                         $output.=' selected';
                 $output.='>'.$lang['session_status_'.$state].'</OPTION>'."\n";
         }
-        $output.='</SELECT>';
+        $output.='</select></span>';
         return $output;
 }
 
@@ -195,7 +189,7 @@ function session__check_lab_time_clash($entry) {
         message ('<UL><LI>'.
                     $notice.': <A HREF="session_edit.php?session_id='.$osession['session_id'].'">'.
                     $osession['experiment_name'].' - '.
-                    session__build_name($osession).'</A></UL>');
+                    session__build_name($osession).'</A></UL>','warning');
     }
 
     $pars=array(':this_end_time'=>$this_end_time,
@@ -216,7 +210,7 @@ function session__check_lab_time_clash($entry) {
         $ostop_string=ortime__format(ortime__sesstime_to_unixtime($osession['event_stop']));
         message ('<UL><LI>'.
                     $notice.': <A HREF="events_edit.php?event_id='.$osession['event_id'].'">'.
-                    $ostart_string.' - '.$ostop_string.'</A></UL>');
+                    $ostart_string.' - '.$ostop_string.'</A></UL>','warning');
     }
 }
 
@@ -252,10 +246,19 @@ function session__build_name($pack,$language="") {
     $start_time=$pack['session_start'];
     $end_time = ortime__add_hourmin_to_sesstime($start_time,
                     $pack['session_duration_hour'],$pack['session_duration_minute']);
-    $session_time_string=ortime__format(ortime__sesstime_to_unixtime($start_time),'hide_second:true',$thislang).'-'.
-                        ortime__format(ortime__sesstime_to_unixtime($end_time),'hide_date:true,hide_second:true',$thislang);
+    $start_utime=ortime__sesstime_to_unixtime($start_time);
+    $end_utime=ortime__sesstime_to_unixtime($end_time);
+    $is_rtl=lang__is_rtl($thislang);
+
+    $start_full=ortime__format($start_utime,'hide_second:true',$thislang);
+    $end_part=ortime__format($end_utime,'hide_date:true,hide_second:true',$thislang);
+    if ($is_rtl) $session_time_string=$end_part.'-'.$start_full;
+    else $session_time_string=$start_full.'-'.$end_part;
+
     if (or_setting('include_weekday_in_session_name')) {
-        $session_time_string=ortime__get_weekday(ortime__sesstime_to_unixtime($start_time),$thislang).", ".$session_time_string;
+        $weekday=ortime__get_weekday($start_utime,$thislang);
+        if ($is_rtl) $session_time_string.=', '.$weekday;
+        else $session_time_string=$weekday.', '.$session_time_string;
     }
     return $session_time_string;
 }

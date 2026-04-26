@@ -37,11 +37,12 @@ if ($proceed) {
     $titem=orsee_db_load_array("lang",$id,"lang_id");
 
     $done=false;
-    $formfields=participantform__load(); $allow_cat=$item;
+    $formfields=participantform__load('draft'); $allow_cat=$item;
     foreach($formfields as $f) {
         if (preg_match("/(select_lang|radioline_lang)/",$f['type']) && $item==$f['mysql_column_name']) {
             $done=true;
-            $header=isset($lang[$f['name_lang']])?$lang[$f['name_lang']]:$f['name_lang'];
+            $header=participant__field_localized_text($f,'name_lang','name_lang');
+            if (!$header) $header=$f['mysql_column_name'];
             $headervar=lang('lang');
             $reset_part_field=$f['mysql_column_name'];
             $deletion_message=lang('symbol_deleted');
@@ -147,34 +148,39 @@ if ($proceed) {
 
 if ($proceed) {
     // form
-        echo '  <CENTER>
-                <TABLE class="or_formtable">
-                <TR><TD colspan=2>
-                    <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                            '.$header.' - '.$titem[$headervar].'
-                        </TD>
-                    </TR></TABLE>
-                </TD></TR>
-                        <TR>
-                                <TD colspan=2>
-                                        '.lang('do_you_really_want_to_delete').'
-                                        <BR><BR>';
-                                        dump_array($titem); echo '
-                                </TD>
-                        </TR>
-                        <TR>
-                                <TD align=left>
-                                        '.button_link('lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
-                                        lang('yes_delete'),'check-square biconred').'
-                                </TD>
-                                <TD align=right>
-                                        '.button_link('lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
-                                        lang('no_sorry'),'undo bicongreen').'
-                                </TD>
-                        </TR>
-                </TABLE>
-                </center>';
+        echo '<div class="orsee-panel orsee-form-shell">
+                <div class="orsee-panel-title">'.$header.'</div>
+                <div class="orsee-content">
+                    <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('do_you_really_want_to_delete').'</div>
+                    <div class="field">
+                        <label class="label">'.lang('id').'</label>
+                        <div><span class="orsee-dense-id-tag">'.htmlspecialchars($titem['lang_id']).'</span></div>
+                    </div>
+                    <div class="field">
+                        <label class="label">'.lang('symbol').'</label>
+                        <div>'.htmlspecialchars($titem['content_name']).'</div>
+                    </div>
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                        <div class="orsee-form-row-col">
+                            '.button_link(
+                                'lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
+                                lang('yes_delete'),
+                                'check-square',
+                                '',
+                                '',
+                                'orsee-btn--delete'
+                            ).'
+                        </div>
+                        <div class="orsee-form-row-col has-text-right">
+                            '.button_link(
+                                'lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
+                                lang('no_sorry'),
+                                'undo'
+                            ).'
+                        </div>
+                    </div>
+                </div>
+            </div>';
 
 }
 include ("footer.php");

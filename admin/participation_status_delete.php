@@ -89,46 +89,36 @@ if ($proceed) {
 if ($proceed) {
         // form
 
-        echo '  <CENTER>
-                <FORM action="participation_status_delete.php" method="POST">
-                <INPUT type="hidden" name="pstatus_id" value="'.$pstatus_id.'">
-                '.csrf__field().'
-
-                <TABLE class="or_formtable">
-                    <TR><TD colspan="2">
-                        <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                                <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                                    '.lang('delete_participation_status').' "'.$pstatus_internal_name[lang('lang')].'"
-                                </TD>
-                        </TR></TABLE>
-                    </TD></TR>
-                    <TR>
-                        <TD colspan=2>
-                                '.lang('really_delete_participation_status?').'<BR><BR>';
-            dump_array($pstatus);
-            echo '
-                        </TD>
-                    </TR>';
-
-            $pstatus_internal_names=lang__load_lang_cat('participation_status_internal_name');
-
-            echo '
-                        <TR>
-                            <TD align=left colspan=2>
-                            <INPUT class="button" type=submit name=reallydelete value="'.lang('yes_delete').'">
-                    <BR>
-                    '.lang('merge_participation_status_with').'
-                    '.expregister__participation_status_select_field('merge_with','',array($pstatus_id)).'
-                    </TD></TR>
-                <TR>
-                                <TD align=center colspan=2><BR><BR>
-                                <INPUT class="button" type=submit name=betternot value="'.lang('no_sorry').'">
-                                </TD>
-                        </TR>
-                </TABLE>
-
-                </FORM>
-                </center>';
+        echo '<div class="orsee-panel orsee-form-shell">
+                <div class="orsee-panel-title">'.lang('delete_participation_status').'</div>
+                <div class="orsee-content">
+                    <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('really_delete_participation_status?').'</div>
+                    <div class="field">
+                        <label class="label">'.lang('id').'</label>
+                        <div><span class="orsee-dense-id-tag">'.htmlspecialchars($pstatus['pstatus_id']).'</span></div>
+                    </div>
+                    <div class="field">
+                        <label class="label">'.lang('name').'</label>
+                        <div>'.htmlspecialchars($pstatus_internal_name[lang('lang')]).'</div>
+                    </div>
+                    <form action="participation_status_delete.php" method="POST">
+                        <input type="hidden" name="pstatus_id" value="'.$pstatus_id.'">
+                        '.csrf__field().'
+                        <div class="field">
+                            <label class="label">'.lang('merge_participation_status_with').'</label>
+                            <div><span class="select is-primary">'.expregister__participation_status_select_field('merge_with','',array($pstatus_id)).'</span></div>
+                        </div>
+                        <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                            <div class="orsee-form-row-col">
+                                <button class="button orsee-btn orsee-btn--delete" type="submit" name="reallydelete" value="1"><i class="fa fa-check-square"></i> '.lang('yes_delete').'</button>
+                            </div>
+                            <div class="orsee-form-row-col has-text-right">
+                                <button class="button orsee-btn" type="submit" name="betternot" value="1"><i class="fa fa-undo"></i> '.lang('no_sorry').'</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>';
 
 }
 include ("footer.php");

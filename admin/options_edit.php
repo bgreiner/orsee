@@ -7,8 +7,8 @@ if (isset($_REQUEST['otype']) && $_REQUEST['otype']) {
     elseif ($_REQUEST['otype']=="default") $title='edit_default_values';
 }
 
-$jquery=array('switchy','datepicker');
-$menu__area="options_main";
+$js_modules=array('switchy','flatpickr');
+$menu__area="options";
 include ("header.php");
 if ($proceed) {
     $allow=check_allow('settings_view','options_main.php');
@@ -25,7 +25,7 @@ if ($proceed) {
     if ($otype=='general') $opts=$system__options_general;
     else $opts=$system__options_defaults;
 
-    echo '<center>';
+    echo '<div class="orsee-options-general-edit-wrap">';
 
     $pars=array(':type'=>$otype);
     $query="select * from ".table('options')."
@@ -91,42 +91,41 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if (check_allow('settings_edit')) echo '
-        <FORM action="options_edit.php" method=post>
-        <INPUT type=hidden name="otype" value="'.$otype.'">
-        '.csrf__field().'
-        ';
-
-    echo '  <TABLE class="or_formtable" style="width: 80%;">';
-    if (check_allow('settings_edit')) echo '
-            <TR>
-                <TD colspan=2 align=center>
-                    <INPUT class="button" type=submit name="change" value="'.lang('change').'">
-                </TD>
-            </TR>
-            <TR><TD colspan=2><hr></TD></TR>';
-
-    foreach ($opts as $o) {
-        $done=options__show_option($o);
+    if (check_allow('settings_edit')) {
+        echo '<FORM action="options_edit.php" method="post">';
+        echo csrf__field();
+        echo '<INPUT type="hidden" name="otype" value="'.$otype.'">';
     }
 
+    echo '<div class="orsee-panel">';
+    $GLOBALS['orsee_options_render_mode']='div';
+    if (check_allow('settings_edit')) {
+        echo '<div class="orsee-options-actions-center orsee-options-actions"><INPUT class="button orsee-btn" type="submit" name="change" value="'.lang('change').'"></div>';
+    }
 
+    echo '<div class="orsee-options-edit-list">';
+    options__render_grouped_options($opts,false);
+    echo '</div>';
 
-    if (check_allow('settings_edit')) echo '
-            <TR>
-                <TD colspan=2 align=center>
-                    <INPUT class="button" type=submit name="change" value="'.lang('change').'">
-                </TD>
-            </TR>';
-    echo '</TABLE>';
-    if (check_allow('settings_edit')) echo '</FORM>';
+    if (check_allow('settings_edit')) {
+        echo '<div class="orsee-options-actions-center orsee-options-actions"><INPUT class="button orsee-btn" type="submit" name="change" value="'.lang('change').'"></div>';
+    }
+    echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
+    unset($GLOBALS['orsee_options_render_mode']);
+    echo '</div>';
+    if (check_allow('settings_edit')) {
+        echo '</FORM>';
+    }
+    echo '</div>';
 
-    echo '</center>';
-
-    if (!check_allow('settings_edit')) echo '
-            <script type="text/javascript">
-                $(":input").attr("disabled", true);
+    if (!check_allow('settings_edit')) {
+        echo '<script type="text/javascript">
+            (function() {
+                var allInputs=document.querySelectorAll("input, select, textarea, button");
+                allInputs.forEach(function(el) { el.disabled=true; });
+            })();
             </script>';
+    }
 
 }
 

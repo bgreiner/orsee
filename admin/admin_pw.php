@@ -20,40 +20,40 @@ if ($proceed) {
         $continue=true;
 
         if (!$passold || !$password || !$password2) {
-            message (lang('error_please_fill_in_all_fields'));
+            message (lang('error_please_fill_in_all_fields'),'error');
             $continue=false;
         }
 
         if ($password!=$password2) {
-            message (lang('error_password_repetition_does_not_match'));
+            message (lang('error_password_repetition_does_not_match'),'error');
             $continue=false;
         }
 
         if (!crypt_verify($passold,$expadmindata['password_crypt'])) {
-            message (lang('error_old_password_wrong'));
+            message (lang('error_old_password_wrong'),'error');
             $continue=false;
         }
 
         if ($password==$expadmindata['adminname']) {
-            message(lang('error_do_not_use_username_as_password'));
+            message(lang('error_do_not_use_username_as_password'),'error');
             $continue=false;
         }
         if ($settings['admin_password_change_require_different']=='y') {
             if ($passold==$password) {
-                message(lang('error_new_password_must_be_different_from_old_password'));
+                message(lang('error_new_password_must_be_different_from_old_password'),'error');
             $continue=false;
         }
 
         }
 
         if (!preg_match('/'.$settings['admin_password_regexp'].'/',$password)) {
-            message(lang('error_password_does_not_meet_requirements'));
+            message(lang('error_password_does_not_meet_requirements'),'error');
             $continue=false;
         }
 
 
         if ($continue==false) {
-            message (lang('error_password_not_changed'));
+            message (lang('error_password_not_changed'),'error');
             redirect ("admin/admin_pw.php");
         } else {
             admin__set_password($password,$expadmindata['admin_id']);
@@ -68,52 +68,54 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<center><BR>';
     show_message();
+    $admin_password_dir=($settings['force_ltr_admin_login_password']==='y' ? ' dir="ltr"' : '');
 
-    echo '
-        <form action="admin_pw.php" method="POST">
-        '.csrf__field().'
-        <table class="or_formtable" style="max-width: 50%">
-        <tr>
-            <td>
-                '.lang('old_password').':
-            </td>
-            <td>
-                <input type="password" name="passold" size="20" max-length="40">
-            </td>
-        </tr>
-        <tr>
-            <td colspan=2 style="background: #FFFFCC; border: 2px solid #AAA">
-                '.lang('admin_password_strength_requirements').':
-            </td>
-        </tr>
-        <tr>
-            <td>
-                '.lang('new_password').':
-            </td>
-            <td>
-                <input type="password" name="password" size="20" max-length="40">
-            </td>
-        </tr>
-        <tr>
-            <td>
-                '.lang('repeat_new_password').':
-            </td>
-            <td>
-                <input type="password" name="password2" size="20" max-length="40">
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>
-                <input  class="button" type="submit" name="submit" value="'.lang('change').'">
-            </td>
-        </tr>
-        </table>
-        </form>
-
-        </center>';
+    echo '<form action="admin_pw.php" method="POST">
+            '.csrf__field().'
+            <div class="orsee-panel">
+                <div class="orsee-panel-title">
+                    <div class="orsee-panel-title-main">'.lang('change_my_password').'</div>
+                </div>
+                <div class="orsee-form-shell">
+                    <div class="field">
+                        <label class="label">'.lang('old_password').':</label>
+                        <div class="control">
+                            <input class="input is-primary orsee-input orsee-input-text" type="password" name="passold"'.$admin_password_dir.' maxlength="40">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            ';
+    orsee_callout(lang('admin_password_strength_requirements'),'warning');
+    echo '              </div>
+                    </div>
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2">
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('new_password').':</label>
+                            <div class="control">
+                                <input class="input is-primary orsee-input orsee-input-text" type="password" name="password"'.$admin_password_dir.' maxlength="40">
+                            </div>
+                        </div>
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('repeat_new_password').':</label>
+                            <div class="control">
+                                <input class="input is-primary orsee-input orsee-input-text" type="password" name="password2"'.$admin_password_dir.' maxlength="40">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--3 orsee-form-actions">
+                        <div class="orsee-form-row-col has-text-left">
+                            '.button_back('options_main.php').'
+                        </div>
+                        <div class="orsee-form-row-col has-text-centered">
+                            <input class="button orsee-btn" type="submit" name="submit" value="'.lang('change').'">
+                        </div>
+                        <div class="orsee-form-row-col has-text-right"></div>
+                    </div>
+                </div>
+            </div>
+        </form>';
 
 }
 include ("footer.php");

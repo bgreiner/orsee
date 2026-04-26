@@ -2,7 +2,6 @@
 // part of orsee. see orsee.org
 ob_start();
 
-$jquery=array('popup');
 $title="mailqueue";
 $menu__area="statistics";
 include ("header.php");
@@ -11,13 +10,11 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<center>';
-
     mailqueue__show_mailqueue();
 
-    echo '<BR><BR><A href="statistics_main.php">'.icon('back').' '.lang('back').'</A><BR><BR>';
-
-    echo '</center>';
+    echo '<div class="orsee-stat-actions">';
+    echo button_back('statistics_main.php');
+    echo '</div>';
 
 }
 include ("footer.php");

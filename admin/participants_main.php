@@ -9,21 +9,7 @@ if ($proceed) {
 
     // participants summary
 
-    echo '  <center>
-        <BR><BR>
-        <table class="or_panel">
-            <TR><TD colspan=2>
-                <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'">
-                        '.participants__count_participants().' '.lang('xxx_participants_registered').'.
-                        </TD>
-                </TR></TABLE>
-            </TD></TR>
-            <TR>
-                <TD>&nbsp;&nbsp;&nbsp;</TD>
-                <TD><center>
-
-                <TABLE border=1 style="border-collapse: collapse; border: 1px solid #AAA;">';
+    echo '<div class="orsee-options-list-panel">';
 
     $exptypes=load_external_experiment_types();
     $pstatuses=participant_status__get_statuses();
@@ -42,92 +28,68 @@ if ($proceed) {
     }
 
 
-    echo '<TR><TD colspan=2></TD><TD colspan="'.count($pstatuses).'"><B>'.lang('participant_status').'</B></TD></TR>';
-    echo '<TR><TD colspan=2></TD>';
-    foreach ($pstatuses as $status_id=>$status) echo '<TD align="right">'.$status['name'].'&nbsp;&nbsp;&nbsp;&nbsp;</TD>';
+    echo '<div class="orsee-panel orsee-option-section">';
+    echo '<div class="orsee-panel-title"><div>'.participants__count_participants().' '.lang('xxx_participants_registered').'.</div></div>';
+    echo '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile orsee-data-cols-participants-summary" style="--orsee-participant-status-cols: '.count($pstatuses).';">';
+    echo '<div class="orsee-table-row orsee-table-head">';
+    echo '<div class="orsee-table-cell"><span data-orsee-mobile="hide">'.lang('registered_for_xxx_experiments_xxx').'</span><span data-orsee-mobile="show">&nbsp;</span></div>';
+    foreach ($pstatuses as $status_id=>$status) {
+        $status_short=mb_substr($status['name'],0,6,'UTF-8');
+        echo '<div class="orsee-table-cell"><span data-orsee-mobile="hide">'.$status['name'].'</span><span data-orsee-mobile="show">'.htmlspecialchars($status_short).'</span></div>';
+    }
+    echo '</div>';
+
     $first=true;
     foreach ($exptypes as $exptype_id=>$exptype) {
-        echo '<TR>';
-        if ($first) {
-            echo '<TD rowspan="'.count($exptypes).'"><B>'.lang('registered_for_xxx_experiments_xxx').'</B></TD>';
-            $first=false;
-        }
-        echo '<TD>'.$exptype[lang('lang')].'</TD>';
+        $row_class='orsee-table-row';
+        if ($first) { $row_class.=' is-alt'; $first=false; }
+        echo '<div class="'.$row_class.'">';
+        echo '<div class="orsee-table-cell" data-label="">'.$exptype[lang('lang')].'</div>';
         foreach ($pstatuses as $status_id=>$status) {
-            echo '<TD align="right">';
+            echo '<div class="orsee-table-cell" data-label="'.$status['name'].'">';
             if (isset($part_nums[$exptype_id][$status_id])) echo $part_nums[$exptype_id][$status_id];
             else echo '0';
-            echo '&nbsp;&nbsp;&nbsp;&nbsp;</TD>';
+            echo '</div>';
         }
-        echo '</TR>';
+        echo '</div>';
     }
+    echo '</div>';
+    echo '<div style="margin-top: 0.8rem;"></div>';
+    echo '<div class="orsee-panel-split-main">';
+    echo '<div class="orsee-stat-list">';
 
-    echo '</TABLE></center>
-        <BR>
+    echo '<div class="orsee-stat-row">';
+    echo '<div class="orsee-stat-label">';
+    if (check_allow('participants_unconfirmed_edit')) echo '<A HREF="participants_unconfirmed.php">'.
+                        lang('registered_but_not_confirmed_xxx').':</A>';
+    else echo lang('registered_but_not_confirmed_xxx');
+    echo '</div>';
+    echo '<div class="orsee-stat-value">'.
+            participants__count_participants("status_id='0'").'</div>';
+    echo '</div>';
 
-        <TABLE>';
-
-    echo '
-            <TR>
-                <TD>';
-                if (check_allow('participants_unconfirmed_edit')) echo '
-                        <A HREF="participants_unconfirmed.php">'.
-                            lang('registered_but_not_confirmed_xxx').':</A>';
-                   else echo lang('registered_but_not_confirmed_xxx');
-    echo '  </TD>
-                    <TD>
-                        '.participants__count_participants("status_id='0'").'
-                    </TD>
-                </TR>
-                <TR>
-                    <TD>
-                        '.lang('from_this_older_than_4_weeks_xxx').':
-                    </TD>
-                    <TD>';
-                        $now=time();
-                        $before=$now-(60*60*24*7*4);
-                        $tstring="status_id='0' AND creation_time < ".$before;
-                    echo participants__count_participants($tstring).'
-                    </TD>
-                </TR>
-        </TABLE>
-
-        <BR>
-
-        </TD>
-        </TR>
-
-        <TR>
-            <TD colspan="2">
-                <TABLE class="or_option_buttons_box" style="background: '.$color['options_box_background'].';">
-                <TR>
-        ';
-        if (check_allow('participants_show')) echo '
-                <TD>
-                    '.button_link('participants_show.php?active=true',
-                                        lang('edit_active_participants'),'list-alt').'
-                </TD>
-                <TD>
-                    '.button_link('participants_show.php',
-                    lang('edit_all_participants'),'search').'
-                </TD>
-            ';
-        if (check_allow('participants_edit')) echo '
-                <TD>
-                    '.button_link('participants_edit.php',lang('add_participant'),'plus-circle').'
-                </TD>
-            ';
-        if (check_allow('participants_duplicates')) echo '
-                <TD>
-                    '.button_link('participants_duplicates.php',lang('search_for_duplicates'),'magnet').'
-                </TD>
-            ';
-        echo '
-                </TR>
-                </TABLE>
-            </TD></TR>
-            </TABLE>
-        </center>';
+    $now=time();
+    $before=$now-(60*60*24*7*4);
+    $tstring="status_id='0' AND creation_time < ".$before;
+    echo '<div class="orsee-stat-row">';
+    echo '<div class="orsee-stat-label">'.lang('from_this_older_than_4_weeks_xxx').':</div>';
+    echo '<div class="orsee-stat-value">'.participants__count_participants($tstring).'</div>';
+    echo '</div>';
+    echo '</div>';
+    echo '</div>';
+    echo '<div id="orsee-participants-main-actions" class="orsee-options-actions-center" style="margin-top: 0.8rem;">';
+    if (check_allow('participants_show')) {
+        echo button_link('participants_show.php?active=true',lang('edit_active_participants'),'list-alt');
+        echo button_link('participants_show.php',lang('edit_all_participants'),'search');
+    }
+    if (check_allow('participants_edit')) {
+        echo button_link('participants_edit.php',lang('add_participant'),'plus-circle');
+    }
+    if (check_allow('participants_duplicates')) {
+        echo button_link('participants_duplicates.php',lang('search_for_duplicates'),'magnet');
+    }
+    echo '</div>';
+    echo '</div>';
 
 }
 include ("footer.php");

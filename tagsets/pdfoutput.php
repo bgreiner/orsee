@@ -102,7 +102,7 @@ function pdfoutput__make_part_list($experiment_id,$session_id="",$pstatus="",$fo
 
     $pdf = new Cezpdf('a4','landscape');
 
-    $pdf->selectFont('../tagsets/fonts/Times-Roman.afm');
+    $pdf->selectFont('../tagsets/fonts/Helvetica.afm');
 
     $fontsize= ($settings['participant_list_pdf_table_fontsize']) ? $settings['participant_list_pdf_table_fontsize'] : 10;
     $titlefontsize= ($settings['participant_list_pdf_title_fontsize']) ? $settings['participant_list_pdf_title_fontsize'] : 12;
@@ -138,7 +138,7 @@ function pdfoutput__make_part_list($experiment_id,$session_id="",$pstatus="",$fo
 }
 
 
-function pdfoutput__make_pdf_calendar($displayfrom=0,$wholeyear=false,$admin=false,$forward=0,$file=false){
+function pdfoutput__make_pdf_calendar($displayfrom=0,$wholeyear=false,$admin=false,$forward=0,$file=false,$laboratory_id=false,$admin_id=false){
     global $settings, $lang;
 
     if ($displayfrom==0) $displayfrom=time();
@@ -148,7 +148,7 @@ function pdfoutput__make_pdf_calendar($displayfrom=0,$wholeyear=false,$admin=fal
 
     $pdf = new Cezpdf('a4');
 
-    $pdf->selectFont('../tagsets/fonts/Times-Roman.afm');
+    $pdf->selectFont('../tagsets/fonts/Helvetica.afm');
 
     $fontsize= ($settings['calendar_pdf_table_fontsize']) ? $settings['calendar_pdf_table_fontsize'] : 8;
         $titlefontsize= ($settings['calendar_pdf_title_fontsize']) ? $settings['calendar_pdf_title_fontsize'] : 12;
@@ -164,7 +164,7 @@ function pdfoutput__make_pdf_calendar($displayfrom=0,$wholeyear=false,$admin=fal
     if($wholeyear){
         $displayfrom_upper = mktime(0, 0, 0, 1, 1, date('Y', $displayfrom)+1);
     }
-    $results = calendar__get_events($admin, $displayfrom_lower, $displayfrom_upper,false,true);
+    $results = calendar__get_events($admin, $displayfrom_lower, $displayfrom_upper,$admin_id,true,$laboratory_id);
     $month_names=explode(",",$lang['month_names']);
 
 
@@ -236,8 +236,8 @@ function pdfoutput__make_pdf_calendar($displayfrom=0,$wholeyear=false,$admin=fal
                             'gridlines'=>31,
                             'showHeadings'=>1,
                             'shaded'=>2,
-                            'shadeCol'=>array(1,1,1),
-                'shadeCol2'=>array(0.9,0.9,1),
+                            'shadeCol'=>array(0.9,0.9,1),
+                'shadeCol2'=>array(1,1,1),
                             'fontSize'=>$fontsize,
                             'titleFontSize'=>$titlefontsize,
                             'rowGap'=>1,

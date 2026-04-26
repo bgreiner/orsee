@@ -10,6 +10,7 @@ $all_orsee_query_modules=array(
 "activity",
 "updaterequest",
 "subsubjectpool",
+"subscriptions",
 "interfacelanguage",
 "pformselects",
 "experimentclasses",
@@ -45,12 +46,12 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         'field_name_placeholder'=>'#experiment_class#'
                         );
         $content="";
-        $content.='<SELECT name="not">
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="NOT" SELECTED>'.lang('without').'</OPTION>
                         <OPTION value="">'.lang('only').'</OPTION>
-                    </SELECT> ';
-        $content.=lang('participants_participated_expclass').'<BR>';
-        $content.=experiment__experiment_class_select_field('#experiment_class#_ms_classes',array(),true,array('cols'=>40,'picker_maxnumcols'=>3));
+                    </SELECT></span> ';
+        $content.=lang('participants_participated_expclass').' ';
+        $content.=experiment__experiment_class_select_field('#experiment_class#_ms_classes',array(),true);
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
 
@@ -60,12 +61,12 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         'field_name_placeholder'=>'#experimenters#'
                         );
         $content="";
-        $content.='<SELECT name="not">
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="NOT" SELECTED>'.lang('without').'</OPTION>
                         <OPTION value="">'.lang('only').'</OPTION>
-                    </SELECT> ';
-        $content.=lang('participants_participated_experimenters').'<BR>';
-        $content.=experiment__experimenters_select_field("#experimenters#_ms_experimenters",array(),true,array('cols'=>40,'tag_color'=>'#f1c06f','picker_color'=>'#c58720','picker_maxnumcols'=>3));
+                    </SELECT></span> ';
+        $content.=lang('participants_participated_experimenters').' ';
+        $content.=experiment__experimenters_select_field("#experimenters#_ms_experimenters",array(),true,array('tag_bg_color'=>'--color-selector-tag-bg-experimenters'));
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
 
@@ -75,12 +76,12 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         'field_name_placeholder'=>'#experiments_assigned#'
                         );
         $content="";
-        $content.='<SELECT name="not">
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="NOT" SELECTED>'.lang('without').'</OPTION>
                         <OPTION value="">'.lang('only').'</OPTION>
-                    </SELECT> ';
-        $content.=lang('participants_were_assigned_to').'<BR>';
-        $content.=experiment__other_experiments_select_field("#experiments_assigned#_ms_experiments","assigned",$experiment_id,array(),true,array('cols'=>80,'tag_color'=>'#b3ffb3','picker_color'=>'#00a300','picker_maxnumcols'=>$settings['query_experiment_list_nr_columns']));
+                    </SELECT></span> ';
+        $content.=lang('participants_were_assigned_to').' ';
+        $content.=experiment__other_experiments_select_field("#experiments_assigned#_ms_experiments","assigned",$experiment_id,array(),true);
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
 
@@ -90,12 +91,12 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         'field_name_placeholder'=>'#experiments_participated#'
                         );
         $content="";
-        $content.='<SELECT name="not">
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="NOT" SELECTED>'.lang('without').'</OPTION>
                         <OPTION value="">'.lang('only').'</OPTION>
-                    </SELECT> ';
-        $content.=lang('participants_have_participated_on').'<BR>';
-        $content.=experiment__other_experiments_select_field("#experiments_participated#_ms_experiments","participated",$experiment_id,array(),true,array('cols'=>80,'tag_color'=>'#a8a8ff','picker_color'=>'#0000ff','picker_maxnumcols'=>$settings['query_experiment_list_nr_columns']));
+                    </SELECT></span> ';
+        $content.=lang('participants_have_participated_on').' ';
+        $content.=experiment__other_experiments_select_field("#experiments_participated#_ms_experiments","participated",$experiment_id,array(),true);
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
 
@@ -105,12 +106,32 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         'field_name_placeholder'=>'#statusids#'
                         );
         $content="";
-        $content.='<SELECT name="not">
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="NOT" SELECTED>'.lang('without').'</OPTION>
                         <OPTION value="">'.lang('only').'</OPTION>
-                    </SELECT> ';
+                    </SELECT></span> ';
         $content.=lang('participants_of_status').' ';
-        $content.=participant_status__multi_select_field("#statusids#_ms_status",array(),array('cols'=>80,'tag_color'=>'#a8a8ff','picker_color'=>'#0000ff','picker_maxnumcols'=>2));
+        $content.=participant_status__multi_select_field("#statusids#_ms_status",array());
+        $prototype['content']=$content; $prototypes[]=$prototype;
+        break;
+    case "subscriptions":
+        $prototype=array('type'=>'subscriptions_multiselect',
+                        'displayname'=>lang('query_subscriptions'),
+                        'field_name_placeholder'=>'#subscriptions#'
+                        );
+        $content="";
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
+                        <OPTION value="NOT" SELECTED>'.lang('without').'</OPTION>
+                        <OPTION value="">'.lang('only').'</OPTION>
+                    </SELECT></span> ';
+        $content.=lang('query_who_have_subscribed_to_experiment_types').' ';
+        $exptypes=load_external_experiment_types();
+        $items=array();
+        foreach ($exptypes as $et_id=>$et_arr) {
+            $items[$et_id]=$et_arr['exptype_name'];
+        }
+        asort($items);
+        $content.=get_tag_picker('#subscriptions#_ms_subscriptions',$items,array());
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
     case "pformtextfields":
@@ -120,12 +141,12 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         );
         $form_query_fields=array();
         foreach ($formfields as $f) {
-            if( preg_match("/(textline|textarea)/i",$f['type']) &&
+            if( preg_match("/(textline|email|textarea|phone)/i",$f['type']) &&
                 ((!$experiment_id && $f['search_include_in_participant_query']=='y')    ||
                 ($experiment_id &&  $f['search_include_in_experiment_assign_query']=='y'))) {
                     $tfield=array();
                     $tfield['value']=$f['mysql_column_name'];
-                    $tfield['name']=lang($f['name_lang']);
+                    $tfield['name']=participant__field_localized_text($f,'name_text_lang_json','name_lang');
                     $form_query_fields[]=$tfield;
                 }
         }
@@ -135,18 +156,18 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
         }
         $content="";
         $content.=lang('where');
-        $content.=' <INPUT type="text" size="20" maxlength="100" name="search_string" value="">';
-        $content.='<SELECT name="not">
+        $content.=' <input class="input is-primary orsee-input orsee-input-text orsee-input-compact" type="text" size="20" maxlength="100" name="search_string" value="">';
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="NOT">'.lang('not').'</OPTION>
                         <OPTION value="" SELECTED></OPTION>
-                    </SELECT> ';
+                    </SELECT></span> ';
         $content.=' '.lang('in').' ';
-        $content.='<SELECT name="search_field">
+        $content.='<span class="select is-primary select-compact"><SELECT name="search_field">
                     <OPTION value="all" SELECTED>'.lang('any_field').'</OPTION>';
         foreach($form_query_fields as $tf) {
             $content.='<OPTION value="'.$tf['value'].'">'.$tf['name'].'</OPTION>';
         }
-        $content.='</SELECT>';
+        $content.='</SELECT></span>';
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
 
@@ -155,7 +176,7 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
     case "pformselects":
         $pform_selects=array();
         foreach ($formfields as $f) {
-            if( (!preg_match("/(textline|textarea)/i",$f['type'])) &&
+            if( (!preg_match("/(textline|email|textarea|phone)/i",$f['type'])) &&
                 ( ((!$experiment_id)    && $f['search_include_in_participant_query']=='y') ||
                   ($experiment_id && $f['search_include_in_experiment_assign_query']=='y')
                 )  ) $pform_selects[]=$f['mysql_column_name'];
@@ -171,7 +192,7 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
             foreach ($formfields as $p) { if($p['mysql_column_name']==$fieldname) $f=$p; }
             $f=form__replace_funcs_in_field($f);
             if (isset($f['mysql_column_name'])) {
-                $fieldname_lang=lang($f['name_lang']);
+                $fieldname_lang=participant__field_localized_text($f,'name_text_lang_json','name_lang');
                 $fname_ph='#pform_select_'.$fieldname.'#';
                 $prototype=array('type'=>'pform_select_'.$fieldname,
                         'displayname'=>lang('query_participant_form_selectfield').$fieldname_lang,
@@ -179,32 +200,54 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         );
                 $content="";
                 $content.=lang('where').' '.$fieldname_lang.' ';
-                if ($f['type']=='select_numbers') {
-                    $content.='<select name="sign">
+                $date_mode=(isset($f['date_mode']) ? $f['date_mode'] : 'ymd');
+                if (!in_array($date_mode,array('ymd','ym','y'))) $date_mode='ymd';
+                if ($f['type']=='select_numbers' || $f['type']=='date') {
+                    $content.='<span class="select is-primary select-compact"><select name="sign">
                       <OPTION value="<="><=</OPTION>
                       <OPTION value="=" SELECTED>=</OPTION>
                       <OPTION value=">">></OPTION>
-                      </select>';
+                      </select></span>';
                 } else {
-                    $content.='<select name="not">
+                    $content.='<span class="select is-primary select-compact"><select name="not">
                     <OPTION value="" SELECTED>=</OPTION>
                     <OPTION value="NOT">'.lang('not').' =</OPTION>
-                    </select> ';
+                    </select></span> ';
                 }
 
-                if (preg_match("/(select_lang|radioline_lang)/",$f['type'])) {
-                    $content.=language__multiselectfield_item($fieldname,$fieldname,$fname_ph.'_ms_'.$fieldname,array(),"",$existing,$status_query,$show_count,true,array('cols'=>80,'tag_color'=>'#bbbbbb','picker_color'=>'#444444','picker_maxnumcols'=>3));
+                if (preg_match("/(select_lang|radioline_lang|checkboxlist_lang)/",$f['type'])) {
+                    $order='alphabetically';
+                    if ($f['type']==='select_lang' && isset($f['order_select_lang_values']) && $f['order_select_lang_values']==='fixed_order') {
+                        $order='fixed_order';
+                    }
+                    if (preg_match("/(radioline_lang|checkboxlist_lang)/",$f['type']) && isset($f['order_radio_lang_values']) && $f['order_radio_lang_values']==='fixed_order') {
+                        $order='fixed_order';
+                    }
+                    $content.=language__multiselectfield_item($fieldname,$fieldname,$fname_ph.'_ms_'.$fieldname,array(),"",$existing,$status_query,$show_count,true,array('tag_bg_color'=>'--color-selector-tag-bg-profilefields','order'=>$order));
                     $prototype['type']='pform_multiselect_'.$fieldname;
+                } elseif ($f['type']=='boolean') {
+                    $tmp_bool=array(
+                        'mysql_column_name'=>'fieldvalue',
+                        'option_values'=>'y,n',
+                        'option_values_lang'=>'y,n',
+                        'include_none_option'=>'n',
+                        'value'=>''
+                    );
+                    $content.=form__render_select_list($tmp_bool,'fieldvalue',true);
+                    $prototype['type']='pform_simpleselect_'.$fieldname;
                 } elseif ($f['type']=='select_numbers') {
                     if ($f['values_reverse']=='y') $reverse=true; else $reverse=false;
-                    $content.=participant__select_numbers($fieldname,'fieldvalue','',$f['value_begin'],$f['value_end'],0,$f['value_step'],$reverse,false,$existing,$status_query,$show_count);
+                    $content.=participant__select_numbers($fieldname,'fieldvalue','',$f['value_begin'],$f['value_end'],0,$f['value_step'],$reverse,false,$existing,$status_query,$show_count,true);
                     $prototype['type']='pform_numberselect_'.$fieldname;
+                } elseif ($f['type']=='date') {
+                    $content.=formhelpers__pick_date('fieldvalue',0,0,0,true,true,$date_mode);
+                    $prototype['type']='pform_dateselect_'.$fieldname;
                 } elseif (preg_match("/(select_list|radioline)/i",$f['type']) && !$existing) {
                     $f['value']='';
-                    $content.=form__render_select_list($f,'fieldvalue');
+                    $content.=form__render_select_list($f,'fieldvalue',true);
                     $prototype['type']='pform_simpleselect_'.$fieldname;
                 } else {
-                    $content.=participant__select_existing($fieldname,'fieldvalue','',$status_query,$show_count);
+                    $content.=participant__select_existing($fieldname,'fieldvalue','',$status_query,$show_count,true);
                     $prototype['type']='pform_simpleselect_'.$fieldname;
                 }
                 $prototype['content']=$content; $prototypes[]=$prototype;
@@ -222,11 +265,11 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
         $line=orsee_query($query);
         $content="";
         $content.=lang('where_nr_noshowups_is').' ';
-        $content.='<select name="sign">
+        $content.='<span class="select is-primary select-compact"><select name="sign">
                         <OPTION value="<=" SELECTED><=</OPTION>
                         <OPTION value=">">></OPTION>
-                        </select> ';
-        $content.=helpers__select_number("count",'0',0,$line['maxnoshow'],0);
+                        </select></span> ';
+        $content.='<span class="select is-primary select-compact">'.helpers__select_number("count",'0',0,$line['maxnoshow'],0).'</span>';
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
 
@@ -240,11 +283,11 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
         $line=orsee_query($query);
         $content="";
         $content.=lang('where_nr_participations_is').' ';
-        $content.='<select name="sign">
+        $content.='<span class="select is-primary select-compact"><select name="sign">
                         <OPTION value="<=" SELECTED><=</OPTION>
                         <OPTION value=">">></OPTION>
-                        </select> ';
-        $content.=helpers__select_number("count",'0',0,$line['maxnumreg'],0);
+                        </select></span> ';
+        $content.='<span class="select is-primary select-compact">'.helpers__select_number("count",'0',0,$line['maxnumreg'],0).'</span>';
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
     case "updaterequest":
@@ -254,10 +297,10 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         );
         $content="";
         $content.=lang('where_profile_update_request_is').' ';
-        $content.='<select name="update_request_status">
+        $content.='<span class="select is-primary select-compact"><select name="update_request_status">
                     <OPTION value="y">'.lang('active').'</OPTION>
                     <OPTION value="n">'.lang('inactive').'</OPTION>
-                    </select> ';
+                    </select></span> ';
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
     case "interfacelanguage":
@@ -267,11 +310,11 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         );
         $content="";
         $content.=lang('where_interface_language_is');
-        $content.=' <SELECT name="not">
+        $content.=' <span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="" SELECTED></OPTION>
                         <OPTION value="NOT">'.lang('not').'</OPTION>
-                    </SELECT> ';
-        $content.=lang__select_lang('interface_language',$settings['public_standard_language'],'public');
+                    </SELECT></span> ';
+        $content.=lang__select_lang('interface_language',$settings['public_standard_language'],'public','select is-primary',true);
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
 
@@ -281,19 +324,19 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                         'field_name_placeholder'=>'#activity#'
                         );
         $content=lang('where');
-        $content.='<SELECT name="activity_type">
+        $content.='<span class="select is-primary select-compact"><SELECT name="activity_type">
                         <OPTION value="last_activity" SELECTED>'.lang('last_activity').'</OPTION>
                         <OPTION value="last_enrolment">'.lang('last_enrolment').'</OPTION>
                         <OPTION value="last_profile_update">'.lang('last_profile_update').'</OPTION>
                         <OPTION value="creation_time">'.lang('creation_time').'</OPTION>';
         //$content.='    <OPTION value="deletion_time">'.lang('deletion_time').'</OPTION>';
-        $content.='</SELECT> ';
-        $content.='<SELECT name="not">
+        $content.='</SELECT></span> ';
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="" SELECTED></OPTION>
                         <OPTION value="NOT">'.lang('not').'</OPTION>
-                    </SELECT> ';
+                    </SELECT></span> ';
         $content.=lang('before_date').' ';
-        $content.=formhelpers__pick_date('#activity#_dt_activity');
+        $content.=formhelpers__pick_date('#activity#_dt_activity',0,0,0,true);
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
     case "randsubset":
@@ -304,7 +347,7 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
         $query_limit = (!isset($_REQUEST['query_limit']) ||!$_REQUEST['query_limit']) ? $settings['query_random_subset_default_size'] : $_REQUEST['query_limit'];
         $content="";
         $content.=lang('limit_to_randomly_drawn').' ';
-        $content.='<INPUT type="text" data-elem-name="limit" value="'.$settings['query_random_subset_default_size'].'" size="5" maxlength="10">';
+        $content.='<INPUT type="text" data-elem-name="limit" dir="ltr" value="'.$settings['query_random_subset_default_size'].'" size="5" maxlength="10">';
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
     case "subsubjectpool":
@@ -316,12 +359,12 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
                                         )
                         );
         $content="";
-        $content.='<SELECT name="not">
+        $content.='<span class="select is-primary select-compact"><SELECT name="not">
                         <OPTION value="NOT" SELECTED>'.lang('without').'</OPTION>
                         <OPTION value="">'.lang('only').'</OPTION>
-                    </SELECT> ';
+                    </SELECT></span> ';
         $content.=lang('who_are_in_subjectpool').' ';
-        $content.=subpools__multi_select_field("#subsubjectpool#_ms_subpool",array(),array('cols'=>80,'tag_color'=>'#a8a8ff','picker_color'=>'#0000ff','picker_maxnumcols'=>1));
+        $content.=subpools__multi_select_field("#subsubjectpool#_ms_subpool",array());
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
     }}}
@@ -449,13 +492,24 @@ function query__get_query_array($posted_array,$experiment_id="") {
                 $clause.="IN (".$list['par_names'].")";
                 $pars=$list['pars'];
                 break;
+            case "subscriptions":
+                $ctype='part';
+                if (!isset($params['ms_subscriptions']) || trim((string)$params['ms_subscriptions'])==='') {
+                    $add=false;
+                    break;
+                }
+                $likelist=query__make_like_list($params['ms_subscriptions'],'subscriptions');
+                if ($params['not']) $clause='NOT ('.$likelist['par_names'].')';
+                else $clause='('.$likelist['par_names'].')';
+                $pars=$likelist['pars'];
+                break;
             case "pformtextfields":
                 $ctype='part';
                 $clause="";
                 if ($params['not']) $clause.='NOT ';
                 $form_query_fields=array();
                 foreach ($formfields as $f) { // whitelist by loop
-                    if( preg_match("/(textline|textarea)/i",$f['type']) &&
+                    if( preg_match("/(textline|email|textarea|phone)/i",$f['type']) &&
                         ((!$experiment_id && $f['search_include_in_participant_query']=='y')    ||
                         ($experiment_id &&  $f['search_include_in_experiment_assign_query']=='y'))) {
                             if ($params['search_field']=='all') {
@@ -488,21 +542,50 @@ function query__get_query_array($posted_array,$experiment_id="") {
                 $f=array();
                 foreach ($formfields as $p) { if($p['mysql_column_name']==$pform_formfield) $f=$p; }
                 if (isset($f['mysql_column_name'])) {
-                    $clause.=$f['mysql_column_name'].' ';
+                    $fieldname=$f['mysql_column_name'];
+                    $clause.=$fieldname.' ';
                     if ($type=='numberselect')  {
                         if (in_array($params['sign'],$allowed_signs)) $clause.=$params['sign'];
                         else $clause.=$allowed_signs[0];
                         $clause.=' :number';
                         $pars=array(':number'=>$params['fieldvalue']);
+                    } elseif ($type=='dateselect') {
+                        if (in_array($params['sign'],$allowed_signs)) $sign=$params['sign'];
+                        else $sign=$allowed_signs[0];
+                        $date_mode=(isset($f['date_mode']) ? $f['date_mode'] : 'ymd');
+                        if (!in_array($date_mode,array('ymd','ym','y'))) $date_mode='ymd';
+                        $date_ymd=ortime__date_parts_to_ymd(
+                            (isset($params['fieldvalue_y']) ? $params['fieldvalue_y'] : ''),
+                            (isset($params['fieldvalue_m']) ? $params['fieldvalue_m'] : ''),
+                            (isset($params['fieldvalue_d']) ? $params['fieldvalue_d'] : ''),
+                            $date_mode
+                        );
+                        if ($date_ymd) {
+                            $clause=$fieldname.' '.$sign.' :datevalue';
+                            $pars=array(':datevalue'=>$date_ymd);
+                        } else {
+                            if ($sign=='>') {
+                                $clause='('.$fieldname." IS NOT NULL AND TRIM(".$fieldname.")!='')";
+                            } else {
+                                $clause='('.$fieldname." IS NULL OR TRIM(".$fieldname.")='')";
+                            }
+                        }
                     } elseif ($type=='simpleselect') {
                         if ($params['not']) $clause.="!= "; else $clause.="= ";
                         $clause.=" :fieldvalue";
                         $pars=array(':fieldvalue'=>trim($params['fieldvalue']));
                     } else {
-                        if ($params['not']) $clause.="NOT ";
-                        $list=query__make_enquoted_list($params['ms_'.$pform_formfield],'fieldvalue');
-                        $clause.="IN (".$list['par_names'].")";
-                        $pars=$list['pars'];
+                        if (isset($f['type']) && $f['type']==='checkboxlist_lang') {
+                            $likelist=query__make_like_list($params['ms_'.$pform_formfield],$fieldname);
+                            if ($params['not']) $clause='NOT ('.$likelist['par_names'].')';
+                            else $clause='('.$likelist['par_names'].')';
+                            $pars=$likelist['pars'];
+                        } else {
+                            if ($params['not']) $clause.="NOT ";
+                            $list=query__make_enquoted_list($params['ms_'.$pform_formfield],'fieldvalue');
+                            $clause.="IN (".$list['par_names'].")";
+                            $pars=$list['pars'];
+                        }
                     }
                 } else $add=false;
                 break;
@@ -621,7 +704,7 @@ function query__get_pseudo_query_array($posted_array) {
         } else $pform_formfield="";
         $params=$entry[$module_string];
 
-        $level=$clevel; $op_text=""; $text=''; $add=true;
+        $level=$clevel; $op_text=""; $text=''; $parts=array(); $add=true;
 
         if (isset($params['logical_op']) && $params['logical_op']) $op_text=lang($params['logical_op']);
 
@@ -629,90 +712,155 @@ function query__get_pseudo_query_array($posted_array) {
             case "bracket":
                 if ($type=='open') {
                     $level=$clevel; $clevel++;
-                    $text='(';
+                    $parts[]=array('text'=>'(','dir'=>'');
                 } else {
                     $clevel--; $level=$clevel;
-                    $text=')';
+                    $parts[]=array('text'=>')','dir'=>'');
                 }
                 break;
             case "experimentclasses":
-                $text=query__pseudo_query_not_without($params);
-                $text.=' '.lang('participants_participated_expclass');
-                $text.=': '.experiment__experiment_class_field_to_list($params['ms_classes']);
+                $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
+                $parts[]=array('text'=>lang('participants_participated_expclass').':','dir'=>'');
+                $parts[]=array('text'=>experiment__experiment_class_field_to_list($params['ms_classes']),'dir'=>'');
                 break;
             case "experimenters":
-                $text=query__pseudo_query_not_without($params);
-                $text.=' '.lang('participants_participated_experimenters');
-                $text.=': '.experiment__list_experimenters($params['ms_experimenters'],false,true);
+                $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
+                $parts[]=array('text'=>lang('participants_participated_experimenters').':','dir'=>'');
+                $parts[]=array('text'=>experiment__list_experimenters($params['ms_experimenters'],false,true),'dir'=>'');
                 break;
             case "experimentsassigned":
-                $text=query__pseudo_query_not_without($params);
-                $text.=' '.lang('participants_were_assigned_to');
-                $text.=': '.experiment__exp_id_list_to_exp_names($params['ms_experiments']);
+                $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
+                $parts[]=array('text'=>lang('participants_were_assigned_to').':','dir'=>'');
+                $parts[]=array('text'=>experiment__exp_id_list_to_exp_names($params['ms_experiments']),'dir'=>'');
                 break;
             case "experimentsparticipated":
-                $text=query__pseudo_query_not_without($params);
-                $text.=' '.lang('participants_have_participated_on');
-                $text.=': '.experiment__exp_id_list_to_exp_names($params['ms_experiments']);
+                $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
+                $parts[]=array('text'=>lang('participants_have_participated_on').':','dir'=>'');
+                $parts[]=array('text'=>experiment__exp_id_list_to_exp_names($params['ms_experiments']),'dir'=>'');
                 break;
             case "statusids":
-                $text=query__pseudo_query_not_without($params);
-                $text.=' '.lang('participants_of_status');
-                $text.=': '.participant__status_id_list_to_status_names($params['ms_status']);
+                $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
+                $parts[]=array('text'=>lang('participants_of_status').':','dir'=>'');
+                $parts[]=array('text'=>participant__status_id_list_to_status_names($params['ms_status']),'dir'=>'');
+                break;
+            case "subscriptions":
+                if (!isset($params['ms_subscriptions']) || trim((string)$params['ms_subscriptions'])==='') {
+                    $add=false;
+                    break;
+                }
+                $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
+                $parts[]=array('text'=>lang('query_who_have_subscribed_to_experiment_types').':','dir'=>'');
+                $exptypes=load_external_experiment_types();
+                $selected_ids=explode(',',trim((string)$params['ms_subscriptions']));
+                $selected_names=array();
+                foreach ($selected_ids as $selected_id) {
+                    $selected_id=trim($selected_id);
+                    if ($selected_id==='') continue;
+                    if (isset($exptypes[$selected_id]['exptype_name'])) $selected_names[]=$exptypes[$selected_id]['exptype_name'];
+                    else $selected_names[]=$selected_id;
+                }
+                $parts[]=array('text'=>implode(', ',$selected_names),'dir'=>'');
                 break;
             case "pformtextfields":
-                $text=lang('where');
-                $text.=' "'.$params['search_string'].'" ';
-                $text.=query__pseudo_query_not_not($params);
-                $text.=lang('in').' ';
-                if ($params['search_field']=='all') $text.=lang('any_field');
-                else $text.=$params['search_field'];
+                $parts[]=array('text'=>lang('where'),'dir'=>'');
+                $parts[]=array('text'=>'"'.$params['search_string'].'"','dir'=>'');
+                $parts[]=array('text'=>trim(query__pseudo_query_not_not($params)),'dir'=>'');
+                $parts[]=array('text'=>lang('in'),'dir'=>'');
+                if ($params['search_field']=='all') $parts[]=array('text'=>lang('any_field'),'dir'=>'');
+                else $parts[]=array('text'=>$params['search_field'],'dir'=>'');
                 break;
             case "pform":
                 $f=array();
                 foreach ($formfields as $p) { if($p['mysql_column_name']==$pform_formfield) $f=$p; }
                 if (isset($f['mysql_column_name'])) {
-                    $text=lang('where').' '.lang($f['name_lang']).' ';
-                    if ($type=='numberselect')  $text.=$params['sign'].$params['fieldvalue'];
-                    elseif ($type=='simpleselect') $text.=query__pseudo_query_not_not($params).'= "'.$params['fieldvalue'].'"';
-                    else $text.=query__pseudo_query_not_not($params).lang('in').': '.participant__select_lang_idlist_to_names($f['mysql_column_name'],$params['ms_'.$pform_formfield]);
+                    $parts[]=array('text'=>lang('where'),'dir'=>'');
+                    $parts[]=array('text'=>participant__field_localized_text($f,'name_text_lang_json','name_lang'),'dir'=>'');
+                    if ($type=='numberselect') {
+                        $parts[]=array('text'=>$params['sign'],'dir'=>'ltr');
+                        $parts[]=array('text'=>$params['fieldvalue'],'dir'=>'ltr');
+                    }
+                    elseif ($type=='dateselect') {
+                        $parts[]=array('text'=>$params['sign'],'dir'=>'ltr');
+                        $date_mode=(isset($f['date_mode']) ? $f['date_mode'] : 'ymd');
+                        if (!in_array($date_mode,array('ymd','ym','y'))) $date_mode='ymd';
+                        $date_ymd=ortime__date_parts_to_ymd(
+                            (isset($params['fieldvalue_y']) ? $params['fieldvalue_y'] : ''),
+                            (isset($params['fieldvalue_m']) ? $params['fieldvalue_m'] : ''),
+                            (isset($params['fieldvalue_d']) ? $params['fieldvalue_d'] : ''),
+                            $date_mode
+                        );
+                        if ($date_ymd) $parts[]=array('text'=>ortime__format_ymd_localized($date_ymd,'',$date_mode),'dir'=>'ltr');
+                        else $parts[]=array('text'=>"''",'dir'=>'ltr');
+                    }
+                    elseif ($type=='simpleselect') {
+                        $display_value=$params['fieldvalue'];
+                        if (isset($f['type']) && $f['type']=='boolean') {
+                            if ($display_value==='y') $display_value=lang('y');
+                            elseif ($display_value==='n') $display_value=lang('n');
+                        }
+                        $parts[]=array('text'=>trim(query__pseudo_query_not_not($params)),'dir'=>'');
+                        $parts[]=array('text'=>'=','dir'=>'');
+                        $parts[]=array('text'=>'"'.$display_value.'"','dir'=>'');
+                    }
+                    else {
+                        $parts[]=array('text'=>trim(query__pseudo_query_not_not($params)),'dir'=>'');
+                        $parts[]=array('text'=>lang('in').':','dir'=>'');
+                        $parts[]=array('text'=>participant__select_lang_idlist_to_names($f['mysql_column_name'],$params['ms_'.$pform_formfield]),'dir'=>'');
+                    }
 
                 } else $add=false;
                 break;
             case "noshows":
-                $text=lang('where_nr_noshowups_is').' ';
-                $text.=$params['sign'].' '.$params['count'];
+                $parts[]=array('text'=>lang('where_nr_noshowups_is'),'dir'=>'');
+                $parts[]=array('text'=>$params['sign'],'dir'=>'ltr');
+                $parts[]=array('text'=>$params['count'],'dir'=>'ltr');
                 break;
             case "participations":
-                $text=lang('where_nr_participations_is').' ';
-                $text.=$params['sign'].' '.$params['count'];
+                $parts[]=array('text'=>lang('where_nr_participations_is'),'dir'=>'');
+                $parts[]=array('text'=>$params['sign'],'dir'=>'ltr');
+                $parts[]=array('text'=>$params['count'],'dir'=>'ltr');
                 break;
             case "updaterequest":
-                $text=lang('where_profile_update_request_is').' ';
-                if ($params['update_request_status']=='y') $text.=lang('active');
-                else $text.=lang('inactive');
+                $parts[]=array('text'=>lang('where_profile_update_request_is'),'dir'=>'');
+                if ($params['update_request_status']=='y') $parts[]=array('text'=>lang('active'),'dir'=>'');
+                else $parts[]=array('text'=>lang('inactive'),'dir'=>'');
                 break;
             case "interfacelanguage":
                 $lnames=lang__get_language_names();
-                $text=lang('where_interface_language_is').' ';
-                $text.=query__pseudo_query_not_not($params).'= "'.$lnames[$params['interface_language']].'"';
+                $parts[]=array('text'=>lang('where_interface_language_is'),'dir'=>'');
+                $parts[]=array('text'=>trim(query__pseudo_query_not_not($params)),'dir'=>'');
+                $parts[]=array('text'=>'=','dir'=>'');
+                $parts[]=array('text'=>'"'.$lnames[$params['interface_language']].'"','dir'=>'');
                 break;
             case "activity":
-                $text=lang('where').' '.lang($params['activity_type']).' ';
-                $text.=query__pseudo_query_not_not($params);
-                $text.=lang('before_date').' ';
                 $sesstime_act=ortime__array_to_sesstime($params,'dt_activity_');
-                $text.=ortime__format(ortime__sesstime_to_unixtime($sesstime_act),'hide_time:true');
+                $date_text=ortime__format(ortime__sesstime_to_unixtime($sesstime_act),'hide_time:true');
+                $parts=array(
+                    array('text'=>lang('where'),'dir'=>''),
+                    array('text'=>lang($params['activity_type']),'dir'=>''),
+                    array('text'=>trim(query__pseudo_query_not_not($params)),'dir'=>''),
+                    array('text'=>lang('before_date'),'dir'=>''),
+                    array('text'=>$date_text,'dir'=>'ltr')
+                );
                 break;
             case "randsubset":
-                $text=lang('limit_to_randomly_drawn').' ';
-                $text.=$params['limit'];
+                $parts[]=array('text'=>lang('limit_to_randomly_drawn'),'dir'=>'');
+                $parts[]=array('text'=>$params['limit'],'dir'=>'ltr');
                 break;
             case "subsubjectpool":
-                $text=query__pseudo_query_not_without($params);
-                $text.=' '.lang('who_are_in_subjectpool');
-                $text.=': '.subpools__idlist_to_namelist($params['ms_subpool']);
+                $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
+                $parts[]=array('text'=>lang('who_are_in_subjectpool').':','dir'=>'');
+                $parts[]=array('text'=>subpools__idlist_to_namelist($params['ms_subpool']),'dir'=>'');
                 break;
+        }
+        if ($add && count($parts)>0) {
+            $render_parts=array();
+            foreach ($parts as $part) {
+                if ($part['text']==='') continue;
+                $dir_attr=($part['dir']!=='' ? ' dir="'.$part['dir'].'"' : '');
+                $render_parts[]='<span style="unicode-bidi:isolate;"'.$dir_attr.'>'.$part['text'].'</span>';
+            }
+            $text=implode(' ',$render_parts);
         }
         if ($add) $pseudo_query_array[]=array('level'=>$level, 'op_text'=>$op_text, 'text'=>$text);
     }

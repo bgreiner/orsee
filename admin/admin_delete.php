@@ -43,8 +43,6 @@ if ($proceed) {
 
     $admin=orsee_db_load_array("admin",$admin_id,"admin_id");
 
-    echo '<center>';
-
 
     if ($reallydelete) {
 
@@ -72,38 +70,47 @@ if ($proceed) {
         echo lang('admin_delete_warning');
     }
 
-    echo '
-        <TABLE class="or_formtable">
-            <TR><TD colspan="2">
-                <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                            '.$admin['fname'].' '.$admin['lname'].' ('.$admin['adminname'].')
-                        </TD>
-                </TR></TABLE>
-            </TD></TR>
-            <TR>
-                <TD colspan=2>
-                    '.lang('do_you_really_want_to_delete').'
-                    <BR><BR>';
-                    dump_array($admin); echo '
-                </TD>
-            </TR>
-            <TR>
-                <TD align=left>
-                    '.button_link('admin_delete.php?admin_id='.$admin_id.'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
-                    lang('yes_delete'),'check-square biconred').'
-                </TD>
-                <TD align=right>
-                    '.button_link('admin_delete.php?admin_id='.$admin_id.'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
-                    lang('no_sorry'),'undo bicongreen').'
-                </TD>
-            </TR>
-        </TABLE>
-        </center>';
+    echo '<div class="orsee-panel orsee-form-shell">
+            <div class="orsee-panel-title">'.lang('delete_admin').'</div>
+            <div class="orsee-content">';
+    if ($num_experiments>0) {
+        echo '<div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('admin_delete_warning').'</div>';
+    }
+    echo '      <div class="field">
+                    <label class="label">'.lang('id').'</label>
+                    <div><span class="orsee-dense-id-tag">'.htmlspecialchars($admin['admin_id']).'</span></div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('name').'</label>
+                    <div>'.htmlspecialchars($admin['fname'].' '.$admin['lname']).'</div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('username').'</label>
+                    <div>'.htmlspecialchars($admin['adminname']).'</div>
+                </div>
+                <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                    <div class="orsee-form-row-col">
+                        '.button_link(
+                            'admin_delete.php?admin_id='.$admin_id.'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
+                            lang('yes_delete'),
+                            'check-square',
+                            '',
+                            '',
+                            'orsee-btn--delete'
+                        ).'
+                    </div>
+                    <div class="orsee-form-row-col has-text-right">
+                        '.button_link(
+                            'admin_delete.php?admin_id='.$admin_id.'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
+                            lang('no_sorry'),
+                            'undo'
+                        ).'
+                    </div>
+                </div>
+            </div>
+        </div>';
 
 }
 include ("footer.php");
 
 ?>
-
-

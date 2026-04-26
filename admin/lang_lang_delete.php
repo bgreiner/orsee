@@ -38,7 +38,7 @@ if ($proceed) {
 
         if ($proceed) {
             if ($tlang==$slang) {
-                message (lang('language_to_be_deleted_cannot_be_language_to_substitute'));
+                message (lang('language_to_be_deleted_cannot_be_language_to_substitute'),'warning');
                 redirect ('admin/lang_lang_delete.php?elang='.$tlang.'&nlang='.$slang);
             }
         }
@@ -74,58 +74,44 @@ if ($proceed) {
 
         if ($proceed) {
             // confirmation form
-            echo '<center>';
-
-
-            echo '
-                <FORM action="lang_lang_delete.php" method="POST">
-                <INPUT type=hidden name="elang" value="'.$tlang.'">
-                <INPUT type=hidden name="nlang" value="'.$slang.'">
-                '.csrf__field().'
-
-                <TABLE class="or_formtable">
-                    <TR><TD colspan=2>
-                        <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                            <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                                '.lang('delete_language').' '.$lang_names[$tlang].' ('.$tlang.')
-                            </TD>
-                        </TR></TABLE>
-                    </TD></TR>
-                    <TR>
-                        <TD colspan=2>
-                            '.lang('do_you_really_want_to_delete').'
-                            <BR><BR>
-                        </TD>
-                    </TR>
-                    <TR>
-                        <TD align=left>
-                            <INPUT class="button" type="submit" name="reallydelete" value="'.lang('yes_delete').'">
-                        </TD>
-                        <TD align=right>
-                            <INPUT class="button" type="submit" name="betternot" value="'.lang('no_sorry').'">
-                        </TD>
-
-                    </TR>
-                </TABLE>
-
-                </FORM>
-                </center>';
+            echo '<div class="orsee-panel orsee-form-shell">
+                    <div class="orsee-panel-title">'.lang('delete_language').'</div>
+                    <div class="orsee-content">
+                        <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('do_you_really_want_to_delete').'</div>
+                        <div class="field">
+                            <label class="label">'.lang('language').'</label>
+                            <div>'.htmlspecialchars($lang_names[$tlang].' ('.$tlang.')').'</div>
+                        </div>
+                        <form action="lang_lang_delete.php" method="POST">
+                            <input type="hidden" name="elang" value="'.$tlang.'">
+                            <input type="hidden" name="nlang" value="'.$slang.'">
+                            '.csrf__field().'
+                            <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                                <div class="orsee-form-row-col">
+                                    <button class="button orsee-btn orsee-btn--delete" type="submit" name="reallydelete" value="1"><i class="fa fa-check-square"></i> '.lang('yes_delete').'</button>
+                                </div>
+                                <div class="orsee-form-row-col has-text-right">
+                                    <button class="button orsee-btn" type="submit" name="betternot" value="1"><i class="fa fa-undo"></i> '.lang('no_sorry').'</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>';
         }
 
     } else {
 
     // delete form
 
-        echo '  <BR><BR>
-                <center>';
-        echo '  <FORM action="lang_lang_delete.php" method="POST">
+        echo '<div class="orsee-panel orsee-form-shell">
+                <div class="orsee-panel-title">'.lang('delete_language').'</div>
+                <div class="orsee-content">
+                <form action="lang_lang_delete.php" method="POST">
                 '.csrf__field().'
-                <TABLE class="or_formtable">
-                    <TR>
-                    <TD align=right>'.lang('delete_language').':</TD>
-                    <TD>';
-
-        echo '<SELECT name="elang">';
+                <div class="field">
+                    <label class="label">'.lang('delete_language').'</label>
+                    <div><span class="select is-primary">';
+        echo '<select name="elang">';
         foreach ($languages as $language) {
             if ($language!=lang('lang')) {
                 echo '<OPTION value="'.$language.'"';
@@ -133,29 +119,23 @@ if ($proceed) {
                 echo '>'.$lang_names[$language].' ('.$language.')</OPTION>';
             }
         }
-        echo '</SELECT>
-                    </TD>
-                </TR>
-                <TR>
-                    <TD align=right>'.lang('copy_users_of_this_lang_to').':</TD>
-                    <TD>';
-        echo '<SELECT name="nlang">';
+        echo '</select></span></div></div>
+                <div class="field">
+                    <label class="label">'.lang('copy_users_of_this_lang_to').'</label>
+                    <div><span class="select is-primary">';
+        echo '<select name="nlang">';
         foreach ($languages as $language) {
             echo '<OPTION value="'.$language.'"';
             if ($language==$slang) echo ' SELECTED';
             echo '>'.$lang_names[$language].' ('.$language.')</OPTION>';
         }
-        echo '</SELECT>
-                    </TD>
-                </TR>
-                <TR>
-                    <TD colspan=2 align=center>
-                        <INPUT class="button" type="submit" name="delete" value="'.lang('delete').'">
-                    </TD>
-                </TR>
-                </TABLE>
-                </FORM>
-                </center>';
+        echo '</select></span></div></div>
+                <div class="field has-text-centered">
+                    <button class="button orsee-btn orsee-btn--delete" type="submit" name="delete" value="1"><i class="fa fa-trash-o"></i> '.lang('delete').'</button>
+                </div>
+                </form>
+                </div>
+                </div>';
     }
 
 }

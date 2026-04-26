@@ -2,7 +2,6 @@
 // part of orsee. see orsee.org
 ob_start();
 
-$jquery=array('popup');
 $title="mailqueue";
 $menu__area="statistics";
 include ("header.php");
@@ -23,21 +22,11 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<center>';
-
-        echo '<TABLE class="or_page_subtitle" style="background: '.$color['page_subtitle_background'].'; color: '.$color['page_subtitle_textcolor'].'">
-            <TR><TD align="center">
-            '.$experiment['experiment_name'].'
-            </TD>';
-    echo '</TR></TABLE>';
-
     mailqueue__show_mailqueue($experiment_id);
 
-
-    echo '<BR><BR><A href="experiment_show.php?experiment_id='.$experiment_id.'">'.icon('back').' '.lang('back').'</A><BR><BR>';
-
-    echo '</center>';
-
+    echo '<div class="orsee-stat-actions">';
+    echo button_back('experiment_show.php?experiment_id='.$experiment_id);
+    echo '</div>';
 }
 include ("footer.php");
 ?>

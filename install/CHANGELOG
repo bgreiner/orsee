@@ -86,5 +86,3 @@ ORSEE 2.2.0:
     Updated to newest version of PHPlot and ezPDF.
     Updated ORSEE and MySQL database to full unicode/UTF-8 support.
     Added participant form customization support.
-
-

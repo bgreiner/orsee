@@ -1,12 +1,5 @@
 
 
-*Notes for upgrade from ORSEE <=3.0.2 to ORSEE >=3.0.3* (ignore otherwise)
-
-With ORSEE 3.0.3 we fixed a bug in the database connection as well as in the default install.sql file. This means that if you upgrade from an ORSEE version before 3.0.3, there is a chance that some non-standard characters (e.g. umlauts) are not correctly displayed anymore. (So this problem should not affect any users who only use English.)
-
-If you import data from an older ORSEE version, double check whether all imported fields (e.g. participant names with umlauts) are correctly encoded.
-
-If you experience this problem after an upgrade from older ORSEE versions or after a data import, please run the script "convert_orse302db_to_UTF8.php" in the install/ directory. This will fix the wrongly encoded characters in your database such that they are correctly displayed. Please do *not* run this script if your display of nonstandard characters is ok.
 
 *Upgrade from ORSEE 3.x.x versions to the current version*
 
@@ -15,11 +8,12 @@ The most elegant way to upgrade ORSEE is to use Git version management. This all
 But even without Git: If you have not changed any code, upgrading is easy.
 - Unzip the .tgz / .zip file anywhere. Let's assume this is <my-unzip-path>.
 - Let's also assume your older version ORSEE 3.x.x is located in <my-orsee-path>
-- Then simply over the files from subdirectories 'tagsets', 'admin', 'public', and 'config', i.e.:
+- Then simply over the files from subdirectories 'tagsets', 'admin', 'public', 'config', and possibly 'style' (see below), i.e.:
 cp -r <my-unzip-path>/tagsets/* <my-orsee-path>/tagsets/
 cp -r <my-unzip-path>/admin/* <my-orsee-path>/admin/
 cp -r <my-unzip-path>/public/* <my-orsee-path>/public/
 cp -r <my-unzip-path>/config/* <my-orsee-path>/config/
+cp -r <my-unzip-path>/style/* <my-orsee-path>/style/
 
 That's it.
 
@@ -28,7 +22,38 @@ Since ORSEE 3.1.0 the software has an *automatic database upgrade* feature. When
 Note that since ORSEE 3.0.1, there is no file settings.php in <my-unzip-path>/config/, such that your original settings.php in <my-orsee-path>/config/ will not be changed by this copying. There is a settings-dist.php in <my-unzip-path>/install/ which has to be copied over to config/settings.php when doing a new install.
 
 
-*Upgrade from ORSEE 2.x.x versions to an ORSEE 3.x.x version*
+*Notes for upgrade from ORSEE <3.5 to ORSEE >=3.5* (ignore otherwise)
+
+In ORSEE 3.5 we moved from an html-table-based design to a pure CSS driven layout. This implies that the required files in the ORSEE style folder and their content changed completely. You simply cannot use an ORSEE >=3.5 with an older style folder.
+
+Use this safe migration/upgrade procedure from your legacy custom style:
+
+1) Create a backup of your old custom style folder(s), or rename them (for example to "<style_name>_legacy").
+
+2) If you are not already using a style named "orsee" or "orsee2" (in which case they may have been overwritten), create a copy of the new "orsee" style folder and rename it to your previous style name. (If you use different styles for public and admin area, create two copies of "orsee" and rename them to your previous public and admin style names.)
+
+3) Log in and verify that ORSEE is rendered with the new default CSS-based design.
+   You can then re-apply your custom branding step by step, reusing assets from your legacy style backup where useful. In particular, you can change colors online in Options/Colors and then export them to a colors.json for your style folder.
+
+4) If you prefer, first install a vanilla ORSEE copy in a separate folder, build and test your new style there, and only then update your production ORSEE and copy the new style folder(s) over.
+
+5) After deployment, clear browser cache (or do a hard refresh) to avoid stale CSS/JS artifacts.
+
+6) If needed, set style names directly in the database before first login:
+   UPDATE or_options SET option_value='orsee' WHERE option_name='orsee_public_style';
+   UPDATE or_options SET option_value='orsee' WHERE option_name='orsee_admin_style';
+
+
+*Notes for upgrade from ORSEE <=3.0.2 to ORSEE >=3.0.3* (ignore otherwise)
+
+With ORSEE 3.0.3 we fixed a bug in the database connection as well as in the default install.sql file. This means that if you upgrade from an ORSEE version before 3.0.3, there is a chance that some non-standard characters (e.g. umlauts) are not correctly displayed anymore. (So this problem should not affect any users who only use English.)
+
+If you import data from an older ORSEE version, double check whether all imported fields (e.g. participant names with umlauts) are correctly encoded.
+
+If you experience this problem after an upgrade from older ORSEE versions or after a data import, please run the script "convert_orse302db_to_UTF8.php" in the install/ directory. This will fix the wrongly encoded characters in your database such that they are correctly displayed. Please do *not* run this script if your display of nonstandard characters is ok.
+
+
+*Upgrade from ORSEE 2.x.x versions to an ORSEE 3.x.x version* (ignore otherwise)
 
 ORSEE 3.0.0 was a major new version, with many changes to the database structure and to the code. For this reason, the procedure to upgrade includes two simple steps:
 - install the new version as described in INSTALL.howto and the ORSEE3 wiki

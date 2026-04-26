@@ -3,7 +3,7 @@
 ob_start();
 
 $title="edit_session";
-$jquery=array('datepicker','clockpicker','textext','arraypicker');
+$js_modules=array('flatpickr');
 include ("header.php");
 if ($proceed) {
 
@@ -67,17 +67,17 @@ if ($proceed) {
 
         if ($edit['session_start'] != $_REQUEST['session_start']) {
             $time_changed=true;
-            if ($registered>0) message (lang('session_time_changed'));
+            if ($registered>0) message (lang('session_time_changed'),'warning');
         } else $time_changed=false;
 
         if (!isset($_REQUEST['addit'])) {
             if ($_REQUEST['registration_end_hours']!=$edit['registration_end_hours'] || $time_changed) {
                     $_REQUEST['reg_notice_sent']="n";
-                        message (lang('reg_time_extended_but_notice_sent'));
+                        message (lang('reg_time_extended_but_notice_sent'),'warning');
             }
             if ( ($_REQUEST['session_reminder_hours']!=$edit['session_reminder_hours'] || $time_changed) &&
                     isset($edit['session_reminder_sent']) && $edit['session_reminder_sent']=="y")
-                        message (lang('session_reminder_changed_but_notice_sent'));
+                        message (lang('session_reminder_changed_but_notice_sent'),'warning');
         }
 
         $edit=$_REQUEST;
@@ -86,7 +86,7 @@ if ($proceed) {
 
         if ($done) {
             log__admin("session_edit","session:".session__build_name($edit,
-                    $settings['admin_standard_language'])."\nsession_id:".$edit['session_id']);
+                    $settings['admin_standard_language']).", session_id:".$edit['session_id'].", experiment_id:".$edit['experiment_id']);
             message (lang('changes_saved'));
             redirect ('admin/session_edit.php?session_id='.$edit['session_id']);
         } else {
@@ -125,7 +125,9 @@ if ($proceed) {
             $edit['session_remarks']="";
             $edit['public_session_note']="";
 
-            $edit['session_start']=ortime__unixtime_to_sesstime();
+            $now=time();
+            $next_quarter_hour=$now+((15*60)-($now%(15*60)))%(15*60);
+            $edit['session_start']=ortime__unixtime_to_sesstime($next_quarter_hour);
 
             $edit['session_duration_hour']=$settings['session_duration_hour_default'];
             $edit['session_duration_minute']=$settings['session_duration_minute_default'];
@@ -149,224 +151,202 @@ if ($proceed) {
         session__check_lab_time_clash($edit);
     }
 
-    echo '<center>';
-
     show_message();
 
-    echo '<FORM action="session_edit.php" method="POST">
-            <INPUT type=hidden name=session_id value="'.$edit['session_id'].'">
-            <INPUT type=hidden name=experiment_id value="'.$edit['experiment_id'].'">
-            '.csrf__field().'
-            ';
-    if (isset($addit) && $addit) echo '<INPUT type=hidden name="addit" value="true">';
-    echo '
-        <TABLE class="or_formtable">
-        <TR>
-            <TD>'.lang('id').':</TD>
-            <TD>'.$edit['session_id'].'</TD>
-        </TR>';
+    echo '<form action="session_edit.php" method="POST">
+            <input type="hidden" name="session_id" value="'.$edit['session_id'].'">
+            <input type="hidden" name="experiment_id" value="'.$edit['experiment_id'].'">
+            '.csrf__field();
+    if (isset($addit) && $addit) echo '<input type="hidden" name="addit" value="true">';
+    echo '  <div class="orsee-panel">
+                <div class="orsee-form-shell">';
 
-    echo '  <TR>
-            <TD>'.lang('date').':</TD>
-            <TD>';
+    echo '          <div class="field">
+                        <div class="control">
+                            <div class="orsee-dense-id"><span class="orsee-dense-id-tag">'.lang('id').': '.$edit['session_id'].'</span></div>
+                        </div>
+                    </div>';
 
-    echo formhelpers__pick_date('session_start',$edit['session_start'],$settings['session_start_years_backward'],$settings['session_start_years_forward']);
-    echo '
-            </TD>
-        </TR>';
-
-    echo '  <TR>
-            <TD>
-                '.lang('time').':
-            </TD>
-            <TD>';
-    echo formhelpers__pick_time('session_start', $edit['session_start']);
-    echo'
-            </TD>
-        </TR>';
-
-    echo '  <TR>
-            <TD>
-                '.lang('laboratory').':
-            </TD>
-            <TD>';
+    echo '          <div class="field">
+                        <label class="label">'.lang('laboratory').':</label>
+                        <div class="control">';
     laboratories__select_field("laboratory_id",$edit['laboratory_id']);
-    echo '
-            </TD>
-        </TR>';
+    echo '              </div>
+                    </div>';
 
+    echo '          <div class="field orsee-form-row-grid orsee-form-row-grid--2">
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('date').':</label>
+                            <div class="control">';
+    $session_start_default=(isset($edit['session_start']) && $edit['session_start']) ? $edit['session_start'] : ortime__unixtime_to_sesstime();
+    echo formhelpers__pick_date('session_start',$session_start_default);
+    echo '              </div>
+                        </div>
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('time').':</label>
+                            <div class="control">';
+    echo formhelpers__pick_time('session_start', $edit['session_start']);
+    echo '              </div>
+                        </div>
+                    </div>';
 
-    echo '  <TR>
-            <TD>
-                '.lang('experiment_duration').':
-            </TD>
-            <TD>';
-    helpers__select_numbers("session_duration_hour",$edit['session_duration_hour'],
-                        0,$settings['session_duration_hour_max'],2,1);
-    echo ':';
-    helpers__select_numbers("session_duration_minute",
-                        $edit['session_duration_minute'],0,59,2,
-                        $settings['session_duration_minute_steps']);
-    echo '
-            </TD>
-        </TR>';
+    echo '          <div class="field">
+                        <label class="label">'.lang('experiment_duration').':</label>
+                        <div class="control">
+                            <div class="select is-primary is-inline-block">'.helpers__select_number("session_duration_hour",$edit['session_duration_hour'],0,$settings['session_duration_hour_max'],2,1,false).'</div>
+                            :
+                            <div class="select is-primary is-inline-block">'.helpers__select_number("session_duration_minute",$edit['session_duration_minute'],0,59,2,$settings['session_duration_minute_steps'],false).'</div>
+                        </div>
+                    </div>';
 
-    echo ' <TR>
-            <TD>
-                '.lang('session_reminder_hours_before').':
-            </TD>
-            <TD>';
-    if (isset($edit['session_reminder_sent']) && $edit['session_reminder_sent']=="y")
-        echo $edit['session_reminder_hours'].' ('.lang('session_reminder_already_sent').')';
-    else helpers__select_numbers_relative("session_reminder_hours",$edit['session_reminder_hours'],0,
-                         $settings['session_reminder_hours_max'],2,$settings['session_reminder_hours_steps'],
-                         $session_time);
-    echo '
-            </TD>
-        </TR>';
-
-    echo ' <TR>
-            <TD>
-                '.lang('send_reminder_on').'
-            </TD>
-            <TD>';
-    $oparray=array('enough_participants_needed_plus_reserve'=>'enough_participants_needed_plus_reserve',
-                        'enough_participants_needed'=>'enough_participants_needed',
-                        'in_any_case_dont_ask'=>'in_any_case_dont_ask');
-    echo helpers__select_text($oparray,"send_reminder_on",$edit['send_reminder_on']);
-    echo '
-            </TD>
-        </TR>';
-
-    echo '  <TR>
-            <TD>
-                '.lang('needed_participants').':
-            </TD>
-            <TD>';
+    echo '          <div class="field orsee-form-row-grid orsee-form-row-grid--2">
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('needed_participants').':</label>
+                            <div class="control">';
     helpers__select_numbers("part_needed",$edit['part_needed'],0,$settings['lab_participants_max']);
-    echo '
-            </TD>
-        </TR>';
-
-    echo '  <TR>
-            <TD>
-                '.lang('reserve_participants').':
-            </TD>
-            <TD>';
+    echo '              </div>
+                        </div>
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('reserve_participants').':</label>
+                            <div class="control">';
     helpers__select_numbers("part_reserve",$edit['part_reserve'],0,$settings['reserve_participants_max']);
-    echo '
-            </TD>
-        </TR>';
+    echo '              </div>
+                        </div>
+                    </div>';
 
-    echo '  <TR>
-            <TD>
-                '.lang('registration_end_hours_before').':
-            </TD>
-            <TD>';
+    echo '          <div class="field orsee-form-row-grid orsee-form-row-grid--2">
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('registration_end_hours_before').':</label>
+                            <div class="control">';
     helpers__select_numbers_relative("registration_end_hours",$edit['registration_end_hours'],0,
                     $settings['session_registration_end_hours_max'],2,
                     $settings['session_registration_end_hours_steps'],$session_time);
-    echo '
-            </TD>
-        </TR>';
-
-    echo '  <TR>
-            <TD valign="top">
-                '.lang('remarks').'<br><font class="small">'.lang('session_remarks_note').'</font>:
-            </TD>
-            <TD>
-                <textarea name="session_remarks" rows=3 cols=30 wrap=virtual>'.$edit['session_remarks'].'</textarea>
-            </TD>
-        </TR>';
-
-    if (or_setting('allow_public_session_note') && check_allow('session_edit_add_public_session_note')) {
-        echo '  <TR>
-                <TD valign="top">
-                    '.lang('public_session_note').'<br><font class="small">'.lang('public_session_note_note').'</font>:
-                </TD>
-                <TD>
-                    <textarea name="public_session_note" rows=3 cols=30 wrap=virtual>'.$edit['public_session_note'].'</textarea>
-                </TD>
-            </TR>';
+    echo '              </div>
+                        </div>
+                        <div class="orsee-form-row-col">
+                            <label class="label">'.lang('session_reminder_hours_before').':</label>
+                            <div class="control">';
+    if (isset($edit['session_reminder_sent']) && $edit['session_reminder_sent']=="y") {
+        echo $edit['session_reminder_hours'].' ('.lang('session_reminder_already_sent').')';
+    } else {
+        helpers__select_numbers_relative("session_reminder_hours",$edit['session_reminder_hours'],0,
+                         $settings['session_reminder_hours_max'],2,$settings['session_reminder_hours_steps'],
+                         $session_time);
     }
+    echo '              </div>
+                        </div>
+                    </div>';
 
     if ($settings['enable_payment_module']=='y' ) {
-            $payment_types=db_string_to_id_array($experiment['payment_types']);
-            if ($edit['payment_types'] || is_array($payment_types) && count($payment_types)>1) $show_payment_types=true;
-            else $show_payment_types=false;
-            $payment_budgets=db_string_to_id_array($experiment['payment_budgets']);
-            if ($edit['payment_budgets'] || is_array($payment_budgets) && count($payment_budgets)>1) $show_payment_budgets=true;
-            else $show_payment_budgets=false;
+            $payment_types=payments__load_paytypes();
+            $selected_payment_types=db_string_to_id_array($edit['payment_types']);
+            $experiment_payment_types=db_string_to_id_array($experiment['payment_types']);
+            $show_payment_types=($edit['payment_types'] || (is_array($experiment_payment_types) && count($experiment_payment_types)>1));
 
-            if ($show_payment_budgets) {
-                echo '<TR>
-                        <TD valign="top">'.lang('possible_budgets').'</TD>
-                        <TD>';
-                echo payments__budget_multiselectfield("payment_budgets",db_string_to_id_array($edit['payment_budgets']));
-                echo '</TD>
-                    </TR>';
+            $payment_budgets=payments__load_budgets(true);
+            $selected_payment_budgets=db_string_to_id_array($edit['payment_budgets']);
+            $experiment_payment_budgets=db_string_to_id_array($experiment['payment_budgets']);
+            $show_payment_budgets=($edit['payment_budgets'] || (is_array($experiment_payment_budgets) && count($experiment_payment_budgets)>1));
+
+            if ($show_payment_budgets || $show_payment_types) {
+                echo '      <div class="field orsee-form-row-grid orsee-form-row-grid--2">';
+
+                if ($show_payment_budgets) {
+                    $payment_budget_options=array();
+                    foreach ($payment_budgets as $budget_id=>$budget) {
+                        if ($budget['enabled'] || in_array($budget_id,$selected_payment_budgets)) {
+                            $payment_budget_options[(string)$budget_id]=$budget['budget_name'];
+                        }
+                    }
+                    asort($payment_budget_options);
+                    echo '      <div class="orsee-form-row-col">
+                                    <label class="label"><i class="fa fa-credit-card fa-fw"></i>'.lang('possible_budgets').':</label>
+                                    <div class="control orsee-picker-field">
+                                        '.get_tag_picker('payment_budgets',$payment_budget_options,$selected_payment_budgets,array('tag_bg_color'=>'--color-selector-tag-bg-class')).'
+                                    </div>
+                                </div>';
+                }
+
+                if ($show_payment_types) {
+                    asort($payment_types);
+                    echo '      <div class="orsee-form-row-col">
+                                    <label class="label"><i class="fa fa-money fa-fw"></i>'.lang('possible_payment_types').':</label>
+                                    <div class="control orsee-picker-field">
+                                        '.get_tag_picker('payment_types',$payment_types,$selected_payment_types,array('tag_bg_color'=>'--color-selector-tag-bg-paymenttypes')).'
+                                    </div>
+                                </div>';
+                }
+
+                echo '      </div>';
             }
-            if ($show_payment_types) {
-                echo '<TR>
-                        <TD valign="top">'.lang('possible_payment_types').'</TD>
-                        <TD>';
-                echo payments__paytype_multiselectfield("payment_types",db_string_to_id_array($edit['payment_types']));
-                echo '<BR></TD>
-                    </TR>';
-            }
     }
 
-    echo '  <TR>
-            <TD>
-                '.lang('session_status').'
-            </TD>
-            <TD>
-                <TABLE border=0><TR><TD style="outline: 1px dashed red;">'.session__session_status_select('session_status',$edit['session_status']).'</TD></TR></TABLE>
-            </TD>
-        </TR>
+    echo '          <div class="field">
+                        <label class="label">'.lang('send_reminder_on').':</label>
+                        <div class="control">';
+    $oparray=array('enough_participants_needed_plus_reserve'=>'enough_participants_needed_plus_reserve',
+                        'enough_participants_needed'=>'enough_participants_needed',
+                        'in_any_case_dont_ask'=>'in_any_case_dont_ask');
+    echo '<div class="select is-primary">'.helpers__select_text($oparray,"send_reminder_on",$edit['send_reminder_on']).'</div>';
+    echo '              </div>
+                    </div>';
 
-        <TR>
-            <TD COLSPAN=2 align="center"><BR>
-                <INPUT class="button" name="edit" type="submit" value="'.$button_name.'">
-            </TD>
-        </TR>';
+    echo '          <div class="field">
+                        <label class="label" for="session_remarks">'.lang('remarks').':</label>
+                        <p class="help">'.lang('session_remarks_note').'</p>
+                        <div class="control">
+                            <textarea id="session_remarks" class="textarea is-primary orsee-textarea" name="session_remarks" rows="3" wrap="virtual">'.$edit['session_remarks'].'</textarea>
+                        </div>
+                    </div>';
 
-    if ($session_id) {
-
-        echo '
-            <TR>
-                <TD COLSPAN=2 align="right">
-                    <INPUT class="button" name="copy" type="submit" value="'.lang('copy_as_new_session').'">
-                </TD>
-            </TR>';
+    if (or_setting('allow_public_session_note') && check_allow('session_edit_add_public_session_note')) {
+        echo '      <div class="field">
+                        <label class="label" for="public_session_note">'.lang('public_session_note').':</label>
+                        <p class="help">'.lang('public_session_note_note').'</p>
+                        <div class="control">
+                            <textarea id="public_session_note" class="textarea is-primary orsee-textarea" name="public_session_note" rows="3" wrap="virtual">'.$edit['public_session_note'].'</textarea>
+                        </div>
+                    </div>';
     }
 
-    echo '
-          </table>
-    </FORM>
-    <BR>';
-
-
-    if ($session_id) {
-        $reg=experiment__count_participate_at($edit['experiment_id'],$session_id);
-
-        if (($reg==0 && check_allow('session_empty_delete')) || check_allow('session_nonempty_delete'))
-            echo '
-                <table>
-                    <TR>
-                        <TD>
-                            '.button_link('session_delete.php?session_id='.$edit['session_id'].'&csrf_token='.urlencode(csrf__get_token()),
-                            lang('delete'),'trash-o').'
-                        </TD>
-                    </TR>
-                </table>';
-    }
+    echo '          <div class="field orsee-status-field">
+                        <label class="label">'.lang('session_status').':</label>
+                        <div class="control">'.session__session_status_select('session_status',$edit['session_status']).'</div>
+                    </div>';
 
     if ($session_id) $experiment_id=$edit['experiment_id']; else $experiment_id=$_REQUEST['experiment_id'];
-    echo '<BR><BR>
-        <a href="experiment_show.php?experiment_id='.$experiment_id.'"><i class="fa fa-level-up fa-lg" style="padding-right: 3px;"></i>'.
-            lang('mainpage_of_this_experiment').'</A>
-        </center>';
+
+    $show_delete=false;
+    if ($session_id) {
+        $reg=experiment__count_participate_at($edit['experiment_id'],$session_id);
+        if (($reg==0 && check_allow('session_empty_delete')) || check_allow('session_nonempty_delete')) {
+            $show_delete=true;
+        }
+    }
+
+    echo '          <div class="field orsee-form-row-grid orsee-form-row-grid--3 orsee-form-actions">
+                        <div class="orsee-form-row-col has-text-left">'.
+                            button_back('experiment_show.php?experiment_id='.$experiment_id)
+                    .'</div>
+                        <div class="orsee-form-row-col has-text-centered">
+                            <input class="button orsee-btn" name="edit" type="submit" value="'.$button_name.'">
+                        </div>
+                        <div class="orsee-form-row-col has-text-right">';
+    if ($session_id) {
+        echo '              <input class="button orsee-btn" name="copy" type="submit" value="'.lang('copy_as_new_session').'"> ';
+    }
+    echo '              </div>
+                    </div>';
+
+    if ($show_delete) {
+        echo '      <div class="orsee-form-actions has-text-right">'.
+                    button_link_delete('session_delete.php?session_id='.$edit['session_id'].'&csrf_token='.urlencode(csrf__get_token()),lang('delete')).
+                '</div>';
+    }
+
+    echo '          </div>
+            </div>
+        </form>';
 
 }
 include ("footer.php");

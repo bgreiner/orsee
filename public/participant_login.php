@@ -6,9 +6,9 @@ $menu__area="login";
 $title="profile_login";
 include("header.php");
 if ($proceed) {
-    if (isset($_REQUEST['logout']) && $_REQUEST['logout']) message(lang('logout'));
+    if (isset($_REQUEST['logout']) && $_REQUEST['logout']) message(lang('logout'),'note',null,'toast');
     if (isset($_REQUEST['pw']) && $_REQUEST['pw']) {
-        message(lang('logout'));
+        message(lang('logout'),'note',null,'toast');
         message (lang('password_changed_log_in_again'));
     }
 
@@ -34,29 +34,26 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<CENTER>';
-    show_message();
-
-    echo '<BR><BR><form name="login" action="participant_login.php" method=post>
-        '.csrf__field().'
-        <table class="or_formtable">
-        <TR><TD>'.lang('email').':</TD><TD>
-        <input type="text" size="30" maxlength="100" name="email">
-        </TD></TR>
-        <TR><TD>
-        '.lang('password').':</TD><TD>
-        <input type="password" size="20" maxlength="30" name="password">
-        </TD></TR>
-        <TR><TD colspan="2" align="center">
-        <input class="button" type=submit name=login value="'.lang('login').'">
-        </TD></TR>
-        </TABLE>
-
-        <BR><BR>
-        <A HREF="participant_reset_pw.php"><FONT class="small">'.lang('forgot_your_password?').'</FONT></A>
-        ';
-
-    echo '</CENTER>';
+    $participant_password_dir=($settings['force_ltr_participant_login_password']==='y' ? ' dir="ltr"' : '');
+    echo '<div class="orsee-panel orsee-login-panel">';
+    echo '<form name="login" action="participant_login.php" method="post" class="orsee-login-form">';
+    echo csrf__field();
+    echo '<div class="field">';
+    echo '<label class="label">'.lang('email').'</label>';
+    echo '<div class="control"><input class="input is-primary orsee-input orsee-input-email" type="email" dir="ltr" maxlength="100" name="email"></div>';
+    echo '</div>';
+    echo '<div class="field">';
+    echo '<label class="label">'.lang('password').'</label>';
+    echo '<div class="control"><input class="input is-primary orsee-input orsee-input-password" type="password"'.$participant_password_dir.' maxlength="30" name="password"></div>';
+    echo '</div>';
+    echo '<div class="orsee-form-actions orsee-login-actions">';
+    echo '<button class="button orsee-public-btn" type="submit" name="login" value="1">'.lang('login').'</button>';
+    echo '</div>';
+    echo '<div class="orsee-login-forgot">';
+    echo '<a href="participant_reset_pw.php">'.lang('forgot_your_password?').'</a>';
+    echo '</div>';
+    echo '</form>';
+    echo '</div>';
 }
 include("footer.php");
 ?>

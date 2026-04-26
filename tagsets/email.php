@@ -67,18 +67,26 @@ function email__retrieve_incoming() {
                     $data_string='';
                 }
                 $to_adds=array(); $cc_adds=array();
-                foreach ($email['headers']['to'] as $to_add) $to_adds[]=$to_add['mailbox']."@".$to_add['host'];
+                foreach ($email['headers']['to'] as $to_add) {
+                    $to_address=email__extract_address_from_header_part($to_add);
+                    if ($to_address!=='') $to_adds[]=$to_address;
+                }
                 if (isset($email['headers']['cc']) && is_array($email['headers']['cc'])) {
-                    foreach ($email['headers']['cc'] as $cc_add) $cc_adds[]=$cc_add['mailbox']."@".$cc_add['host'];
+                    foreach ($email['headers']['cc'] as $cc_add) {
+                        $cc_address=email__extract_address_from_header_part($cc_add);
+                        if ($cc_address!=='') $cc_adds[]=$cc_address;
+                    }
                 }
                 $pars=array();
                 $pars[':message_id']=$message['message_id'];
                 $pars[':message_type']='incoming';
                 $pars[':timestamp']=strtotime($message['date']);
-                $pars[':from_address']=$email['headers']['from']['mailbox'] . "@" . $email['headers']['from']['host'];
+                $pars[':from_address']=email__extract_address_from_header_part($email['headers']['from']);
                 $pars[':from_name']=(isset($email['headers']['from']['personal']))?$email['headers']['from']['personal']:'';
                 $pars[':reply_to_address']='';
-                if (isset($email['headers']['reply-to'])) $pars[':reply_to_address']=$email['headers']['reply-to']['mailbox'] . "@" . $email['headers']['reply-to']['host'];
+                if (isset($email['headers']['reply-to'])) {
+                    $pars[':reply_to_address']=email__extract_address_from_header_part($email['headers']['reply-to']);
+                }
                 $pars[':to_address']=implode(",",$to_adds);
                 $pars[':cc_address']=implode(",",$cc_adds);
                 $pars[':subject']=email__strip_html($message['subject']);
@@ -123,8 +131,35 @@ function email__retrieve_incoming() {
     return $result;
 }
 
+function email__extract_address_from_header_part($part) {
+    if (!is_array($part)) return '';
+    if (!isset($part['mailbox'])) return '';
+
+    $mailbox=trim((string)$part['mailbox']);
+    $host=(isset($part['host'])) ? trim((string)$part['host']) : '';
+    if ($mailbox==='') return '';
+
+    $candidate=($host!=='') ? ($mailbox.'@'.$host) : $mailbox;
+    $candidate=trim($candidate, " \t\n\r\0\x0B<>\"");
+    if (filter_var($candidate,FILTER_VALIDATE_EMAIL)) return $candidate;
+
+    if (preg_match('/<([^>]+)>/',$mailbox,$match)) {
+        $embedded=trim($match[1]);
+        if (filter_var($embedded,FILTER_VALIDATE_EMAIL)) return $embedded;
+    }
+
+    if ($host==='') {
+        if (preg_match('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i',$mailbox,$match)) {
+            $inline=trim($match[0]);
+            if (filter_var($inline,FILTER_VALIDATE_EMAIL)) return $inline;
+        }
+    }
+
+    return $candidate;
+}
+
 function email__show_email($email,$open_reply=false,$open_note=false) {
-    global $color, $settings, $expadmindata;
+    global $settings, $expadmindata;
 
     // load remaining email thread
     $pars=array(':thread_id'=>$email['thread_id']);
@@ -191,44 +226,36 @@ function email__show_email($email,$open_reply=false,$open_note=false) {
     $orig_to=explode(",",$email['to_address']);
     if ($email['cc_address']) $orig_cc=explode(",",$email['cc_address']); else $orig_cc=array();
 
-    echo '<table class="or_formtable" style="background: '.$color['options_box_background'].'" CELLPADDING="3" CELLSPACING="3" >
-        <TR class="emailtable"><TD align="right">';
-
     $allow_change=email__is_allowed($email,$experiment,'change');
     $allow_reply=email__is_allowed($email,$experiment,'reply');
     $allow_note=email__is_allowed($email,$experiment,'note');
     $allow_delete=email__is_allowed($email,$experiment,'delete');
 
     if ($allow_reply && (count($orig_to)+count($orig_cc)>1)) $reply_all_button=true; else $reply_all_button=false;
+    echo '<div class="orsee-panel-actions has-text-right">';
     email__show_buttons($email,$reply_all_button,$allow_delete,$allow_reply,$allow_note);
+    echo '</div>';
 
-    echo '</TD></TR>';
-    echo '<TR class="emailtable"><TD>';
-    echo '  <FORM action="'.thisdoc().'" METHOD="POST">
-        <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
+    echo '<form action="'.thisdoc().'" method="POST" class="orsee-email-main-form">';
+    echo '<input type="hidden" name="message_id" value="'.$email['message_id'].'">';
     echo csrf__field();
     if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
-        echo '<INPUT type="hidden" name="hide_header" value="true">';
+        echo '<input type="hidden" name="hide_header" value="true">';
     }
-    echo '<TABLE  class="or_panel" style="background: '.$color['content_background_color'].'; width: 100%; padding: 2px;" CELLPADDING="3" CELLSPACING="0">';
 
+    echo '<div class="orsee-panel">';
+    echo '<div class="orsee-form-shell" style="width: 100%; max-width: 100%;">';
 
-    // show settings to classify this email
-
-    echo '<TR style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].';">
-        <TD align=right>'.lang('mailbox_experiment_session').':</TD>
-        <TD align=left valign=middle>';
+    echo '<div class="field">';
+    echo '<label class="label">'.lang('mailbox_experiment_session').':</label>';
+    echo '<div class="control">';
     if ($allow_change) {
         email__expsess_select($email,$session,$experiment,$participant);
-        if ($guess_expsess_message) {
-            echo '<span class="small" style="border: 1px solid '.$color['message_border'].'; background: '.$color['message_background'].'; color: '.$color['message_text'].'"> ('.str_replace(" ","&nbsp",$guess_expsess_message).')</span>';
-        }
+        if ($guess_expsess_message) echo ' <span class="orsee-font-compact">('.$guess_expsess_message.')</span>';
     } else {
         if ($email['experiment_id']) {
             echo $experiment['experiment_name'];
-            if ($email['session_id']) {
-                echo ', '.session__build_name($related_sessions[$email['session_id']]);
-            }
+            if ($email['session_id']) echo ', '.session__build_name($session);
         } elseif ($email['mailbox']) {
             $mailboxes=email__load_mailboxes();
             echo $mailboxes[$email['mailbox']];
@@ -236,163 +263,103 @@ function email__show_email($email,$open_reply=false,$open_note=false) {
             echo lang('mailbox_not_assigned');
         }
     }
+    if ($email['experiment_id']) echo '<div><a href="experiment_show.php?experiment_id='.urlencode($email['experiment_id']).'">['.lang('view_experiment').']</a>';
+    if ($email['session_id']) echo ' <a href="experiment_participants_show.php?experiment_id='.urlencode($email['experiment_id']).'&session_id='.urlencode($email['session_id']).'">['.lang('view_session').']</a>';
+    if ($email['experiment_id']) echo '</div>';
+    echo '</div></div>';
 
-    if ($email['experiment_id']) echo '<BR><A HREF="experiment_show.php?experiment_id='.urlencode($email['experiment_id']).'" style="color: '.$color['panel_title_textcolor'].';">['.str_replace(" ","&nbsp",lang('view_experiment')).']</A>';
-    if ($email['session_id']) echo ' <A HREF="experiment_participants_show.php?experiment_id='.urlencode($email['experiment_id']).'&session_id='.urlencode($email['session_id']).'" style="color: '.$color['panel_title_textcolor'].';">['.str_replace(" ","&nbsp",lang('view_session')).']</A>';
-
-
-    echo '  </TD>
-            <TD align=center valign=middle rowspan=3>';
-
-    echo lang('email_processed?').'<BR>';
-    if ($allow_change) {
-        echo '<select id="processed_switch" name="flag_processed">';
-        echo '<option value="0"'; if (!$email['flag_processed']) echo ' SELECTED'; echo '></option>';
-        echo '<option value="1"'; if ($email['flag_processed']) echo ' SELECTED'; echo '></option>';
-        echo '</select>';
-        $out="<script type=\"text/javascript\">
-        $(function() {
-            $('#processed_switch').switchy();
-            $('#processed_switch').on('change', function(){
-                var firstOption = $(this).children('option').first().val();
-                var lastOption = $(this).children('option').last().val();
-                var bgColor = '#bababa';
-                if ($(this).val() == firstOption){
-                    bgColor = '#DC143C';
-                } else if ($(this).val() == lastOption){
-                    bgColor = '#008000';
-                }
-                $(this).next().next().children().first().css(\"background-color\", bgColor);
-            });
-            $('#processed_switch').trigger('change');
-        });
-        </script>";
-        echo $out;
-    } else {
-        if ($email['flag_processed']) echo lang('y'); else echo lang('n');
-    }
-    echo '  </TD>
-            <TD align=center valign=middle rowspan=3>';
-
-    if ($allow_change) echo '<INPUT class="button small" type="submit" name="update" value="'.lang('save').'">';
-    echo '  </TD>
-            </TR>';
-    echo '  <TR style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].';">
-            <TD align=right>'.lang('participant').':</TD>
-            <TD align=left valign=middle>';
+    echo '<div class="field">';
+    echo '<label class="label">'.lang('participant').':</label>';
+    echo '<div class="control">';
     if ($allow_change) {
         email__participant_select($email,$participant,$guess_parts);
-        if ($guess_part_message) {
-            echo '<span class="small" style="border: 1px solid '.$color['message_border'].'; background: '.$color['message_background'].'; color: '.$color['message_text'].'"> ('.str_replace(" ","&nbsp",$guess_part_message).')</span>';
-        }
+        if ($guess_part_message) echo ' <span class="orsee-font-compact">('.$guess_part_message.')</span>';
     } else {
         if ($email['participant_id']) {
             $cols=participant__get_result_table_columns('email_participant_guesses_list');
             $items=array();
-            foreach ($cols as $k=>$c) {
-                $items[]=$participant[$k];
-            }
+            foreach ($cols as $k=>$c) $items[]=$participant[$k];
             echo implode(" ",$items);
         } else {
             echo lang('mailbox_not_assigned');
         }
     }
-    if ($email['participant_id']) echo '&nbsp;<A HREF="participants_edit.php?participant_id='.urlencode($email['participant_id']).'" style="color: '.$color['panel_title_textcolor'].';">['.str_replace(" ","&nbsp",lang('view_profile')).']</A> ';
-    echo '</TD>
-        </TR>';
+    if ($email['participant_id']) echo ' <a href="participants_edit.php?participant_id='.urlencode($email['participant_id']).'">['.lang('view_profile').']</a>';
+    echo '</div></div>';
+
     if ($settings['email_module_allow_assign_emails']=='y')  {
-        echo '  <TR style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].';">
-                <TD align=right>'.lang('assign_email_to').':</TD>
-                <TD align=left valign=middle class="small">';
-                if ($allow_change) {
-                    echo '<span style="color: '.$color['body_text'].';">'.experiment__experimenters_select_field("assigned_to",db_string_to_id_array($email['assigned_to']),true,array('cols'=>30)).'</span>';
-                } else {
-                    if ($email['assigned_to']) {
-                        echo experiment__list_experimenters($email['assigned_to'],false,true);
-                    } else {
-                        echo '-';
-                    }
-                }
-        echo '</TD>
-            </TR>';
+        echo '<div class="field">';
+        echo '<label class="label">'.lang('assign_email_to').':</label>';
+        echo '<div class="control">';
+        if ($allow_change) {
+            echo experiment__experimenters_select_field("assigned_to",db_string_to_id_array($email['assigned_to']),true,array('cols'=>30,'tag_bg_color'=>'--lcolor-selector-tag-bg-experimenters'));
+        } else {
+            if ($email['assigned_to']) echo experiment__list_experimenters($email['assigned_to'],false,true);
+            else echo '-';
+        }
+        echo '</div></div>';
     }
 
-    // show headers
-    email__show_headers($email) ;
+    echo '<div class="field">';
+    echo '<label class="label">'.lang('email_processed?').'</label>';
+    echo '<div class="control">';
+    if ($allow_change) {
+        echo '<select id="processed_switch" name="flag_processed" data-elem-name="yesnoswitch">';
+        echo '<option value="0"'; if (!$email['flag_processed']) echo ' selected'; echo '></option>';
+        echo '<option value="1"'; if ($email['flag_processed']) echo ' selected'; echo '></option>';
+        echo '</select>';
+    } else {
+        if ($email['flag_processed']) echo lang('y'); else echo lang('n');
+    }
+    echo '</div></div>';
 
-    // show email body
+    if ($allow_change) {
+        echo '<div class="field has-text-centered"><button class="button orsee-btn" type="submit" name="update" value="1"><i class="fa fa-save"></i>&nbsp;'.lang('save').'</button></div>';
+    }
+    echo '</div>';
+
+    email__show_headers($email);
     email__show_body($email);
-
-    // attachments
     email__show_attachments($email);
+    echo '</div>';
+    echo '</form>';
 
-    echo '
-        </TABLE>
-        </FORM>
-        </TD></TR>
-        ';
-
-    echo '<TR><TD>';
-    echo '<TABLE width=100% border=0>';
     foreach ($replies as $remail) {
-        echo '<TR><TD valign="top">';
-        if ($remail['message_type']=='reply') echo icon('reply','',' fa-2x',' color: #666666;','reply');
-        elseif ($remail['message_type']=='note') echo icon('file-text-o','',' fa-2x',' color: #666666;','internal note');
-        elseif ($remail['message_type']=='incoming') echo icon('envelope-square','',' fa-2x',' color: #666666;','incoming');
-        echo '</TD><TD>&nbsp;&nbsp;</TD><TD>';
-        echo '<TABLE  class="or_panel" style="background: '.$color['content_background_color'].'; width: 100%; padding: 2px;" CELLPADDING="3" CELLSPACING="0">';
-        // show headers
-        email__show_headers($remail) ;
-
-        // show email body
+        echo '<div class="orsee-panel" style="margin-top: 0.75rem;">';
+        echo '<div class="orsee-panel-title"><div>';
+        if ($remail['message_type']=='reply') echo icon('reply','','',' color: var(--color-panel-title-text);','reply').' '.lang('reply');
+        elseif ($remail['message_type']=='note') echo icon('file-text-o','','',' color: var(--color-panel-title-text);','internal note').' '.lang('email_internal_note');
+        else echo icon('envelope-square','','',' color: var(--color-panel-title-text);','incoming').' '.lang('email_received');
+        echo ' · '.ortime__format($remail['timestamp']);
+        echo '</div></div>';
+        email__show_headers($remail);
         email__show_body($remail);
-
-        // attachments
         email__show_attachments($remail);
-        echo '</TABLE>
-        </TD></TR>
-        ';
+        echo '</div>';
     }
-    echo '</TABLE></TD></TR>';
 
     if (count($replies)>0) {
-        echo '<TR class="emailtable"><TD align="right">';
+        echo '<div class="orsee-panel-actions has-text-right" style="margin-top: 0.5rem;">';
         email__show_buttons($email,$reply_all_button,false,$allow_reply,$allow_note);
-        echo '</TD></TR>';
+        echo '</div>';
     }
 
-    // reply field
+    if (isset($_REQUEST['replytype']) && $_REQUEST['replytype']=='reply') $replytype='reply';
+    else $replytype='replyall';
+
     if ($allow_reply) {
-        echo '<TR id="replyfield"><TD>';
-        echo '<A name="replyform"></A>';
+        echo '<div id="replyfield" class="orsee-panel" style="margin-top: 0.75rem;">';
+        echo '<a name="replyform"></a>';
         show_message();
-        echo '<FORM name="send_email" action="'.thisdoc().'#replyform" method="POST">
-             <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
+        echo '<form name="send_email" action="'.thisdoc().'#replyform" method="POST">';
+        echo '<input type="hidden" name="message_id" value="'.$email['message_id'].'">';
         echo csrf__field();
-        if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
-            echo '<INPUT type="hidden" name="hide_header" value="true">';
-        }
+        if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) echo '<input type="hidden" name="hide_header" value="true">';
+        echo '<input id="replytype" type="hidden" name="replytype" value="'.$replytype.'">';
 
-        if (isset($_REQUEST['replytype']) && $_REQUEST['replytype']=='reply') $replytype='reply';
-        else $replytype='replyall';
-
-        echo '<INPUT id="replytype" type="hidden" name="replytype" value="'.$replytype.'">';
-
-        echo '<TABLE class="or_panel" style="background: '.$color['content_background_color'].'; width: 100%;">';
-        echo '<TR><TD colspan=2 align=right>
-                <I id="close_reply" class="fa fa-times-circle-o fa-2x"></I>
-                </TD></TR>';
-        echo '<TR><TD align=right>'.lang('email_from').':</TD>
-                    <TD width=90% align=left>'.$settings['support_mail'].'</TD>
-                </TR>';
         if (isset($_REQUEST['send_to'])) $to=$_REQUEST['send_to'];
         elseif (isset($email['reply_to_address']) && $email['reply_to_address']) $to=$email['reply_to_address'];
         else $to=$email['from_address'];
-        echo '<TR>
-                 <TD align=right>'.lang('email_to').':</TD><TD align=left>
-                    <INPUT type="text" name="send_to" size=60 maxlength=255 value="'.$to.'">
-                </TD>
-                </TR>';
 
         if (isset($_REQUEST['send_cc_replyall'])) $cc_replyall=$_REQUEST['send_cc_replyall'];
         else {
@@ -401,227 +368,199 @@ function email__show_email($email,$open_reply=false,$open_note=false) {
             foreach ($orig_cc as $occ) if ($occ!=$settings['support_mail'] && !in_array($occ,$cc_arr)) $cc_arr[]=$occ;
             $cc_replyall=implode(",",$cc_arr);
         }
-        echo '<TR id="ccfield_replyall">
-                 <TD align=right>'.lang('email_cc').':</TD><TD align=left>
-                    <INPUT type="text" name="send_cc_replyall" rows=2 cols=60 value="'.$cc_replyall.'">
-                </TD>
-                </TR>';
-        if (isset($_REQUEST['send_cc_reply'])) $cc_reply=$_REQUEST['send_cc_reply'];
-        else $cc_reply='';
-        echo '<TR id="ccfield_reply">
-                 <TD align=right>'.lang('email_cc').':</TD><TD align=left>
-                    <INPUT type="text" name="send_cc_reply" rows=2 cols=60 value="'.$cc_reply.'">
-                </TD>
-                </TR>';
+        if (isset($_REQUEST['send_cc_reply'])) $cc_reply=$_REQUEST['send_cc_reply']; else $cc_reply='';
         if (isset($_REQUEST['send_subject'])) $subject=$_REQUEST['send_subject'];
         else $subject=lang('email_subject_re:').' '.$email['subject'];
-        echo '<TR>
-                <TD align=right>'.lang('email_subject').':</TD>
-                <TD align=left><INPUT type="text" name="send_subject" size=60 maxlength=255 value="'.
-                        $subject.'"></TD>
-                </TR>';
         if (isset($_REQUEST['send_body'])) $body=$_REQUEST['send_body'];
-        else $body="\n\n\n\n".$email['from_name'].' <'.$email['from_address'].'> '.lang('email_xxx_wrote').':'."\n".
-                    email__cite_text($email['body']);
-        echo '<TR><TD></TD><TD>
-                <textarea name="send_body" wrap="virtual" rows="20" cols="60">'.$body.'</textarea>
-            </TD></TR>';
-        echo '<TR><TD colspan="2" align="center"><INPUT type="submit" class="button" name="send" value="'.lang('send_email').'"></TD></TR>';
-        echo '</TABLE>';
-        echo '</FORM>';
-        echo '</TD></TR>';
-    }
-
-    // note field
-    if ($allow_note) {
-        echo '<TR id="notefield"><TD>';
-        echo '<A name="noteform"></A>';
-        show_message();
-        echo '<FORM name="add_note" action="'.thisdoc().'#noteform" method="POST">
-             <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
-        echo csrf__field();
-        if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
-            echo '<INPUT type="hidden" name="hide_header" value="true">';
+        else {
+            if (lang__is_rtl()) {
+                $lri="\xE2\x81\xA6";
+                $pdi="\xE2\x81\xA9";
+                $name_ref=$lri.$email['from_name'].$pdi;
+                $from_ref=$lri.'<'.$email['from_address'].'>'.$pdi;
+                $body="\n\n\n\n".$name_ref.' '.$from_ref.' '.lang('email_xxx_wrote').':'."\n".email__cite_text($email['body']);
+            }
+            else $body="\n\n\n\n".$email['from_name'].' <'.$email['from_address'].'> '.lang('email_xxx_wrote').':'."\n".email__cite_text($email['body']);
         }
 
-        echo '<TABLE class="or_panel" style="background: '.$color['content_background_color'].'; width: 100%;">';
-        echo '<TR><TD colspan="3" align=right>
-                <I id="close_note" class="fa fa-times-circle-o fa-2x"></I>
-                </TD></TR>';
-        echo '<TR><TD valign="top" rowspan="3">';
-        echo icon('file-text-o','',' fa-2x',' color: #666666;','internal note');
-        echo '</TD><TD rowspan="3">&nbsp;&nbsp;</TD>';
-        echo '<TD>'.lang('email_internal_note_by').' '.$expadmindata['fname'].' '.$expadmindata['lname'].'</TD>
-                </TR>';
-        if (isset($_REQUEST['note_body'])) $body=$_REQUEST['note_body'];
-        else $body="";
-        echo '<TR><TD>
-                <textarea name="note_body" wrap="virtual" rows="20" cols="60">'.$body.'</textarea>
-            </TD></TR>';
-        echo '<TR><TD align="center"><INPUT type="submit" class="button" name="addnote" value="'.lang('add').'"></TD></TR>';
-        echo '</TABLE>';
-        echo '</FORM>';
-        echo '</TD></TR>';
+        echo '<div class="orsee-form-shell" style="width: 100%; max-width: 100%;">';
+        echo '<div class="field has-text-right"><button type="button" id="close_reply" class="button orsee-btn"><i class="fa fa-times-circle-o fa-lg"></i></button></div>';
+        echo '<div class="field"><label class="label">'.lang('email_from').':</label><div class="control">'.$settings['support_mail'].'</div></div>';
+        echo '<div class="field"><label class="label">'.lang('email_to').':</label><div class="control"><input class="input is-primary orsee-input orsee-input-text" type="text" name="send_to" dir="ltr" maxlength="255" value="'.$to.'"></div></div>';
+        echo '<div id="ccfield_replyall" class="field"><label class="label">'.lang('email_cc').':</label><div class="control"><input class="input is-primary orsee-input orsee-input-text" type="text" name="send_cc_replyall" dir="ltr" value="'.$cc_replyall.'"></div></div>';
+        echo '<div id="ccfield_reply" class="field"><label class="label">'.lang('email_cc').':</label><div class="control"><input class="input is-primary orsee-input orsee-input-text" type="text" name="send_cc_reply" dir="ltr" value="'.$cc_reply.'"></div></div>';
+        echo '<div class="field"><label class="label">'.lang('email_subject').':</label><div class="control"><input class="input is-primary orsee-input orsee-input-text" type="text" name="send_subject" maxlength="255" value="'.$subject.'"></div></div>';
+        echo '<div class="field"><div class="control"><textarea class="textarea is-primary orsee-input orsee-textarea" name="send_body" wrap="virtual" rows="17">'.$body.'</textarea></div></div>';
+        echo '<div class="field has-text-centered"><button type="submit" class="button orsee-btn" name="send" value="1">'.lang('send_email').'</button></div>';
+        echo '</div></form></div>';
     }
 
-    echo '</TABLE>';
+    if ($allow_note) {
+        echo '<div id="notefield" class="orsee-panel" style="margin-top: 0.75rem;">';
+        echo '<a name="noteform"></a>';
+        show_message();
+        echo '<form name="add_note" action="'.thisdoc().'#noteform" method="POST">';
+        echo '<input type="hidden" name="message_id" value="'.$email['message_id'].'">';
+        echo csrf__field();
+        if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) echo '<input type="hidden" name="hide_header" value="true">';
+        if (isset($_REQUEST['note_body'])) $body=$_REQUEST['note_body']; else $body="";
+        echo '<div class="orsee-form-shell" style="width: 100%; max-width: 100%;">';
+        echo '<div class="field has-text-right"><button type="button" id="close_note" class="button orsee-btn"><i class="fa fa-times-circle-o fa-lg"></i></button></div>';
+        echo '<div class="field"><div class="control">'.icon('file-text-o','','',' color: var(--color-body-text);','internal note').' '.lang('email_internal_note_by').' '.$expadmindata['fname'].' '.$expadmindata['lname'].'</div></div>';
+        echo '<div class="field"><div class="control"><textarea class="textarea is-primary orsee-input orsee-textarea" name="note_body" wrap="virtual" rows="17">'.$body.'</textarea></div></div>';
+        echo '<div class="field has-text-centered"><button type="submit" class="button orsee-btn" name="addnote" value="1">'.lang('add').'</button></div>';
+        echo '</div></form></div>';
+    }
 
-    echo '  <script type="text/javascript"> ';
-    if (!$open_reply) echo '$("#replyfield").hide(); ';
+    echo '<script type="text/javascript">
+            (function(){
+                var replyField=document.getElementById("replyfield");
+                var noteField=document.getElementById("notefield");
+                var ccReply=document.getElementById("ccfield_reply");
+                var ccReplyAll=document.getElementById("ccfield_replyall");
+                var replyType=document.getElementById("replytype");
+                var processed=document.getElementById("processed_switch");
+                if (window.osmeaSwitchyEnhanceAll && processed) window.osmeaSwitchyEnhanceAll(document);
+
+                function disableMainForm(disabled){
+                    document.querySelectorAll(".orsee-email-main-form input, .orsee-email-main-form select, .orsee-email-main-form textarea, .orsee-email-main-form button").forEach(function(el){
+                        el.disabled=disabled;
+                    });
+                }
+                function showReply(type){
+                    if (!replyField) return;
+                    if (replyType) replyType.value=type;
+                    if (ccReplyAll) ccReplyAll.style.display=(type==="replyall")?"block":"none";
+                    if (ccReply) ccReply.style.display=(type==="reply")?"block":"none";
+                    replyField.style.display="block";
+                    if (noteField) noteField.style.display="none";
+                    disableMainForm(true);
+                    replyField.scrollIntoView({behavior:"smooth", block:"start"});
+                }
+                function closeReply(){
+                    if (!replyField) return;
+                    replyField.style.display="none";
+                    disableMainForm(false);
+                }
+                function showNote(){
+                    if (!noteField) return;
+                    noteField.style.display="block";
+                    if (replyField) replyField.style.display="none";
+                    disableMainForm(true);
+                    noteField.scrollIntoView({behavior:"smooth", block:"start"});
+                }
+                function closeNote(){
+                    if (!noteField) return;
+                    noteField.style.display="none";
+                    disableMainForm(false);
+                }
+
+                document.querySelectorAll("[data-email-action=\"reply\"]").forEach(function(btn){ btn.addEventListener("click", function(){ showReply("reply"); }); });
+                document.querySelectorAll("[data-email-action=\"replyall\"]").forEach(function(btn){ btn.addEventListener("click", function(){ showReply("replyall"); }); });
+                document.querySelectorAll("[data-email-action=\"note\"]").forEach(function(btn){ btn.addEventListener("click", function(){ showNote(); }); });
+                var closeReplyBtn=document.getElementById("close_reply");
+                if (closeReplyBtn) closeReplyBtn.addEventListener("click", closeReply);
+                var closeNoteBtn=document.getElementById("close_note");
+                if (closeNoteBtn) closeNoteBtn.addEventListener("click", closeNote);
+';
+    if (!$open_reply) echo 'if (replyField) replyField.style.display="none";';
     else {
-        if ($replytype=='reply') echo ' $("#ccfield_replyall").hide(); ';
-        else echo ' $("#ccfield_reply").hide(); ';
+        if ($replytype=='reply') echo 'if (ccReplyAll) ccReplyAll.style.display="none"; if (ccReply) ccReply.style.display="block";';
+        else echo 'if (ccReply) ccReply.style.display="none"; if (ccReplyAll) ccReplyAll.style.display="block";';
     }
-    if ($allow_note && !$open_note) echo '$("#notefield").hide(); ';
-
-    if ($allow_note) echo '
-                $(".note_button").click(function() {
-                    $(".emailtable :input").attr("disabled", true);
-                    $("#notefield").show();
-                    $("html, body").animate({
-                        scrollTop: $("#notefield").offset().top
-                    }, 1000);
-                });
-                $("#close_note").click(function() {
-                    $("#notefield").hide();
-                    $(".emailtable :input").attr("disabled", false);
-                });';
-
-    if ($allow_reply) echo '
-                $(".reply_button").click(function() {
-                    $(".emailtable :input").attr("disabled", true);
-                    $("#replytype").val("reply");
-                    $("#ccfield_replyall").hide();
-                    $("#ccfield_reply").show();
-                    $("#replyfield").show();
-                    $("html, body").animate({
-                        scrollTop: $("#replyfield").offset().top
-                    }, 1000);
-                });
-                $(".replyall_button").click(function() {
-                    $(".emailtable :input").attr("disabled", true);
-                    $("#replytype").val("replyall");
-                    $("#ccfield_replyall").show();
-                    $("#ccfield_reply").hide();
-                    $("#replyfield").show();
-                    $("html, body").animate({
-                        scrollTop: $("#replyfield").offset().top
-                    }, 1000);
-                });
-                $("#close_reply").click(function() {
-                    $("#ccfield").hide();
-                    $("#replyfield").hide();
-                    $("#ccfield_replyall").hide();
-                    $("#ccfield_reply").hide();
-                    $(".emailtable :input").attr("disabled", false);
-                });';
-    echo '
-            </script>';
+    if ($allow_note && !$open_note) echo 'if (noteField) noteField.style.display="none";';
+    echo '  })();
+        </script>';
 
 }
 
 function email__show_buttons($email,$reply_all_button=false,$delete_button=false,$reply_button=true,$note_button=true) {
-
-    echo '<TABLE border=0 CELLPADDING="0" CELLSPACING="0"><TR>';
-    if ($note_button) echo '<TD valign="top" align="center"><button class="note_button button">'.lang('email_add_internal_note').'</button></TD>';
-    if ($reply_button) echo '<TD valign="top" align="center"><button class="reply_button button">'.lang('reply').'</button></TD>';
-    if ($reply_all_button) {
-        echo '<TD valign="top" align="center"><button class="replyall_button button">'.lang('reply_all').'</button></TD>';
-    }
+    echo '<div class="buttons is-right">';
+    if ($note_button) echo '<button type="button" class="button orsee-btn" data-email-action="note"><i class="fa fa-file-text-o"></i>&nbsp;'.lang('email_add_internal_note').'</button>';
+    if ($reply_button) echo '<button type="button" class="button orsee-btn" data-email-action="reply"><i class="fa fa-reply"></i>&nbsp;'.lang('reply').'</button>';
+    if ($reply_all_button) echo '<button type="button" class="button orsee-btn" data-email-action="replyall"><i class="fa fa-reply-all"></i>&nbsp;'.lang('reply_all').'</button>';
     if ($delete_button) {
-        if ($email['flag_deleted']) {
-            echo '<FORM action="'.thisdoc().'" method="POST">
-                <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
-            echo csrf__field();
-            if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
-                echo '<INPUT type="hidden" name="hide_header" value="true">';
-            }
-            echo '<TD valign="top" align="center" class="small">
-                <INPUT type="submit" class="button" name="undelete" value="'.lang('undelete').'">
-                </TD></FORM>';
-        } else {
-            echo '<FORM action="'.thisdoc().'" method="POST">
-                <INPUT type="hidden" name="message_id" value="'.$email['message_id'].'">';
-            echo csrf__field();
-            if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) {
-                echo '<INPUT type="hidden" name="hide_header" value="true">';
-            }
-            echo '<TD valign="top" align="center">
-                <INPUT type="submit" class="button small" name="delete" value="'.lang('delete').'">
-                </TD></FORM>';
-
-        }
+        echo '<form action="'.thisdoc().'" method="POST" style="display: inline-flex; align-items: center; vertical-align: middle; margin: 0;">';
+        echo '<input type="hidden" name="message_id" value="'.$email['message_id'].'">';
+        echo csrf__field();
+        if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) echo '<input type="hidden" name="hide_header" value="true">';
+        if ($email['flag_deleted']) echo '<button type="submit" class="button orsee-btn" name="undelete" value="1"><i class="fa fa-undo"></i>&nbsp;'.lang('undelete').'</button>';
+        else echo '<button type="submit" class="button orsee-btn orsee-btn--delete" name="delete" value="1"><i class="fa fa-trash"></i>&nbsp;'.lang('delete').'</button>';
+        echo '</form>';
     }
-    echo '</TR></TABLE>';
+    echo '</div>';
 }
 
 function email__show_headers($email) {
-    global $color;
-    $colspan=3;
-    echo '<TR bgcolor="'.$color['list_shade2'].'">
-            <TD align=right>'.lang('email_from').':</TD><TD colspan="'.$colspan.'" width=90% align=left>';
+    $from_text='';
     if ($email['message_type']=='reply')  {
-        echo experiment__list_experimenters($email['admin_id'],false,true).' &lt;'.$email['from_address'].'&gt;';
+        $from_text=experiment__list_experimenters($email['admin_id'],false,true).' <bdi dir="ltr">&lt;'.$email['from_address'].'&gt;</bdi>';
     } elseif ($email['message_type']=='note') {
-        echo experiment__list_experimenters($email['admin_id'],false,true);
+        $from_text=experiment__list_experimenters($email['admin_id'],false,true);
     } else {
-        if ($email['from_name']) echo $email['from_name'].' &lt;'.$email['from_address'].'&gt;';
-        else echo $email['from_address'];
+        if ($email['from_name']) $from_text=$email['from_name'].' <bdi dir="ltr">&lt;'.$email['from_address'].'&gt;</bdi>';
+        else $from_text='<bdi dir="ltr">'.$email['from_address'].'</bdi>';
     }
-    echo '</TD></TR>';
+    echo '<div class="orsee-table orsee-table-mobile orsee-table-cells-compact" style="width: 100%; margin-top: 0.5rem;">';
+    echo '<div class="orsee-table-row">';
+    echo '<div class="orsee-table-cell" style="white-space: nowrap;"><strong>'.lang('email_from').':</strong></div>';
+    echo '<div class="orsee-table-cell">'.$from_text.'</div>';
+    echo '</div>';
     if ($email['message_type']!='note')  {
-        echo '<TR bgcolor="'.$color['list_shade2'].'">
-                <TD align=right>'.lang('email_to').':</TD>
-                <TD colspan="'.$colspan.'" align=left>'.$email['to_address'].'</TD>
-            </TR>';
+        echo '<div class="orsee-table-row">';
+        echo '<div class="orsee-table-cell" style="white-space: nowrap;"><strong>'.lang('email_to').':</strong></div>';
+        echo '<div class="orsee-table-cell"><bdi dir="ltr">'.$email['to_address'].'</bdi></div>';
+        echo '</div>';
         if (isset($email['cc_address']) && $email['cc_address']) {
-            echo '<TR bgcolor="'.$color['list_shade2'].'">
-                    <TD align=right>'.lang('email_cc').':</TD>
-                    <TD colspan="'.$colspan.'" align=left>'.$email['cc_address'].'</TD>
-                    </TR>';
+            echo '<div class="orsee-table-row">';
+            echo '<div class="orsee-table-cell" style="white-space: nowrap;"><strong>'.lang('email_cc').':</strong></div>';
+            echo '<div class="orsee-table-cell"><bdi dir="ltr">'.$email['cc_address'].'</bdi></div>';
+            echo '</div>';
         }
         if (isset($email['reply_to_address']) && $email['reply_to_address']) {
-            echo '<TR bgcolor="'.$color['list_shade2'].'">
-                    <TD align=right>'.lang('email_reply_to').':</TD>
-                    <TD colspan="'.$colspan.'" align=left>'.$email['reply_to_address'].'</TD>
-                    </TR>';
+            echo '<div class="orsee-table-row">';
+            echo '<div class="orsee-table-cell" style="white-space: nowrap;"><strong>'.lang('email_reply_to').':</strong></div>';
+            echo '<div class="orsee-table-cell"><bdi dir="ltr">'.$email['reply_to_address'].'</bdi></div>';
+            echo '</div>';
         }
-        echo '<TR bgcolor="'.$color['list_shade2'].'">
-                <TD align=right>'.lang('email_subject').':</TD>
-                <TD colspan="'.$colspan.'" align=left>'.$email['subject'].'</TD>
-            </TR>';
+        echo '<div class="orsee-table-row">';
+        echo '<div class="orsee-table-cell" style="white-space: nowrap;"><strong>'.lang('email_subject').':</strong></div>';
+        echo '<div class="orsee-table-cell">'.$email['subject'].'</div>';
+        echo '</div>';
     }
+    echo '</div>';
 }
 
 function email__show_body($email) {
-    global $color;
-    echo '<TR><TD colspan="3" bgcolor="'.$color['content_background_color'].'">';
+    echo '<div style="margin-top: 0.5rem; padding: 0.65rem 0.8rem; border: 1px solid var(--color-border-strong); border-radius: 0.5rem; background: var(--color-content-background-color);">';
     echo email__format_email($email['body']);
-    echo '</TD></TR>';
+    echo '</div>';
 }
 
 function email__show_attachments($email) {
     // attachments
     if ($email['has_attachments']) {
-        echo '<TR><TD colspan="3" ><TABLE width="100%" CELLPADDING="0" CELLSPACING="0">';
-        echo '<TR><TD>'.lang('attachments').':</TD></TR>';
+        echo '<div style="margin-top: 0.5rem; padding: 0.5rem 0.75rem; border: 1px solid var(--color-border-strong); border-radius: 0.5rem; background: var(--color-content-background-color);">';
+        echo '<div><strong>'.lang('attachments').':</strong></div>';
+        echo '<div style="margin-top: 0.25rem;">';
         $attachments=email__dbstring_to_attachment_array($email['attachment_data'],false);
-        echo '<TR><TD>';
         foreach ($attachments as $k=>$attachment) {
                 echo '<A HREF="emails_download_attachment.php?message_id='.
                     urlencode($email['message_id']).'&k='.urlencode($k).'">'.
                     //icon('paperclip').
                     $attachment['filename'].'</A>&nbsp;&nbsp;&nbsp; ';
         }
-        echo '</TD></TR></TABLE></TD></TR>';
+        echo '</div></div>';
     }
 }
 
 
 function email__list_emails($mode='inbox',$id='',$rmode='assigned',$url_string='',$show_refresh=true) {
-    global $color, $lang, $settings;
+    global $lang, $settings;
 
     if (substr($url_string,0,1)=='?') $url_string=substr($url_string,1);
+    $limit=(isset($settings['emails_number_of_entries_per_page']) && (int)$settings['emails_number_of_entries_per_page']>0) ? (int)$settings['emails_number_of_entries_per_page'] : 50;
+    $offset=(isset($_REQUEST['os']) && (int)$_REQUEST['os']>0) ? (int)$_REQUEST['os'] : 0;
 
     $conditions=array(); $pars=array();
     if ($mode=='trash') { $conditions[]=' flag_deleted=1 '; } else { $conditions[]=' flag_deleted=0 '; }
@@ -644,9 +583,24 @@ function email__list_emails($mode='inbox',$id='',$rmode='assigned',$url_string='
         foreach ($likelist['pars'] as $k=>$v) $pars[$k]=$v;
     }
 
+    $count_query="SELECT count(*) as tf_count
+            FROM ".table('emails')."
+            WHERE ".implode(" AND ",$conditions);
+    $count_result=or_query($count_query,$pars);
+    $count_line=pdo_fetch_assoc($count_result);
+    $total_rows=(isset($count_line['tf_count']) ? (int)$count_line['tf_count'] : 0);
+
+    if ($offset>0 && $offset>=$total_rows) {
+        $offset=max(0,$total_rows-$limit);
+        $offset=$offset-($offset%$limit);
+    }
+
+    $pars[':offset']=$offset;
+    $pars[':limit']=$limit;
     $query="SELECT * FROM ".table('emails')."
             WHERE ".implode(" AND ",$conditions)."
-            ORDER BY thread_time DESC, thread_id, if (thread_id=message_id,0,1), timestamp";
+            ORDER BY thread_time DESC, thread_id, if (thread_id=message_id,0,1), timestamp
+            LIMIT :offset, :limit";
     $result = or_query($query,$pars);
     $emails=array(); $experiment_ids=array(); $session_ids=array();
     while ($email=pdo_fetch_assoc($result)) {
@@ -660,26 +614,57 @@ function email__list_emails($mode='inbox',$id='',$rmode='assigned',$url_string='
     $related_experiments=experiment__load_experiments_for_ids($experiment_ids);
     $related_sessions=sessions__load_sessions_for_ids($session_ids);
 
-    echo '<table style="max-width: 90%;">';
-    if ($show_refresh) echo '
-         <tr><td align="right">
-            '.icon('refresh',thisdoc().'?'.$url_string,'fa-2x','color: green;','refresh list'),'
-          </td></tr>';
-    echo '    <tr><td>
-          <table class="or_listtable"><thead>
-          <tr style="background: '.$color['list_header_background'].';  color: '.$color['list_header_textcolor'].';">';
-    echo '<td>&nbsp;&nbsp;&nbsp;</td>'; // is thread head
-    echo '<td>'.lang('email_subject').'</td>'; // type: incoming, note, reply && subject
-    echo '<td>'.lang('email_from').'</td>'; // from
-    echo '<td>'.lang('date').'</td>'; // date
-    echo '<td></td>';   // read // assigned_to_read
-    echo '<td></td>';   // processed - check and background of row
-    echo '<td></td>';   // view email button
-    echo '</tr>
-            </thead><tbody>';
-    $cols=7;
+    echo '<div class="orsee-log-topbar">';
+    echo '<div>';
+    if ($total_rows>0) {
+        $show_from=$offset+1;
+        $show_to=min($offset+count($emails),$total_rows);
+    } else {
+        $show_from=0;
+        $show_to=0;
+    }
+    echo lang('showing_emails').' '.$show_from.' - '.$show_to;
+    echo '</div>';
+    echo '<div>';
+    if ($show_refresh) {
+        $refresh_url=thisdoc().'?'.$url_string;
+        if ($offset>0) $refresh_url.='&os='.urlencode((string)$offset);
+        echo icon('refresh',$refresh_url,'fa-2x','color: green;','refresh list');
+    }
+    echo '</div>';
+    echo '</div>';
 
-    $shade=false; $style_unprocessed=' style="font-weight: bold;"';
+    echo '<div class="orsee-log-pagination">';
+    if ($offset > 0) {
+        echo '<a class="button orsee-btn" href="'.thisdoc().'?'.$url_string.'&os='.urlencode((string)($offset-$limit)).'">'.lang('previous').'</a>';
+    } else {
+        echo '<span class="button orsee-btn disabled" aria-disabled="true">'.lang('previous').'</span>';
+    }
+    if (($offset + $limit) < $total_rows) {
+        echo '<a class="button orsee-btn" href="'.thisdoc().'?'.$url_string.'&os='.urlencode((string)($offset+$limit)).'">'.lang('next').'</a>';
+    } else {
+        echo '<span class="button orsee-btn disabled" aria-disabled="true">'.lang('next').'</span>';
+    }
+    echo '</div>';
+
+    if (count($emails)==0) {
+        orsee_callout(lang('no_emails'),'note','');
+        return;
+    }
+
+    echo '<div class="orsee-table orsee-table-mobile orsee-table-cells-compact" style="max-width: 99%;">';
+    echo '<div class="orsee-table-row orsee-table-head">';
+    echo '<div class="orsee-table-cell" style="width: 60%;">'.lang('email_subject').'</div>'; // type: incoming, note, reply && subject
+    echo '<div class="orsee-table-cell" style="width: 40%;">'.lang('email_from').'</div>'; // from
+    echo '<div class="orsee-table-cell">'.lang('date').'</div>'; // date
+    echo '<div class="orsee-table-cell"></div>';   // read // assigned_to_read
+    echo '<div class="orsee-table-cell"></div>';   // processed - check and background of row
+    echo '<div class="orsee-table-cell"></div>';   // view email button
+    echo '<div class="orsee-table-cell"></div>';   // archive button
+    echo '<div class="orsee-table-cell"></div>';   // move to trash button
+    echo '</div>';
+
+    $shade=false;
     foreach ($emails as $email) {
         $second_row='';
         if ($email['thread_id']==$email['message_id']) {
@@ -707,97 +692,91 @@ function email__list_emails($mode='inbox',$id='',$rmode='assigned',$url_string='
                 $second_row.=experiment__list_experimenters($email['assigned_to'],false,true);
             }
         }
-        echo '<tr';
-        if ($shade) echo ' bgcolor="'.$color['list_shade1'].'"';
-        else echo ' bgcolor="'.$color['list_shade2'].'"';
-        if (!$email['flag_processed'] && $mode!='inbox') echo $style_unprocessed;
-        echo '>';
-
-        // thread head and subject
-        if ($email['message_id']==$email['thread_id']) echo '<TD colspan=2>';
-        else echo '<TD></TD><TD>';
-        echo '<A name="'.$email['message_id'].'"></A>';
+        $is_thread_child=($email['thread_id']!=$email['message_id']);
+        $row_class='orsee-table-row';
+        if ($shade) $row_class.=' is-alt';
+        $row_style='';
+        if (!$email['flag_processed'] && $mode!='inbox') $row_style=' style="font-weight: bold;"';
+        echo '<div class="'.$row_class.'"'.$row_style.'>';
 
         $linktext='';
-        if ($email['message_type']=='reply') $linktext.=icon('reply','','',' color: #666666;','reply');
-        elseif ($email['message_type']=='note') $linktext.=icon('file-text-o','','',' color: #666666;','internal note');
-        elseif ($email['message_type']=='incoming') $linktext.=icon('envelope-square','','',' color: #666666;','incoming');
+        if ($email['message_type']=='reply') $linktext.=icon('reply','','',' color: var(--color-body-text);','reply');
+        elseif ($email['message_type']=='note') $linktext.=icon('file-text-o','','',' color: var(--color-body-text);','internal note');
+        elseif ($email['message_type']=='incoming') $linktext.=icon('envelope-square','','',' color: var(--color-body-text);','incoming');
         $linktext.='&nbsp;&nbsp;&nbsp;';
         if ($email['message_type']=='note') $linktext.=lang('email_internal_note');
         else $linktext.=$email['subject'];
-        echo $linktext;
-        if ($email['has_attachments']) echo icon('paperclip');
-        echo '</TD>';
+        $subject_html=$linktext;
+        if ($email['has_attachments']) $subject_html.=' '.icon('paperclip');
+        if ($second_row) $subject_html.='<div><i>'.$second_row.'</i></div>';
+        if ($is_thread_child) {
+            $subject_html='<span style="display:inline-block; margin-inline-start: 1.1rem;">'.$subject_html.'</span>';
+        }
+        echo '<div class="orsee-table-cell" data-label="'.htmlspecialchars(lang('email_subject')).'" style="width: 60%;"><a name="'.$email['message_id'].'"></a>'.$subject_html.'</div>';
 
         // from
-        echo '<td>';
+        $from_html='';
         if ($email['message_type']=='reply')  {
-        echo experiment__list_experimenters($email['admin_id'],false,true).' &lt;'.$email['from_address'].'&gt;';
+            $from_html.=experiment__list_experimenters($email['admin_id'],false,true).' <bdi dir="ltr">&lt;'.$email['from_address'].'&gt;</bdi>';
         } elseif ($email['message_type']=='note') {
-            echo experiment__list_experimenters($email['admin_id'],false,true);
+            $from_html.=experiment__list_experimenters($email['admin_id'],false,true);
         } else {
-            if ($email['from_name']) echo $email['from_name'].' &lt;'.$email['from_address'].'&gt;';
-            else echo $email['from_address'];
+            if ($email['from_name']) $from_html.=$email['from_name'].' <bdi dir="ltr">&lt;'.$email['from_address'].'&gt;</bdi>';
+            else $from_html.='<bdi dir="ltr">'.$email['from_address'].'</bdi>';
         }
-        if ($email['message_type']=='incoming' && $email['participant_id']) echo icon('check-circle-o','','',' font-size: 8pt; color: #666666;','checked');
-        echo '</td>';
+        if ($email['message_type']=='incoming' && $email['participant_id']) $from_html.=' '.icon('check-circle-o','','',' font-size: 8pt; color: var(--color-body-text);','checked');
+        echo '<div class="orsee-table-cell" data-label="'.htmlspecialchars(lang('email_from')).'" style="width: 40%;">'.$from_html.'</div>';
 
         // date
-        echo '<td>'.ortime__format($email['timestamp']).'</td>';
+        echo '<div class="orsee-table-cell" data-label="'.htmlspecialchars(lang('date')).'" style="white-space: nowrap;">'.ortime__format($email['timestamp']).'</div>';
 
         if ($email['thread_id']==$email['message_id']) {
             // read // assigned_to_read
-            echo '<td align=center valign=middle>';
-            echo '<A HREF="'.thisdoc().'?'.$url_string.'&switch_read=true&message_id='.urlencode($email['message_id']).'">';
-            if ($email['flag_read']) echo icon('circle-o','','',' color: #666666;');
-            else echo icon('dot-circle-o','','',' color: #008000;');
-            echo '</A>';
+            $read_html='<A HREF="'.thisdoc().'?'.$url_string.'&switch_read=true&message_id='.urlencode($email['message_id']).'">';
+            $read_html.=icon($email['flag_read'] ? 'circle-o' : 'dot-circle-o','','',' color: '.($email['flag_read'] ? 'var(--color-email-icon-read)' : 'var(--color-email-icon-unread)').';');
+            $read_html.='</A>';
             if ($settings['email_module_allow_assign_emails']=='y' && $email['assigned_to']) {
-                echo '<A HREF="'.thisdoc().'?'.$url_string.'&switch_assigned_to_read=true&message_id='.urlencode($email['message_id']).'">';
-                if ($email['flag_assigned_to_read']) echo icon('circle-o','','',' color: #666666;');
-                else echo icon('dot-circle-o','','',' color: #000080;');
-                echo '</A>';
+                $read_html.=' <A HREF="'.thisdoc().'?'.$url_string.'&switch_assigned_to_read=true&message_id='.urlencode($email['message_id']).'">';
+                $read_html.=icon($email['flag_assigned_to_read'] ? 'circle-o' : 'dot-circle-o','','',' color: '.($email['flag_assigned_to_read'] ? 'var(--color-email-icon-read)' : 'var(--color-email-icon-assigned-unread)').';');
+                $read_html.='</A>';
             }
-            echo '</td>';
+            echo '<div class="orsee-table-cell" data-label="" style="white-space: nowrap;">'.$read_html.'</div>';
 
             // processed - check and background of row
-            echo '<td>';
-            if ($email['flag_processed']) echo icon('check','','',' color: #008000;');
-            echo '</td>';
+            echo '<div class="orsee-table-cell" data-label="">';
+            if ($email['flag_processed']) echo icon('check','','',' color: var(--color-email-icon-processed);');
+            echo '</div>';
 
             // view email button
-            echo '<td valign="top"';
-            if ($second_row) echo ' rowspan="2"';
-            echo '>';
-            echo javascript__email_popup_button_link($email['message_id']);
-            echo '</td>';
+            echo '<div class="orsee-table-cell orsee-table-action" data-label="">'.javascript__email_popup_button_link($email['message_id']).'</div>';
+
+            // mark processed button
+            if ($mode!='trash' && !$email['flag_processed'] && email__is_allowed($email,array(),'change')) {
+                echo '<div class="orsee-table-cell orsee-table-action" data-label=""><A HREF="'.thisdoc().'?'.$url_string.'&archive=true&message_id='.urlencode($email['message_id']).'" title="'.lang('email_processed').'">'.icon('archive','','fa-lg').'</A></div>';
+            } else {
+                echo '<div class="orsee-table-cell" data-label=""></div>';
+            }
+
+            // move to trash button
+            if ($mode!='trash' && email__is_allowed($email,array(),'delete')) {
+                echo '<div class="orsee-table-cell orsee-table-action" data-label=""><A HREF="'.thisdoc().'?'.$url_string.'&delete=true&message_id='.urlencode($email['message_id']).'" title="'.lang('delete').'">'.icon('trash-o','','fa-lg','color: var(--color-button-delete-text);').'</A></div>';
+            } else {
+                echo '<div class="orsee-table-cell" data-label=""></div>';
+            }
         } else {
-            echo '<td colspan="3"></td>';
+            echo '<div class="orsee-table-cell" data-label=""></div>';
+            echo '<div class="orsee-table-cell" data-label=""></div>';
+            echo '<div class="orsee-table-cell" data-label=""></div>';
+            echo '<div class="orsee-table-cell" data-label=""></div>';
+            echo '<div class="orsee-table-cell" data-label=""></div>';
         }
 
-        echo '</tr>';
-
-        if ($second_row) {
-            echo '<tr';
-            if ($shade) echo ' bgcolor="'.$color['list_shade1'].'"';
-            else echo ' bgcolor="'.$color['list_shade2'].'"';
-            if (!$email['flag_processed'] && $mode!='inbox') echo $style_unprocessed;
-            echo '>';
-            echo '<TD></TD>';
-            echo '<TD colspan="'.($cols-2).'">';
-            echo '<i>'.$second_row.'</i>';
-            echo '</TD>';
-            echo '</TR>';
-        }
+        echo '</div>';
     }
-
-    echo '</tbody></table>
-            </td></tr>
-            </table>';
+    echo '</div>';
 }
 
 function email__show_mail_boxes() {
-    global $color;
     $mailboxes=email__load_mailboxes();
 
     $query="SELECT mailbox, if(experiment_id>0,1,0) as is_exp, flag_processed, flag_deleted, count(*) as num_emails
@@ -815,34 +794,39 @@ function email__show_mail_boxes() {
         $num_emails[$line['mailbox']][$status]=$line['num_emails'];
     }
 
-    echo '<TABLE class="or_listtable" style="min-width: 50%">';
+    echo '<div class="orsee-table orsee-table-mobile">';
+    echo '<div class="orsee-table-row orsee-table-head">';
+    echo '<div class="orsee-table-cell">'.lang('email_mailbox').'</div>';
+    echo '<div class="orsee-table-cell"><a href="emails_main.php?mode=inbox">'.lang('mailbox_inbox').'</a></div>';
+    echo '<div class="orsee-table-cell">'.lang('email_processed').'</div>';
+    echo '<div class="orsee-table-cell"><a href="emails_main.php?mode=trash">'.lang('mailbox_trash').'</a></div>';
+    echo '</div>';
 
-    echo '  <thead><TR style="background: '.$color['list_header_background'].'; color: '.$color['list_header_textcolor'].';">
-                <TD style=" padding: 5px 10px 5px 2px;">'.lang('email_mailbox').'</TD>
-                <TD style=" padding: 5px 10px 5px 0px;"><A HREF="emails_main.php?mode=inbox" style="color: '.$color['list_header_textcolor'].';">'.lang('mailbox_inbox').'</A></TD>
-                <TD style=" padding: 5px 10px 5px 0px;">'.lang('email_processed').'</TD>
-                <TD style=" padding: 5px 10px 5px 0px;"><A HREF="emails_main.php?mode=trash" style="color: '.$color['list_header_textcolor'].';">'.lang('mailbox_trash').'</A></TD>
-            </TR></thead>
-            <tbody>';
-
-    echo '<TR><TD>'.lang('assigned_to_experiments').'</TD><TD>';
+    echo '<div class="orsee-table-row">';
+    echo '<div class="orsee-table-cell" data-label="'.lang('email_mailbox').'">'.lang('assigned_to_experiments').'</div>';
+    echo '<div class="orsee-table-cell" data-label="'.lang('mailbox_inbox').'">';
     if (isset($num_emails['experiments']['inbox'])) echo $num_emails['experiments']['inbox']; else echo '0';
-    echo '</TD><TD>';
+    echo '</div>';
+    echo '<div class="orsee-table-cell" data-label="'.lang('email_processed').'">';
     if (isset($num_emails['experiments']['processed'])) echo $num_emails['experiments']['processed']; else echo '0';
-    echo '</TD><TD>';
+    echo '</div>';
+    echo '<div class="orsee-table-cell" data-label="'.lang('mailbox_trash').'">';
     if (isset($num_emails['experiments']['deleted'])) echo $num_emails['experiments']['deleted']; else echo '0';
-    echo '</TD></TR>';
+    echo '</div>';
+    echo '</div>';
 
     foreach ($mailboxes as $id=>$name) {
-        echo '<TR><TD><A HREF="emails_main.php?mode=mailbox&id='.urlencode($id).'">'.$name.'</A></TD><TD>';
+        echo '<div class="orsee-table-row">';
+        echo '<div class="orsee-table-cell" data-label="'.lang('email_mailbox').'"><A HREF="emails_main.php?mode=mailbox&id='.urlencode($id).'">'.$name.'</A></div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('mailbox_inbox').'">';
         if (isset($num_emails[$id]['inbox'])) echo $num_emails[$id]['inbox']; else echo '0';
-        echo '</TD><TD>';
+        echo '</div><div class="orsee-table-cell" data-label="'.lang('email_processed').'">';
         if (isset($num_emails[$id]['processed'])) echo $num_emails[$id]['processed']; else echo '0';
-        echo '</TD><TD>';
+        echo '</div><div class="orsee-table-cell" data-label="'.lang('mailbox_trash').'">';
         if (isset($num_emails[$id]['deleted'])) echo $num_emails[$id]['deleted']; else echo '0';
-        echo '</TD></TR>';
+        echo '</div></div>';
     }
-    echo '</tbody></TABLE>';
+    echo '</div>';
 }
 
 // the voodoo
@@ -894,7 +878,7 @@ function email__guess_expsess($email) {
 // some form items
 function email__participant_select($email,$participant=array(),$guess_parts=array()) {
     $cols=participant__get_result_table_columns('email_participant_guesses_list');
-    echo '<SELECT name="participant_id">
+    echo '<span class="select is-primary select-compact"><select name="participant_id">
             <OPTION value="0">'.lang('unknown').'</OPTION>';
     if (isset($participant['participant_id'])) {
         echo '<OPTION value="'.$participant['participant_id'].'" SELECTED>';
@@ -937,7 +921,7 @@ function email__participant_select($email,$participant=array(),$guess_parts=arra
             echo '</OPTION>';
         }
     }
-    echo '</SELECT>';
+    echo '</select></span>';
 }
 
 function email__expsess_select($email,$session=array(),$experiment=array(),$participant=array()) {
@@ -982,7 +966,7 @@ function email__expsess_select($email,$session=array(),$experiment=array(),$part
     // now order experiments by the date of the last session of the experiment, DESC!
     foreach ($experiments as $id=>$arr) $experiments[$id]['lastsesstime_reversed']=0-$arr['lastsesstime'];
     multi_array_sort($experiments,'lastsesstime_reversed');
-    echo '<SELECT name="expsess"><OPTION value="0,0">'.lang('select_none').'</OPTION>';
+    echo '<span class="select is-primary select-compact"><select name="expsess"><OPTION value="0,0">'.lang('select_none').'</OPTION>';
 
     // list special mail boxes
     $mailboxes=email__load_mailboxes();
@@ -1013,7 +997,7 @@ function email__expsess_select($email,$session=array(),$experiment=array(),$part
         echo '<OPTION value="'.$experiment['experiment_id'].',0" SELECTED>'.
                 $experiment['experiment_name'].'</OPTION>';
     }
-    echo '</SELECT>';
+    echo '</select></span>';
 }
 
 
@@ -1035,7 +1019,7 @@ function email__load_mailboxes() {
 }
 
 function email__update_flags($thread_id,$flags=array()) {
-    if (is_array($flags) && count($flags>0)) {
+    if (is_array($flags) && count($flags)>0) {
         $pars=array(); $clause=array();
         $pars[':thread_id']=$thread_id;
         foreach ($flags as $flag_name=>$flag_value) {
@@ -1143,7 +1127,7 @@ function email__delete_undelete_email($email,$action) {
 function email__empty_trash() {
     $query="DELETE FROM ".table('emails')."
             WHERE flag_deleted = 1";
-    $done=or_query($query,$pars);
+    $done=or_query($query);
     message(lang('email_trash_emptied'));
     return '';
 }
@@ -1250,7 +1234,7 @@ function email__send_reply_email($email) {
 
     if (!isset($_REQUEST['send_to']) || !$_REQUEST['send_to']) {
         $continue=false;
-        message(lang('error_email__to_address_not_given_or_wrong_format'));
+        message(lang('error_email__to_address_not_given_or_wrong_format'),'error');
     }
     if ($continue) {
         $to_adds=explode(",",$_REQUEST['send_to']);
@@ -1259,7 +1243,7 @@ function email__send_reply_email($email) {
             if (!preg_match($email_regex,trim($to_add))) {
                 $continue=false;
             }
-            if (!$continue) message(lang('error_email__to_address_not_given_or_wrong_format'));
+            if (!$continue) message(lang('error_email__to_address_not_given_or_wrong_format'),'error');
         }
     }
 
@@ -1271,21 +1255,21 @@ function email__send_reply_email($email) {
         if (!preg_match($email_regex,trim($cc_add))) {
             $continue=false;
         }
-        if (!$continue) message(lang('error_email__cc_address_wrong_format'));
+        if (!$continue) message(lang('error_email__cc_address_wrong_format'),'error');
     }
 
     if (isset($_REQUEST['send_subject'])) $subject=$_REQUEST['send_subject'];
     else $subject="";
     if (!$subject) {
         $continue=false;
-        message(lang('error_email__subject_is_empty'));
+        message(lang('error_email__subject_is_empty'),'error');
     }
 
     if (isset($_REQUEST['send_body'])) $body=$_REQUEST['send_body'];
     else $body="";
     if (!$body) {
         $continue=false;
-        message(lang('error_email__message_body_is_empty'));
+        message(lang('error_email__message_body_is_empty'),'error');
     }
 
     if ($continue) {
@@ -1340,7 +1324,7 @@ function email__add_internal_note($email) {
     else $body="";
     if (!$body) {
         $continue=false;
-        message(lang('error_email__message_body_is_empty'));
+        message(lang('error_email__message_body_is_empty'),'error');
     }
 
     if ($continue) {

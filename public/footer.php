@@ -3,14 +3,14 @@
 
 echo '<BR><BR><BR>';
 if ($settings['support_mail']) {
-    echo '<center>
-        <P class="small" align=center>';
+    echo '<div class="orsee-public-supportline has-text-centered">';
+    echo '<p>';
     echo lang('for_questions_contact_xxx');
     echo ' ';
     helpers__scramblemail($settings['support_mail']);
     echo $settings['support_mail'];
     echo '</A>';
-    echo '.<BR><BR><BR></CENTER>';
+    echo '.</p><br><br><br></div>';
 }
 
     debug_output();

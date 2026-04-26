@@ -4,7 +4,7 @@ ob_start();
 
 $menu__area="participants";
 $title="edit_participants";
-$jquery=array('arraypicker','textext','dropit','queryform','datepicker','popup');
+$js_modules=array('queryform','flatpickr');
 include ("header.php");
 if ($proceed) {
     $allow=check_allow('participants_show','participants_main.php');
@@ -78,11 +78,11 @@ if ($proceed) {
                 $continue=true;
                 foreach ($inv_langs as $inv_lang) {
                     if (!isset($_REQUEST['message_subject_'.$inv_lang]) || !$_REQUEST['message_subject_'.$inv_lang]) {
-                        message (lang('subject').': '.lang('missing_language').": ".$inv_lang);
+                        message (lang('subject').': '.lang('missing_language').": ".$inv_lang,'error');
                         $continue=false;
                     }
                     if (!isset($_REQUEST['message_text_'.$inv_lang]) || !$_REQUEST['message_text_'.$inv_lang]) {
-                        message (lang('message_text').': '.lang('missing_language').": ".$inv_lang);
+                        message (lang('message_text').': '.lang('missing_language').": ".$inv_lang,'error');
                         $continue=false;
                     }
                 }
@@ -169,7 +169,7 @@ if ($proceed) {
                 $anon_fields=participant__get_result_table_columns('anonymize_profile_list');
                 if (!is_array($anon_fields) || !(count($anon_fields)>0)) {
                     $continue=false;
-                    $message(lang('error_no_fields_to_anonymize_defined'));
+                    message(lang('error_no_fields_to_anonymize_defined'),'error');
                 }
                 if ($continue) {
                     if (isset($_REQUEST['do_status_change']) && $_REQUEST['do_status_change']=='y') {
@@ -213,18 +213,17 @@ if ($proceed) {
                 redirect('admin/'.thisdoc().'?active='.$active.'&search_sort='.$search_sort);
             }
         } else {
-            message(lang('no_participants_selected'));
+            message(lang('no_participants_selected'),'warning');
             $_REQUEST['search_sort']=$search_sort;
         }
     }
 }
 
 if ($proceed) {
-
-
-    echo '<center>';
-
     show_message();
+    echo '<div class="orsee-panel">';
+    echo '<div class="orsee-panel-title"><div>'.lang('edit_participants').'</div></div>';
+    echo '<div class="orsee-form-shell" style="width: 100%; max-width: 100%;">';
 }
 
 if ($proceed) {
@@ -262,11 +261,7 @@ if ($proceed) {
         $pseudo_query_array=query__get_pseudo_query_array($posted_query['query']);
         $pseudo_query_display=query__display_pseudo_query($pseudo_query_array,$active);
 
-        echo '<TABLE border=0>';
-        echo '<TR><TD style="outline: 1px solid black; background: '.$color['search__pseudo_query_background'].'">';
-        echo $pseudo_query_display;
-        echo '</TD></TR></TABLE>';
-        echo '<BR><BR>';
+        orsee_callout($pseudo_query_display,'note','Query');
         $query_array=query__get_query_array($posted_query['query']);
         //dump_array($query_array);
 
@@ -277,11 +272,10 @@ if ($proceed) {
 
         $query=query__get_query($query_array,$query_id,$additional_clauses,$sort);
 
-        //echo '<TABLE width="70%" border=0><TR><TD><B>Query:</B></TD></TR><TR><TD>';
-        //echo $query['query'];
-        //echo '</TD></TR></TABLE>';
-        //dump_array($query['pars'],"Parameters");
+        //query__debug_sql_panel($query['query'],$query['pars'],'Query');
         //dump_array($_REQUEST);
+
+
         // show list of results
 
         echo '<form id="bulkactionform" action="participants_show.php" method="POST">';
@@ -325,15 +319,16 @@ if ($proceed) {
             echo $count.' '.lang('participant_profiles_in_database').'<BR>';
         }
 
-        echo '<TABLE width="80%"><TR><TD>';
+        echo '<div>';
         query__show_form($hide_modules,false,$load_query,lang('search_and_show'),$saved_queries,$status_query,$formextra);
-        echo '</TD></TR></TABLE>';
+        echo '</div>';
 
     }
 }
 
 if ($proceed) {
-    echo '</center>';
+    echo '</div>';
+    echo '</div>';
 
 }
 include ("footer.php");

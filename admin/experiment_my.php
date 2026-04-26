@@ -4,7 +4,6 @@ ob_start();
 
 $menu__area="experiments_my";
 $title="my_experiments";
-$jquery=array('arraypicker','textext');
 include("header.php");
 if ($proceed) {
 

@@ -5,7 +5,7 @@ ob_start();
 if (isset($_REQUEST['faq_id'])) $faq_id=$_REQUEST['faq_id']; else $faq_id="";
 
 $title="edit_faq";
-$menu__area="options_main";
+$menu__area="options";
 include ("header.php");
 if ($proceed) {
     if ($faq_id) $allow=check_allow('faq_edit','faq_main.php');
@@ -26,6 +26,7 @@ if ($proceed) {
 
     // load languages
     $languages=get_languages();
+    $lang_dirs=lang__is_rtl_all_langs();
 
     $continue=true;
 
@@ -44,11 +45,11 @@ if ($proceed) {
 
         foreach ($languages as $language) {
             if (!$rquestion[$language]) {
-                message (lang('missing_question_in_language').": ".$language);
+                message (lang('missing_question_in_language').": ".$language,'error');
                 $continue=false;
             }
             if (!$ranswer[$language]) {
-                message (lang('missing_answer_in_language').": ".$language);
+                message (lang('missing_answer_in_language').": ".$language,'error');
                 $continue=false;
             }
         }
@@ -96,80 +97,70 @@ if ($proceed) {
 
     show_message();
     // form
-    echo '<center>';
-    echo '  <FORM action="faq_edit.php" METHOD=POST>
-                <INPUT type=hidden name="faq_id" value="'.$faq_id.'">
+    echo '  <form action="faq_edit.php" method="POST">
+                <input type="hidden" name="faq_id" value="'.$faq_id.'">
                 '.csrf__field().'
-
-                <TABLE class="or_formtable">
-                    <TR><TD colspan="3">
-                        <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                                <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">';
+                <div class="orsee-panel">
+                    <div class="orsee-panel-title">
+                        <div class="orsee-panel-title-main">';
     if ($faq_id) echo lang('edit_faq'); else echo lang('add_faq');
-    echo '                      </TD>
-                        </TR></TABLE>
-            </TD></TR>
-                    <TR>
-                        <TD>'.lang('id').'</TD>
-                        <TD>'.$faq_id.'</TD>
-                    </TR>
-                    <TR>
-                    <TD>'.lang('this_faq_answered_questions_of_xxx').'</TD>
-                    <TD><INPUT name="evaluation" type="text" size=5 maxlength=5 value="'.$faq['evaluation'].'"> '.lang('persons').'</TD>
-                    </TR>
-                    ';
-    $shade=true;
+    echo '                  </div>
+                    </div>
+                    <div class="orsee-form-shell">';
+    if ($faq_id) {
+        echo '          <div class="field">
+                            <div class="control"><span class="orsee-dense-id-tag">'.lang('id').': '.$faq_id.'</span></div>
+                        </div>';
+    }
+    echo '          <div class="field">
+                            <label class="label">'.lang('this_faq_answered_questions_of_xxx').'</label>
+                            <div class="control">
+                                <input class="input is-primary orsee-input orsee-input-text" name="evaluation" type="text" dir="ltr" maxlength="5" value="'.htmlspecialchars($faq['evaluation']).'"> '.lang('persons').'
+                            </div>
+                        </div>';
+
     foreach ($languages as $language) {
         if (!isset($question[$language])) $question[$language]="";
         if (!isset($answer[$language])) $answer[$language]="";
-        echo '  <tr>
-                <TD colspan="2">
-                    <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'">
-                            '.$language.':
-                        </TD>
-                        </TR></TABLE>
-                </TD>
-            </TR>
-            <tr>
-                <TD>
-                    '.lang('question_in_xxxlang').' '.$language.'
-                </TD>
-                <TD>
-                    <textarea name="question['.$language.']" cols=40 rows=3 wrap=virtual>'.
-                        stripslashes($question[$language]).'</textarea>
-                </TD>
-            </TR>
-            <tr>
-                <TD>
-                    '.lang('answer_in_xxxlang').' '.$language.'
-                </TD>
-                <TD>
-                    <textarea name="answer['.$language.']" cols=40 rows=20 wrap=virtual>'.
-                        stripslashes($answer[$language]).'</textarea>
-                </TD>
-            </TR>';
+        $field_dir=(isset($lang_dirs[$language]) && $lang_dirs[$language] ? 'rtl' : 'ltr');
+        echo '  <div class="field">
+                    <label class="label">'.$language.':</label>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('question_in_xxxlang').' '.$language.'</label>
+                    <div class="control">
+                        <textarea class="textarea is-primary orsee-textarea" dir="'.$field_dir.'" name="question['.$language.']" rows="3" wrap="virtual">'.htmlspecialchars(stripslashes($question[$language])).'</textarea>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('answer_in_xxxlang').' '.$language.'</label>
+                    <div class="control">
+                        <textarea class="textarea is-primary orsee-textarea" dir="'.$field_dir.'" name="answer['.$language.']" rows="20" wrap="virtual">'.htmlspecialchars(stripslashes($answer[$language])).'</textarea>
+                    </div>
+                </div>';
     }
 
-    echo '  <TR>
-                                <TD COLSPAN=2 align=center>
-                                    <INPUT class="button" name=edit type=submit value="';
+    echo '          <div class="field orsee-form-row-grid orsee-form-row-grid--3 orsee-form-actions">
+                                <div class="orsee-form-row-col has-text-left">
+                                    '.button_back('faq_main.php').'
+                                </div>
+                                <div class="orsee-form-row-col has-text-centered">
+                                    <input class="button orsee-btn" name="edit" type="submit" value="';
     if ($faq_id) echo lang('change'); else echo lang('add');
-    echo '">
-                                </TD>
-                        </TR>
-                </table>
-                </FORM>
-                <BR>';
+    echo '                      ">
+                                </div>
+                                <div class="orsee-form-row-col has-text-right">';
 
     if ($faq_id && check_allow('faq_delete')) {
-        echo '<BR><BR>
-              '.button_link('faq_delete.php?faq_id='.urlencode($faq_id).'&csrf_token='.urlencode(csrf__get_token()),
-                            lang('delete'),'trash-o');
+        echo button_link('faq_delete.php?faq_id='.urlencode($faq_id).'&csrf_token='.urlencode(csrf__get_token()),
+                            lang('delete'),'trash-o','','','orsee-btn--delete');
     }
-    echo '<BR><BR>
-                <A href="faq_main.php">'.icon('back').' '.lang('back').'</A><BR><BR>
-                </center>';
+    echo '                      </div>
+                            </div>
+                    </div>
+                </div>
+            </form>
+            <br>';
 
 }
 include ("footer.php");
