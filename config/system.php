@@ -812,6 +812,15 @@ $system__options_general[]=array('type'=>'comment',
             'text'=>'Diverse settings');
 
 $system__options_general[]=array(
+'option_name'=>'session_timeout_minutes',
+'option_text'=>'Session timeout for administrators and participants (minutes)?',
+'type'=>'textline',
+'default_value'=>'120',
+'size'=>'5',
+'maxlength'=>'5',
+);
+
+$system__options_general[]=array(
 'option_name'=>'http_log_file_location',
 'option_text'=>'Path to server log file (access.log)?',
 'type'=>'textline',
