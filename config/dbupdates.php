@@ -2251,4 +2251,44 @@ $system__database_upgrades[]=array(
     )
 );
 
+$system__database_upgrades[]=array(
+'version'=>'2026042603',
+'type'=>'new_lang_item',
+'specs'=> array(
+    'content_name'=>'query_auth_migration_status',
+    'content_type'=>'lang',
+    'content'=>array('en'=>'Auth migration status','de'=>'Auth-Migrations-Status')
+    )
+);
+
+$system__database_upgrades[]=array(
+'version'=>'2026042603',
+'type'=>'new_lang_item',
+'specs'=> array(
+    'content_name'=>'where_auth_migration_status_is',
+    'content_type'=>'lang',
+    'content'=>array('en'=>'where auth migration status is','de'=>'bei denen der Status der Auth-Migration ist')
+    )
+);
+
+$system__database_upgrades[]=array(
+'version'=>'2026042603',
+'type'=>'new_lang_item',
+'specs'=> array(
+    'content_name'=>'query_auth_migration_no_password',
+    'content_type'=>'lang',
+    'content'=>array('en'=>'not yet migrated (no password set)','de'=>'noch nicht migriert (kein Passwort gesetzt)')
+    )
+);
+
+$system__database_upgrades[]=array(
+'version'=>'2026042603',
+'type'=>'new_lang_item',
+'specs'=> array(
+    'content_name'=>'query_auth_migration_has_password',
+    'content_type'=>'lang',
+    'content'=>array('en'=>'migrated (password set)','de'=>'migriert (Passwort gesetzt)')
+    )
+);
+
 ?>

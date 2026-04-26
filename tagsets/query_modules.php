@@ -9,6 +9,7 @@ $all_orsee_query_modules=array(
 "participations",
 "activity",
 "updaterequest",
+"authmigration",
 "subsubjectpool",
 "subscriptions",
 "interfacelanguage",
@@ -25,10 +26,10 @@ $all_orsee_query_modules=array(
 function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="",$status_query="") {
     global $lang, $settings, $all_orsee_query_modules;
     $formfields=participantform__load();
+    if ($settings['subject_authentication']!=='migration') $hide_modules[]='authmigration';
 
     $orsee_query_modules=$all_orsee_query_modules;
-
-    $protoypes=array();
+    $prototypes=array();
     foreach ($orsee_query_modules as $module) { if (!in_array($module,$hide_modules)) { switch ($module) {
 
     case "brackets":
@@ -367,6 +368,19 @@ function query__get_query_form_prototypes($hide_modules=array(),$experiment_id="
         $content.=subpools__multi_select_field("#subsubjectpool#_ms_subpool",array());
         $prototype['content']=$content; $prototypes[]=$prototype;
         break;
+    case "authmigration":
+        $prototype=array('type'=>'authmigration_simpleselect',
+                        'displayname'=>lang('query_auth_migration_status'),
+                        'field_name_placeholder'=>'#authmigration#'
+                        );
+        $content="";
+        $content.=lang('where_auth_migration_status_is').' ';
+        $content.='<span class="select is-primary select-compact"><SELECT name="migration_state">
+                        <OPTION value="no_password">'.lang('query_auth_migration_no_password').'</OPTION>
+                        <OPTION value="has_password">'.lang('query_auth_migration_has_password').'</OPTION>
+                    </SELECT></span> ';
+        $prototype['content']=$content; $prototypes[]=$prototype;
+        break;
     }}}
 
     return $prototypes;
@@ -647,6 +661,18 @@ function query__get_query_array($posted_array,$experiment_id="") {
                 $clause.="IN (".$list['par_names'].")";
                 $pars=$list['pars'];
                 break;
+            case "authmigration":
+                $ctype='part';
+                if (!isset($params['migration_state'])) {
+                    $add=false;
+                } elseif ($params['migration_state']==='has_password') {
+                    $clause="(password_crypted IS NOT NULL AND TRIM(password_crypted)!='')";
+                } elseif ($params['migration_state']==='no_password') {
+                    $clause="(password_crypted IS NULL OR TRIM(password_crypted)='')";
+                } else {
+                    $add=false;
+                }
+                break;
             default:
                 $add=false;
                 break;
@@ -851,6 +877,19 @@ function query__get_pseudo_query_array($posted_array) {
                 $parts[]=array('text'=>query__pseudo_query_not_without($params),'dir'=>'');
                 $parts[]=array('text'=>lang('who_are_in_subjectpool').':','dir'=>'');
                 $parts[]=array('text'=>subpools__idlist_to_namelist($params['ms_subpool']),'dir'=>'');
+                break;
+            case "authmigration":
+                if (!isset($params['migration_state'])) {
+                    $add=false;
+                } elseif ($params['migration_state']==='has_password') {
+                    $parts[]=array('text'=>lang('where_auth_migration_status_is').':','dir'=>'');
+                    $parts[]=array('text'=>lang('query_auth_migration_has_password'),'dir'=>'');
+                } elseif ($params['migration_state']==='no_password') {
+                    $parts[]=array('text'=>lang('where_auth_migration_status_is').':','dir'=>'');
+                    $parts[]=array('text'=>lang('query_auth_migration_no_password'),'dir'=>'');
+                } else {
+                    $add=false;
+                }
                 break;
         }
         if ($add && count($parts)>0) {
