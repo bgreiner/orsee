@@ -34,10 +34,13 @@ if ($proceed) {
             $continue=false;
         }
         if ($continue) {
-            $done=orsee_db_save_array($_REQUEST,"cron_jobs",$job_name,"job_name");
-            log__admin("cronjob_edit",$_REQUEST['job_name']);
+            $form_fields=array_filter_allowed($_REQUEST,array('job_name','enabled','job_time'));
+            if (!isset($form_fields['enabled']) || $form_fields['enabled']!=='y') $form_fields['enabled']='n';
+            else $form_fields['enabled']='y';
+            $done=orsee_db_save_array($form_fields,"cron_jobs",$form_fields['job_name'],"job_name");
+            log__admin("cronjob_edit",$form_fields['job_name']);
             message (lang('changes_saved'));
-            redirect ("admin/cronjob_edit.php?job_name=".$job_name);
+            redirect ("admin/cronjob_edit.php?job_name=".$form_fields['job_name']);
             $proceed=false;
         } else {
             $job=$_REQUEST;

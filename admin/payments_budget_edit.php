@@ -51,8 +51,11 @@ if ($proceed) {
 
             $budget=$_REQUEST;
             $budget['budget_id']=$budget_id;
-            if (!$budget['budget_limit']) $budget['budget_limit']=NULL;
-            $done=orsee_db_save_array($budget,"budgets",$budget_id,"budget_id");
+            $form_fields=array_filter_allowed($budget,array(
+                    'budget_id','budget_name','budget_limit','experimenter','enabled'));
+            $form_fields['budget_id']=$budget_id;
+            if (!$form_fields['budget_limit']) $form_fields['budget_limit']=NULL;
+            $done=orsee_db_save_array($form_fields,"budgets",$budget_id,"budget_id");
 
             message (lang('changes_saved'));
             log__admin("payments_budget_edit","budget_id:".$budget['budget_id']);

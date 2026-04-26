@@ -94,7 +94,11 @@ if ($proceed) {
             $subpool=$_REQUEST;
             $subpool['experiment_types']=id_array_to_db_string($exptype_ids);
             foreach ($languages as $language) $lsub[$language]=$selfdesc[$language];
-            $done=orsee_db_save_array($subpool,"subpools",$subpool_id,"subpool_id");
+            $form_fields=array_filter_allowed($subpool,array(
+                    'subpool_id','subpool_name','subpool_description',
+                    'experiment_types','show_at_registration_page'));
+            $form_fields['subpool_id']=$subpool_id;
+            $done=orsee_db_save_array($form_fields,"subpools",$subpool_id,"subpool_id");
             if ($new) $lsub['lang_id']=lang__insert_to_lang($lsub);
             else $done=orsee_db_save_array($lsub,"lang",$lsub['lang_id'],"lang_id");
 

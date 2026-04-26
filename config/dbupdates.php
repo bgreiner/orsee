@@ -2231,4 +2231,24 @@ $system__database_upgrades[]=array(
     )
 );
 
+$system__database_upgrades[]=array(
+'version'=>'2026042601',
+'type'=>'new_lang_item',
+'specs'=> array(
+    'content_name'=>'error_lang_symbol_name_required',
+    'content_type'=>'lang',
+    'content'=>array('en'=>'Symbol name is required','de'=>'Symbolname muss angegeben werden.')
+    )
+);
+
+$system__database_upgrades[]=array(
+'version'=>'2026042602',
+'type'=>'new_lang_item',
+'specs'=> array(
+    'content_name'=>'error_event_description_required',
+    'content_type'=>'lang',
+    'content'=>array('en'=>'An (internal) event description is required.','de'=>'Eine (interne) Event-Beschreibung muss angegeben werden.')
+    )
+);
+
 ?>

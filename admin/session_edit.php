@@ -81,17 +81,29 @@ if ($proceed) {
         }
 
         $edit=$_REQUEST;
+        $save_allowed_fields=array(
+            'session_id','experiment_id','laboratory_id','session_start',
+            'session_duration_hour','session_duration_minute',
+            'part_needed','part_reserve',
+            'registration_end_hours','session_reminder_hours','send_reminder_on',
+            'session_remarks','session_status','reg_notice_sent',
+            'payment_types','payment_budgets'
+        );
+        if (or_setting('allow_public_session_note') && check_allow('session_edit_add_public_session_note')) {
+            $save_allowed_fields[]='public_session_note';
+        }
+        $form_fields=array_filter_allowed($edit,$save_allowed_fields);
 
-        $done=orsee_db_save_array($edit,"sessions",$edit['session_id'],"session_id");
+        $done=orsee_db_save_array($form_fields,"sessions",$form_fields['session_id'],"session_id");
 
         if ($done) {
-            log__admin("session_edit","session:".session__build_name($edit,
-                    $settings['admin_standard_language']).", session_id:".$edit['session_id'].", experiment_id:".$edit['experiment_id']);
+            log__admin("session_edit","session:".session__build_name($form_fields,
+                    $settings['admin_standard_language']).", session_id:".$form_fields['session_id'].", experiment_id:".$form_fields['experiment_id']);
             message (lang('changes_saved'));
-            redirect ('admin/session_edit.php?session_id='.$edit['session_id']);
+            redirect ('admin/session_edit.php?session_id='.$form_fields['session_id']);
         } else {
             lang('database_error');
-            redirect ('admin/session_edit.php?session_id='.$edit['session_id']);
+            redirect ('admin/session_edit.php?session_id='.$form_fields['session_id']);
         }
     }
 }

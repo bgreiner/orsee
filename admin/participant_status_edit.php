@@ -120,7 +120,11 @@ if ($proceed) {
                             WHERE status_id!= :status_id";
                     $done=or_query($query,$pars);
                 }
-                $done=orsee_db_save_array($status,"participant_statuses",$status_id,"status_id");
+                $form_fields=array_filter_allowed($status,array(
+                        'status_id','access_to_profile','eligible_for_experiments',
+                        'is_default_active','is_default_inactive'));
+                $form_fields['status_id']=$status_id;
+                $done=orsee_db_save_array($form_fields,"participant_statuses",$status_id,"status_id");
             }
             message (lang('changes_saved'));
             log__admin("participant_status_edit","status_id:".$status['status_id']);

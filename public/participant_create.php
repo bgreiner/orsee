@@ -115,11 +115,14 @@ if ($proceed) {
                 if (!is_array($v)) $_REQUEST[$k]=trim($v);
             }
             $_REQUEST['subpool_id']=$selected_subpool;
-            $errors__dataform=participantform__check_fields($_REQUEST,'profile_form_public_create');
+            $check_result=participantform__check_fields($_REQUEST,'profile_form_public_create');
+            $errors__dataform=$check_result['errors'];
+            $form_input=$check_result['sanitized'];
+            $allowed_fields=$check_result['allowed_fields'];
             $error_count=count($errors__dataform);
             if ($error_count>0) $continue=false;
 
-            $response=participantform__check_unique($_REQUEST,"create");
+            $response=participantform__check_unique($form_input,"create");
             if (isset($response['disable_form']) && $response['disable_form']) {
                 $continue=false;
                 $proceed=false;
@@ -137,12 +140,12 @@ if ($proceed) {
             if ($settings['subject_authentication']!='token') {
                 if (isset($_SESSION['pauthdata']['pw_provided']) && $_SESSION['pauthdata']['pw_provided'] &&
                     isset($_SESSION['pauthdata']['submitted_checked_pw']) && $_SESSION['pauthdata']['submitted_checked_pw']) {
-                    $_REQUEST['password']=$_SESSION['pauthdata']['submitted_checked_pw'];
+                    $form_input['password']=$_SESSION['pauthdata']['submitted_checked_pw'];
                 } else {
-                    $pw_ok=participant__check_password($_REQUEST['password'],$_REQUEST['password2']);
+                    $pw_ok=participant__check_password($form_input['password'],$form_input['password2']);
                     if ($pw_ok) {
                         $_SESSION['pauthdata']['pw_provided']=true;
-                        $_SESSION['pauthdata']['submitted_checked_pw']=$_REQUEST['password'];
+                        $_SESSION['pauthdata']['submitted_checked_pw']=$form_input['password'];
                     } else {
                         $continue=false;
                     }
@@ -151,7 +154,7 @@ if ($proceed) {
         }
 
         if ($continue) {
-            $participant=$_REQUEST;
+            $participant=$form_input;
             unset ($_SESSION['pauthdata']['pw_provided']);
             unset ($_SESSION['pauthdata']['submitted_checked_pw']);
             unset ($_SESSION['captcha_string']);
@@ -167,6 +170,11 @@ if ($proceed) {
             $participant['status_id']=0;
             $participant['subpool_id']=$selected_subpool;
             if (!isset($participant['language']) || !$participant['language']) $participant['language']=$settings['public_standard_language'];
+            $save_allowed_fields=array_values(array_unique(array_merge(
+                $allowed_fields,
+                array('language','participant_id','participant_id_crypt','password_crypted','confirmation_token','creation_time','last_profile_update','status_id','subpool_id')
+            )));
+            $participant=array_filter_allowed($participant,$save_allowed_fields);
             $done=orsee_db_save_array($participant,"participants",$participant['participant_id'],"participant_id");
             if ($done) {
                 log__participant("subscribe",$participant['lname'].', '.$participant['fname']);
@@ -195,7 +203,12 @@ if ($proceed) {
             if (count($all_pool_ids)>0) $render_subpool=(int)$all_pool_ids[0];
             else $render_subpool=1;
         }
-        $_REQUEST['subpool_id']=$render_subpool;
+        $render_input=array();
+        if (isset($_REQUEST['add']) && $_REQUEST['add']) {
+            if (isset($form_input) && is_array($form_input)) $render_input=$form_input;
+            else $render_input=$_REQUEST;
+        }
+        $render_input['subpool_id']=$render_subpool;
 
         $pw_provided=(isset($_SESSION['pauthdata']['pw_provided']) && $_SESSION['pauthdata']['pw_provided']);
         $force_form_stage=(isset($_REQUEST['add']) && $_REQUEST['add']);
@@ -262,7 +275,7 @@ if ($proceed) {
                                 <input type="hidden" name="subpool_id" id="orsee-public-create-subpool-input" value="'.htmlspecialchars((string)$selected_subpool,ENT_QUOTES,'UTF-8').'">
                                 <input type="hidden" name="accept_rules" id="orsee-public-create-rules-input" value="'.htmlspecialchars((string)$rules_accepted,ENT_QUOTES,'UTF-8').'">
                                 <div class="orsee-form-shell orsee-public-profile-shell">';
-        participant__show_inner_form($_REQUEST,$errors__dataform,'profile_form_public_create');
+        participant__show_inner_form($render_input,$errors__dataform,'profile_form_public_create');
 
         if ($settings['subject_authentication']!='token') {
             if ($pw_provided) {

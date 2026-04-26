@@ -358,6 +358,7 @@ function participantform__get_nonunique($edit,$participant_id=0,$scope_context='
 function participantform__check_fields(&$edit,$scope_context='') {
     global $lang, $settings;
     $errors_dataform=array();
+    $allowed_fields=array();
     $scope_context=trim((string)$scope_context);
 
     if (!isset($edit['subpool_id']) || !$edit['subpool_id']) $edit['subpool_id']=$settings['subpool_default_registration_id'];
@@ -394,6 +395,7 @@ function participantform__check_fields(&$edit,$scope_context='') {
             $check_this_field=false;
         }
         if ($check_this_field) {
+            $allowed_fields[$f['mysql_column_name']]=$f['mysql_column_name'];
             if ($f['mysql_column_name']==='email') {
                 $email_input_mode=(isset($f['email_mode']['mode']) ? trim((string)$f['email_mode']['mode']) : 'full_email');
                 $email_fixed_domain=(isset($f['email_mode']['domain']) ? strtolower(trim((string)$f['email_mode']['domain'])) : '');
@@ -508,13 +510,19 @@ function participantform__check_fields(&$edit,$scope_context='') {
         if (!isset($_REQUEST['subscriptions']) || !is_array($_REQUEST['subscriptions'])) $_REQUEST['subscriptions']=array();
         $_REQUEST['subscriptions']=id_array_to_db_string($_REQUEST['subscriptions']);
         $edit['subscriptions']=$_REQUEST['subscriptions'];
+        $allowed_fields['subscriptions']='subscriptions';
         if(!$edit['subscriptions']) {
             $errors_dataform[]='subscriptions';
             message(lang('at_least_one_exptype_has_to_be_selected'),'warning');
         }
     }
 
-    return $errors_dataform;
+    $allowed_fields=array_values($allowed_fields);
+    return array(
+        'errors'=>$errors_dataform,
+        'sanitized'=>$edit,
+        'allowed_fields'=>$allowed_fields
+    );
 }
 /*
  * Central field editor specification for options_participant_profile_edit.php.
@@ -3357,18 +3365,18 @@ function participant__show_admin_form($edit,$button_title="",$errors=array(),$ex
     echo '<div class="field orsee-status-field">';
     echo '<label class="label">'.lang('participant_status').'</label>';
     echo '<div class="control">';
+    if(!isset($edit['status_id'])) $edit['status_id']="";
     if (check_allow('participants_change_status')) {
-        if(!isset($_REQUEST['status_id'])) $_REQUEST['status_id']="";
-        if ($_REQUEST['status_id']=='0') $hide=array(); else $hide=array('0');
-        echo '<INPUT type="hidden" name="old_status_id" value="'.$_REQUEST['status_id'].'">'.
-                participant_status__select_field('status_id',$_REQUEST['status_id'],$hide);
+        if ($edit['status_id']=='0') $hide=array(); else $hide=array('0');
+        echo '<INPUT type="hidden" name="old_status_id" value="'.$edit['status_id'].'">'.
+                participant_status__select_field('status_id',$edit['status_id'],$hide);
     } elseif (!$edit['participant_id']) {
         $default_status=participant_status__get("is_default_active");
         $statuses=participant_status__get_statuses();
         echo '<INPUT type="hidden" name="status_id" value="'.$default_status.'">'.
                     $statuses[$default_status]['name'];
     } else {
-        echo participant_status__get_name($_REQUEST['status_id']);
+        echo participant_status__get_name($edit['status_id']);
     }
     echo '</div>';
     echo '</div>';

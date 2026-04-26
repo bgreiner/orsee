@@ -44,15 +44,17 @@ if ($proceed) {
 
         if ($continue) {
             if (!$type_id) {
-                $pars=array(':type_name'=>$type['type_name'],
-                            ':rights'=>$type['rights']);
+                $form_fields=array_filter_allowed($type,array('type_name','rights'));
+                $pars=array(':type_name'=>$form_fields['type_name'],
+                            ':rights'=>$form_fields['rights']);
                 $query="INSERT INTO ".table('admin_types')."
                     SET type_name= :type_name,
                     rights= :rights";
                 $done=or_query($query,$pars);
                 $type_id=pdo_insert_id();
             } else {
-                $done=orsee_db_save_array($type,"admin_types",$type_id,"type_id");
+                $form_fields=array_filter_allowed($type,array('rights'));
+                $done=orsee_db_save_array($form_fields,"admin_types",$type_id,"type_id");
             }
 
             if ($done) {
