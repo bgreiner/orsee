@@ -28,6 +28,18 @@ class orsee_session_handler implements SessionHandlerInterface {
 }
 
 function orsee_session_register_handler() {
+    global $settings__server_url, $settings__root_directory;
+    global $site__database_host, $site__database_database, $site__database_table_prefix;
+
+    $session_scope_seed=
+        (string)$settings__server_url.'|'.
+        (string)$settings__root_directory.'|'.
+        (string)$site__database_host.'|'.
+        (string)$site__database_database.'|'.
+        (string)$site__database_table_prefix;
+    $session_scope_hash=substr(hash('sha256',$session_scope_seed),0,16);
+    session_name('ORSEE_SESSID_'.$session_scope_hash);
+
     session_set_save_handler(new orsee_session_handler(), true);
 }
 

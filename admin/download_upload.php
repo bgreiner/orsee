@@ -51,13 +51,13 @@ if ($proceed) {
 
         $file=$_FILES['contents'];
         if ($file['size']>$settings['upload_max_size'] || $file['error']>0) {
-            message (lang('error_not_uploaded'));
+            message (lang('error_not_uploaded'),'error');
             redirect ($redirect_target);
         } else {
             $continue=true;
             if (!$_REQUEST['upload_name']) {
                 $continue=false;
-                message (lang('error_no_upload_file_name'));
+                message (lang('error_no_upload_file_name'),'error');
                 redirect ($redirect_target);
             }
 
@@ -104,72 +104,57 @@ if ($proceed) {
     //form for uploading file
 
 
-    echo '<center>';
-
     show_message();
 
     echo '  <form method="post" enctype="multipart/form-data" action="download_upload.php">
                 <input type="hidden" name="experiment_id" value="'.$experiment_id.'">
                 '.csrf__field().'
-            <table class="or_formtable">
-            <TR><TD colspan="2">
-                <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">';
+                <div class="orsee-panel">
+                    <div class="orsee-panel-title">';
     if ($experiment_id>0) {
         echo lang('upload_file_for_experiment');
         echo ' "'.$experiment['experiment_name'].'"';
     } else {
         echo lang('upload_general_file');
     }
-    echo '          </TD>
-                </TR></TABLE>
-            </TD></TR>';
+    echo '          </div>
+                    <div class="orsee-form-shell">';
 
     if ($experiment_id) {
         $sessions=sessions__get_sessions($experiment_id);
-        echo '<TR>
-                    <TD>
-                            '.lang('session').':
-                    </TD>
-                    <TD>'.select__sessions($_REQUEST['session_id'],'session_id',$sessions).'
-                    </TD>
-            </TR>';
+        echo '          <div class="field">
+                            <label class="label">'.lang('session').':</label>
+                            <div class="control">
+                                <div class="select is-primary">'.select__sessions($_REQUEST['session_id'],'session_id',$sessions).'</div>
+                            </div>
+                        </div>';
     }
-    echo '  <TR>
-                <TD>
-                        '.lang('upload_category').':
-                </TD>
-                <TD>'.language__selectfield_item('file_upload_category','','upload_type',$_REQUEST['upload_type'],false,'fixed_order').'
-                </TD>
-            </TR>
-            <TR>
-                <TD>
-                    '.lang('upload_name').':
-                </TD>
-                <TD>
-                    <INPUT type="text" name="upload_name" size="30" maxlength="40" value="'.$_REQUEST['upload_name'].'">
-                </TD>
-            </TR>
-            <TR>
-                <TD>
-                    '.lang('file').':
-                </TD>
-                <TD>
-                    <input name="contents" type=file size=30  accept="*/*">
-                    <BR>
-                </TD>
-            </TR>
-            <TR>
-                <TD></TD>
-                <TD>
-                    <input class="button" type=submit name=upload value="'.lang('upload').'">
-                    <BR><BR>
-                </TD>
-            </TR>
-        </TABLE>
-        </form>
-
-        </center>';
+    echo '          <div class="field">
+                        <label class="label">'.lang('upload_category').':</label>
+                        <div class="control">
+                            <div class="select is-primary">'.language__selectfield_item('file_upload_category','','upload_type',$_REQUEST['upload_type'],false,'fixed_order').'</div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="upload_name">'.lang('upload_name').':</label>
+                        <div class="control">
+                            <input id="upload_name" class="input is-primary orsee-input orsee-input-text" type="text" name="upload_name" maxlength="40" value="'.$_REQUEST['upload_name'].'">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="contents">'.lang('file').':</label>
+                        <div class="control">
+                            <input id="contents" class="input is-primary orsee-input orsee-input-text" name="contents" type="file" accept="*/*">
+                        </div>
+                    </div>
+                    <div class="field is-grouped is-justify-content-center orsee-form-actions">
+                        <div class="control">
+                            <input class="button orsee-btn" type="submit" name="upload" value="'.lang('upload').'">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>';
 
 }
 include ("footer.php");

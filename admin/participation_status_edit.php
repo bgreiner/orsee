@@ -46,14 +46,14 @@ if ($proceed) {
         $pstatus_internal_name=$_REQUEST['pstatus_internal_name'];
         foreach ($languages as $language) {
             if (!$pstatus_internal_name[$language]) {
-                    message (lang('missing_language').': "'.lang('internal_name').'" - '.$language);
+                    message (lang('missing_language').': "'.lang('internal_name').'" - '.$language,'error');
                     $continue=false;
             }
         }
         $pstatus_display_name=$_REQUEST['pstatus_display_name'];
         foreach ($languages as $language) {
             if (!$pstatus_display_name[$language]) {
-                message (lang('missing_language').': "'.lang('status_name_displayed_to_participants').'" - '.$language);
+                message (lang('missing_language').': "'.lang('status_name_displayed_to_participants').'" - '.$language,'error');
                 $continue=false;
             }
         }
@@ -115,135 +115,113 @@ if ($proceed) {
 if ($proceed) {
     // form
 
-    echo '  <CENTER>';
-
     show_message();
 
     echo '
-            <FORM action="participation_status_edit.php" method="POST">'.csrf__field();
-    if (isset($pstatus_id)) echo '<INPUT type=hidden name="pstatus_id" value="'.$pstatus_id.'">';
+            <form action="participation_status_edit.php" method="POST">'.csrf__field();
+    if (isset($pstatus_id)) echo '<input type="hidden" name="pstatus_id" value="'.$pstatus_id.'">';
 
-    echo '
-        <TABLE class="or_formtable">';
+    echo '          <div class="orsee-panel">
+                        <div class="orsee-panel-title">
+                            <div class="orsee-panel-title-main">'.lang('edit_participation_status').'</div>
+                        </div>
+                        <div class="orsee-form-shell">';
     if (isset($pstatus_id)) {
-        echo '
-                <TR>
-                    <TD>'.lang('id').':</TD>
-                    <TD>'.$pstatus_id.'</TD>
-                </TR>';
+        echo '              <div class="field">
+                                <div class="control"><span class="orsee-dense-id-tag">'.lang('id').': '.$pstatus_id.'</span></div>
+                            </div>';
     }
 
-    echo '
-            <TR>
-                <TD valign="top">'.lang('internal_name').':</TD>
-                <TD>';
-    echo '<TABLE border=0>';
+    echo '              <div class="field">
+                                <label class="label">'.lang('internal_name').':</label>
+                                <div class="control">';
     foreach ($languages as $language) {
         if (!isset($pstatus_internal_name[$language])) $pstatus_internal_name[$language]='';
-        echo '  <TR><TD>'.$language.':</TD>
-                        <TD><INPUT name="pstatus_internal_name['.$language.']" type=text size=40 maxlength=200 value="'.
-                        stripslashes($pstatus_internal_name[$language]).'">
-                        </TD>
-                        </TR>';
+        echo '                      <div class="field">
+                                            <label class="label">'.$language.':</label>
+                                            <div class="control">
+                                                <input class="input is-primary orsee-input orsee-input-text" name="pstatus_internal_name['.$language.']" type="text" maxlength="200" value="'.htmlspecialchars(stripslashes($pstatus_internal_name[$language])).'">
+                                            </div>
+                                        </div>';
     }
-    echo '</TABLE>
-                </TD>
-            </TR>';
+    echo '                      </div>
+                            </div>';
 
-    echo '
-                <TR>
-                <TD valign="top">
-                    '.lang('status_name_displayed_to_participants').'
-                </TD>
-                <TD>';
-    echo '<TABLE border=0>';
+    echo '              <div class="field">
+                                <label class="label">'.lang('status_name_displayed_to_participants').'</label>
+                                <div class="control">';
     foreach ($languages as $language) {
         if (!isset($pstatus_display_name[$language])) $pstatus_display_name[$language]='';
-        echo '  <TR><TD>'.$language.':</TD>
-                <TD><INPUT name="pstatus_display_name['.$language.']" type=text size=40 maxlength=200 value="'.
-                        stripslashes($pstatus_display_name[$language]).'">
-                </TD>
-                </TR>';
+        echo '                      <div class="field">
+                                            <label class="label">'.$language.':</label>
+                                            <div class="control">
+                                                <input class="input is-primary orsee-input orsee-input-text" name="pstatus_display_name['.$language.']" type="text" maxlength="200" value="'.htmlspecialchars(stripslashes($pstatus_display_name[$language])).'">
+                                            </div>
+                                        </div>';
     }
-    echo '</TABLE>
-        </TD></TR>';
+    echo '                      </div>
+                            </div>';
 
     if ($not_assigned) {
-        echo '
-                <TR>
-                <TD valign=top>'.lang('counts_as_participated').'</TD>
-                    <TD>
-                            <INPUT type=radio name="participated" value="1"';
-                            if ($pstatus['participated']) echo ' CHECKED';
-                            echo '>'.lang('yes').'
-                            &nbsp;&nbsp;
-                            <INPUT type=radio name="participated" value="0"';
-                            if (!$pstatus['participated']) echo ' CHECKED';
-                            echo '>'.lang('no').'
-                    </TD>
-                </TR>';
+        echo '          <div class="field">
+                                <label class="label">'.lang('counts_as_participated').'</label>
+                                <div class="control">
+                                    <label class="radio"><input type="radio" name="participated" value="1"';
+        if ($pstatus['participated']) echo ' CHECKED';
+        echo '>'.lang('yes').'</label>&nbsp;&nbsp;
+                                    <label class="radio"><input type="radio" name="participated" value="0"';
+        if (!$pstatus['participated']) echo ' CHECKED';
+        echo '>'.lang('no').'</label>
+                                </div>
+                            </div>';
 
-        echo '
-                <TR>
-                <TD valign=top>'.lang('counts_as_noshow').'</TD>
-                    <TD>
-                            <INPUT type=radio name="noshow" value="1"';
-                            if ($pstatus['noshow']) echo ' CHECKED';
-                            echo '>'.lang('yes').'
-                            &nbsp;&nbsp;
-                            <INPUT type=radio name="noshow" value="0"';
-                            if (!$pstatus['noshow']) echo ' CHECKED';
-                            echo '>'.lang('no').'
-                    </TD>
-                </TR>';
+        echo '          <div class="field">
+                                <label class="label">'.lang('counts_as_noshow').'</label>
+                                <div class="control">
+                                    <label class="radio"><input type="radio" name="noshow" value="1"';
+        if ($pstatus['noshow']) echo ' CHECKED';
+        echo '>'.lang('yes').'</label>&nbsp;&nbsp;
+                                    <label class="radio"><input type="radio" name="noshow" value="0"';
+        if (!$pstatus['noshow']) echo ' CHECKED';
+        echo '>'.lang('no').'</label>
+                                </div>
+                            </div>';
 
-        echo '
-                <TR>
-                <TD valign=top>
-                    '.lang('allows_to_participate_again').'
-                </TD>
-                    <TD>
-                            <INPUT type=radio name="participateagain" value="1"';
-                            if ($pstatus['participateagain']) echo ' CHECKED';
-                            echo '>'.lang('yes').'
-                            &nbsp;&nbsp;
-                            <INPUT type=radio name="participateagain" value="0"';
-                            if (!$pstatus['participateagain']) echo ' CHECKED';
-                            echo '>'.lang('no').'
-                    </TD>
-                </TR>';
-
+        echo '          <div class="field">
+                                <label class="label">'.lang('allows_to_participate_again').'</label>
+                                <div class="control">
+                                    <label class="radio"><input type="radio" name="participateagain" value="1"';
+        if ($pstatus['participateagain']) echo ' CHECKED';
+        echo '>'.lang('yes').'</label>&nbsp;&nbsp;
+                                    <label class="radio"><input type="radio" name="participateagain" value="0"';
+        if (!$pstatus['participateagain']) echo ' CHECKED';
+        echo '>'.lang('no').'</label>
+                                </div>
+                            </div>';
     }
-    echo '
-            <TR>
-                <TD COLSPAN=2 align=center>
-                    <INPUT class="button" name="edit" type=submit value="';
-                    if (!isset($pstatus_id)) echo lang('add'); else echo lang('change');
-                    echo '">
-                </TD>
-            </TR>
 
-
-        </table>
-        </FORM>
-        <BR>';
+    echo '              <div class="field orsee-form-row-grid orsee-form-row-grid--3 orsee-form-actions">
+                                <div class="orsee-form-row-col has-text-left">
+                                    '.button_back('participation_status_main.php').'
+                                </div>
+                                <div class="orsee-form-row-col has-text-centered">
+                                    <input class="button orsee-btn" name="edit" type="submit" value="';
+    if (!isset($pstatus_id)) echo lang('add'); else echo lang('change');
+    echo '                          ">
+                                </div>
+                                <div class="orsee-form-row-col has-text-right">';
 
     if (isset($pstatus_id) && check_allow('participationstatus_delete') && $not_assigned) {
-
-            echo '<table>
-                <TR>
-                    <TD>
-                        '.button_link('participation_status_delete.php?pstatus_id='.urlencode($pstatus_id),
-                            lang('delete'),'trash-o').'
-                    <TD>
-                </TR>
-                </table>';
-
+        echo button_link('participation_status_delete.php?pstatus_id='.urlencode($pstatus_id),
+                            lang('delete'),'trash-o','','','orsee-btn--delete');
     }
 
-        echo '<BR><BR>
-                <A href="participation_status_main.php">'.icon('back').' '.lang('back').'</A><BR><BR>
-                </center>';
+    echo '                      </div>
+                            </div>
+                        </div>
+                    </div>
+            </form>
+            <br>';
 
 }
 include ("footer.php");

@@ -362,6 +362,9 @@ if (!$allset) {
                     $n[$newf]=$o[$oldf];
                 }
             }
+            if (!isset($n['email']) && isset($o['email'])) {
+                $n['email']=$o['email'];
+            }
             $n=convert_array_to_UTF8($n);
             if ($do_insert) $done=orsee_db_save_array($n,"participants",$n['participant_id'],"participant_id");
         }

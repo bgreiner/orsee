@@ -16,7 +16,7 @@ function laboratories__strip_lab_address($lab_text="") {
 
 function laboratories__select_field($postvarname,$selected) {
     global $lang;
-    echo '<SELECT name="'.$postvarname.'">';
+    echo '<span class="select is-primary"><select name="'.$postvarname.'" id="'.$postvarname.'">';
      $query="SELECT *
             FROM ".table('lang')."
             WHERE content_type='laboratory'
@@ -29,7 +29,7 @@ function laboratories__select_field($postvarname,$selected) {
         if ($line['content_name']==$selected) echo " SELECTED";
         echo '>'.$labname.'</OPTION>';
         }
-    echo '</SELECT>';
+    echo '</select></span>';
 }
 
 function laboratories__get_laboratory_name($laboratory_id) {

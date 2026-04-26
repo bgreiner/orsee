@@ -45,13 +45,13 @@ if ($proceed) {
         if ($stype) $stype_type=orsee_db_load_array("admin_types",$stype,"type_id");
 
         if (!isset($stype_type['type_id'])) {
-            message("No target type id provided!");
+            message("No target type id provided!",'warning');
             redirect ('admin/admin_type_edit.php?type_id='.$type_id);
             $proceed=false;
         } else {
 
             if ($stype==$type_id) {
-                message (lang('type_to_be_deleted_cannot_be_type_to_substitute'));
+                message (lang('type_to_be_deleted_cannot_be_type_to_substitute'),'warning');
                 redirect ('admin/admin_type_delete.php?type_id='.$type_id);
                 $proceed=false;
             }
@@ -80,50 +80,36 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<center>';
-
-
-    // confirmation form
-
-    echo '
-        <FORM action="admin_type_delete.php" method="POST">
-        <INPUT type=hidden name="type_id" value="'.$type_id.'">
-        '.csrf__field().'
-
-        <TABLE class="or_formtable">
-            <TR><TD colspan="2">
-                <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                            '.lang('delete_admin_type').' '.$type['type_name'].'
-                        </TD>
-                </TR></TABLE>
-            </TD></TR>
-            <TR>
-                <TD colspan=2>
-                    '.lang('do_you_really_want_to_delete').'
-                    <BR><BR>
-                </TD>
-            </TR>
-            <TR>
-                <TD align=right>
-                    '.lang('copy_admins_of_this_type_to').':
-                </TD>
-                <TD>';
-                    echo admin__select_admin_type("stype",$settings['default_admin_type'],"type_id",array($type_id));
-            echo '  </TD>
-            </TR>
-            <TR>
-                <TD align=left>
-                    <INPUT class="button" type="submit" name="reallydelete" value="'.lang('yes_delete').'">
-                </TD>
-                <TD align=right>
-                    <INPUT class="button" type="submit" name="betternot" value="'.lang('no_sorry').'">
-                </TD>
-            </TR>
-        </TABLE>
-
-        </FORM>
-        </center>';
+    echo '<div class="orsee-panel orsee-form-shell">
+            <div class="orsee-panel-title">'.lang('delete_admin_type').'</div>
+            <div class="orsee-content">
+                <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('do_you_really_want_to_delete').'</div>
+                <div class="field">
+                    <label class="label">'.lang('id').'</label>
+                    <div><span class="orsee-dense-id-tag">'.htmlspecialchars($type['type_id']).'</span></div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('name').'</label>
+                    <div>'.htmlspecialchars($type['type_name']).'</div>
+                </div>
+                <form action="admin_type_delete.php" method="POST">
+                    <input type="hidden" name="type_id" value="'.$type_id.'">
+                    '.csrf__field().'
+                    <div class="field">
+                        <label class="label">'.lang('copy_admins_of_this_type_to').'</label>
+                        <div>'.admin__select_admin_type("stype",$settings['default_admin_type'],"type_id",array($type_id)).'</div>
+                    </div>
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                        <div class="orsee-form-row-col">
+                            <button class="button orsee-btn orsee-btn--delete" type="submit" name="reallydelete" value="1"><i class="fa fa-check-square"></i> '.lang('yes_delete').'</button>
+                        </div>
+                        <div class="orsee-form-row-col has-text-right">
+                            <button class="button orsee-btn" type="submit" name="betternot" value="1"><i class="fa fa-undo"></i> '.lang('no_sorry').'</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>';
 
 }
 include ("footer.php");

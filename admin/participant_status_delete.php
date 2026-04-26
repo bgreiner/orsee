@@ -36,7 +36,7 @@ if ($proceed) {
     $status_error=orsee_query($query,$pars);
 
     if ($status['is_default_active']=="y" || $status['is_default_inactive']=="y") {
-        message(lang('cannot_delete_participant_status_which_is_default'));
+        message(lang('cannot_delete_participant_status_which_is_default'),'warning');
         redirect ('admin/participant_status_edit.php?status_id='.$status_id);
     }
 }
@@ -91,40 +91,36 @@ if ($proceed) {
 if ($proceed) {
     // form
 
-    echo '  <CENTER>
-            <FORM action="participant_status_delete.php" method="POST">
-            <INPUT type="hidden" name="status_id" value="'.$status_id.'">
-            '.csrf__field().'
-            <TABLE class="or_formtable">
-                <TR><TD colspan="2">
-                    <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                            <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                                '.lang('delete_participant_status').' "'.$status_name[lang('lang')].'"
-                            </TD>
-                    </TR></TABLE>
-                </TD></TR>
-                <TR>
-                    <TD colspan=2>'.lang('really_delete_participant_status?').'<BR><BR>';
-    dump_array($status);
-    echo '          </TD>
-                </TR>
-                <TR>
-                <TD align=left colspan=2>
-                '.lang('merge_participant_status_with').'
-                '.participant_status__select_field('merge_with','',array(0,$status_id)).'
-                <BR>
-                <INPUT class="button" type=submit name=reallydelete value="'.lang('yes_delete').'">
-                </TD>
-            </TR>
-            <TR>
-                <TD align=center colspan=2><BR><BR>
-                    <INPUT class="button" type=submit name=betternot value="'.lang('no_sorry').'">
-                </TD>
-            </TR>
-            </TABLE>
-
-            </FORM>
-            </center>';
+    echo '<div class="orsee-panel orsee-form-shell">
+            <div class="orsee-panel-title">'.lang('delete_participant_status').'</div>
+            <div class="orsee-content">
+                <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('really_delete_participant_status?').'</div>
+                <div class="field">
+                    <label class="label">'.lang('id').'</label>
+                    <div><span class="orsee-dense-id-tag">'.htmlspecialchars($status['status_id']).'</span></div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('name').'</label>
+                    <div>'.htmlspecialchars($status_name[lang('lang')]).'</div>
+                </div>
+                <form action="participant_status_delete.php" method="POST">
+                    <input type="hidden" name="status_id" value="'.$status_id.'">
+                    '.csrf__field().'
+                    <div class="field">
+                        <label class="label">'.lang('merge_participant_status_with').'</label>
+                        <div>'.participant_status__select_field('merge_with','',array(0,$status_id)).'</div>
+                    </div>
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                        <div class="orsee-form-row-col">
+                            <button class="button orsee-btn orsee-btn--delete" type="submit" name="reallydelete" value="1"><i class="fa fa-check-square"></i> '.lang('yes_delete').'</button>
+                        </div>
+                        <div class="orsee-form-row-col has-text-right">
+                            <button class="button orsee-btn" type="submit" name="betternot" value="1"><i class="fa fa-undo"></i> '.lang('no_sorry').'</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>';
 
 }
 include ("footer.php");

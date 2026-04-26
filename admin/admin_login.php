@@ -5,9 +5,6 @@ ob_start();
 $title="admin_login_page";
 include("header.php");
 if ($proceed) {
-
-    echo '<center>';
-
     if (isset($_REQUEST['logout']) && $_REQUEST['logout']) message(lang('logout'));
 
     if (isset($_REQUEST['pw']) && $_REQUEST['pw']) {
@@ -41,7 +38,7 @@ if ($proceed) {
                 redirect("admin/index.php");
             }
         } else {
-            message(lang('error_password_or_username'));
+            message(lang('error_password_or_username'),'error');
             $add="";
             if (isset($_REQUEST['requested_url']) && $_REQUEST['requested_url']) {
                     $add="?requested_url=".$_REQUEST['requested_url'];
@@ -55,8 +52,6 @@ if ($proceed) {
 if ($proceed) {
 
     admin__login_form();
-
-    echo '</center>';
 }
 include("footer.php");
 

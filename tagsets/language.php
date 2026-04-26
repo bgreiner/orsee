@@ -38,6 +38,7 @@ function load_language_symbol($symbol,$language) {
 }
 
 function language__get_item($content_type,$content_name,$language="") {
+    global $settings;
     if (!$language){
         global $lang;
         $this_lang=lang('lang');
@@ -53,6 +54,19 @@ function language__get_item($content_type,$content_name,$language="") {
     $line=orsee_query($query,$pars);
     if (isset($line[$language])) return stripslashes($line[$language]);
     else return false;
+}
+
+function lang__get_lang_id($content_type,$content_name) {
+    $content_type=trim((string)$content_type);
+    $content_name=trim((string)$content_name);
+    if ($content_type==='' || $content_name==='') return 0;
+    $query="SELECT lang_id
+            FROM ".table('lang')."
+            WHERE content_type=:content_type
+            AND content_name=:content_name";
+    $line=orsee_query($query,array(':content_type'=>$content_type,':content_name'=>$content_name));
+    if (is_array($line) && isset($line['lang_id']) && (int)$line['lang_id']>0) return (int)$line['lang_id'];
+    return 0;
 }
 
 function language__save_item_order($content_type,$order_array) {
@@ -120,9 +134,9 @@ function language__radioline_item($content_type,$ptablevarname,$formfieldvarname
 
     $out='';
     foreach ($items as $k=>$v) {
-        $out.='<INPUT type="radio" name="'.$formfieldvarname.'" value="'.$k.'"';
+        $out.='<label class="radio"><INPUT type="radio" name="'.$formfieldvarname.'" value="'.$k.'"';
         if ($selected==$k) $out.=' CHECKED';
-        $out.='>'.$v.'&nbsp;&nbsp;&nbsp;';
+        $out.='>&nbsp;'.$v.'</label>&nbsp;&nbsp;&nbsp;';
     }
     return $out;
 }
@@ -133,13 +147,19 @@ function language__multiselectfield_item($content_type,$ptablevarname,$formfield
         global $lang;
         $language=lang('lang');
     }
+    if (!is_array($mpoptions)) $mpoptions=array();
+    if (isset($mpoptions['order']) && $mpoptions['order']==='fixed_order') {
+        $order_by='order_number';
+    } else {
+        $order_by=pdo_escape_string($language);
+    }
 
     $items=array();
     $pars=array(':content_type'=>$content_type);
     $query="SELECT *, ".lang('lang')." AS item
             FROM ".table('lang')."
             WHERE content_type= :content_type
-            ORDER BY ".pdo_escape_string($language);
+            ORDER BY ".$order_by;
     $result=or_query($query,$pars);
     while ($line = pdo_fetch_assoc($result)) {
         $items[$line['content_name']]=stripslashes($line['item']);
@@ -167,11 +187,9 @@ function language__multiselectfield_item($content_type,$ptablevarname,$formfield
     }
 
     $out="";
-    if (!is_array($mpoptions)) $mpoptions=array();
-    if (!isset($mpoptions['picker_icon'])) $mpoptions['picker_icon']='bars';
 
     if ($multi) {
-        $out.= get_multi_picker($formfieldvarname,$mylist,$selected,$mpoptions);
+        $out.= get_tag_picker($formfieldvarname,$mylist,$selected,$mpoptions);
     } else {
         $out.= '<SELECT name="'.$formfieldvarname.'">
                 <OPTION value=""'; if (!is_array($selected) || count($selected)==0) $out.= ' SELECTED'; $out.= '>-</OPTION>
@@ -222,8 +240,38 @@ function lang__get_language_names() {
         return $names;
 }
 
+function lang__is_rtl_all_langs() {
+    global $preloaded_lang_is_rtl;
+    if (isset($preloaded_lang_is_rtl) && is_array($preloaded_lang_is_rtl)) return $preloaded_lang_is_rtl;
 
-function lang__select_lang($varname,$selected="",$type="all") {
+    $lang_dirs=array();
+    $query="SELECT * FROM ".table('lang')."
+            WHERE content_type='lang'
+            AND content_name='lang_is_rtl'
+            LIMIT 1";
+    $line=orsee_query($query);
+    if (isset($line['lang_id'])) {
+        foreach ($line as $columnname=>$value) {
+            if (preg_match("(lang_id|content_name|content_type|enabled|order_number)",$columnname)) continue;
+            $lang_dirs[$columnname]=(trim((string)$value)==='y');
+        }
+    } else {
+        $languages=get_languages();
+        foreach ($languages as $language) $lang_dirs[$language]=false;
+    }
+
+    $preloaded_lang_is_rtl=$lang_dirs;
+    return $preloaded_lang_is_rtl;
+}
+
+function lang__is_rtl($lang='') {
+    if ($lang==='') $lang=lang('lang');
+    $rtl_langs=lang__is_rtl_all_langs();
+    return (isset($rtl_langs[$lang]) && $rtl_langs[$lang]);
+}
+
+
+function lang__select_lang($varname,$selected="",$type="all",$select_wrapper_class='select is-primary',$compact=false,$select_class='') {
     global $lang;
     switch ($type) {
         case "public": $sel_langs=lang__get_public_langs(); break;
@@ -233,13 +281,50 @@ function lang__select_lang($varname,$selected="",$type="all") {
     if(!$selected) $selected=lang('lang');
     $lang_names=lang__get_language_names();
     $out='';
-    $out.='<SELECT name="'.$varname.'">';
+    if ($compact && stripos($select_wrapper_class,'select-compact')===false) {
+        $select_wrapper_class=trim($select_wrapper_class.' select-compact');
+    }
+    if ($select_wrapper_class) {
+        $out.='<span class="'.$select_wrapper_class.'">';
+    }
+    $out.='<SELECT name="'.$varname.'"';
+    if ($select_class) {
+        $out.=' class="'.$select_class.'"';
+    }
+    $out.='>';
     foreach ($sel_langs as $olang) {
         $out.='<OPTION value="'.$olang.'"';
         if ($olang==$selected) $out.=' SELECTED';
         $out.='>'.$lang_names[$olang].'</OPTION>';
         }
     $out.='</SELECT>';
+    if ($select_wrapper_class) {
+        $out.='</span>';
+    }
+    return $out;
+}
+
+function lang__compact_language_switch($current_language='',$type='public',$select_id='orsee-language-switch-compact',$param_name='language') {
+    if ($current_language==='') $current_language=lang('lang');
+    switch ($type) {
+        case 'part': $sel_langs=lang__get_part_langs(); break;
+        case 'all': $sel_langs=get_languages(); break;
+        default: $sel_langs=lang__get_public_langs();
+    }
+    if (!in_array($current_language,$sel_langs,true) && isset($sel_langs[0])) $current_language=$sel_langs[0];
+
+    $out='<div class="orsee-language-switch-compact" data-orsee-language-switch>';
+    if ($current_language!=='') {
+        $out.='<span class="languageicon langicon-'.htmlspecialchars($current_language,ENT_QUOTES).'" aria-hidden="true"></span>';
+    }
+    $out.='<select id="'.htmlspecialchars($select_id,ENT_QUOTES).'" class="input is-primary orsee-input orsee-input-compact orsee-menu-lang-select" data-orsee-language-select="1" data-orsee-language-param="'.htmlspecialchars($param_name,ENT_QUOTES).'" dir="ltr">';
+    foreach ($sel_langs as $olang) {
+        $out.='<option value="'.htmlspecialchars($olang,ENT_QUOTES).'"';
+        if ($olang===$current_language) $out.=' selected';
+        $out.='>'.htmlspecialchars((string)$olang,ENT_QUOTES).'</option>';
+    }
+    $out.='</select>';
+    $out.='</div>';
     return $out;
 }
 
@@ -278,7 +363,11 @@ function lang__insert_to_lang($item) {
     }
 
     $done1=orsee_db_save_array($item,"lang",$newid,"lang_id");
-    if ($reorganize) $done2=lang__reorganize_lang_table($steps);
+    if (!$done1) return false;
+    if ($reorganize) {
+        $done2=lang__reorganize_lang_table($steps);
+        if (!$done2) return false;
+    }
     return $newid;
 }
 
@@ -365,24 +454,28 @@ function lang__reorganize_lang_table($steps=10000) {
 }
 
 
-function lang__load_lang_cat($content_type,$language="") {
+function lang__load_lang_cat($content_type,$language="",$order='content_name') {
     global $lang, $preloaded_lang_cats;
     if (!$language) $language=lang('lang');
+    if ($order==='fixed_order') $order_by='order_number';
+    elseif ($order==='alphabetically') $order_by=$language;
+    else $order_by='content_name';
 
-    if (isset($preloaded_lang_cats[$content_type][$language]) &&
-        is_array($preloaded_lang_cats[$content_type][$language]) &&
-        count($preloaded_lang_cats[$content_type][$language])>0)
-            return $preloaded_lang_cats[$content_type][$language];
+    if (isset($preloaded_lang_cats[$content_type][$language][$order_by]) &&
+        is_array($preloaded_lang_cats[$content_type][$language][$order_by]) &&
+        count($preloaded_lang_cats[$content_type][$language][$order_by])>0)
+            return $preloaded_lang_cats[$content_type][$language][$order_by];
     else {
         $cat=array();
         $pars=array(':content_type'=>$content_type);
         $query="SELECT content_name, ".$language." as content_value
-                FROM ".table('lang')." WHERE content_type= :content_type";
+                FROM ".table('lang')." WHERE content_type= :content_type
+                ORDER BY ".$order_by;
         $result=or_query($query,$pars);
         while ($line = pdo_fetch_assoc($result)) {
             $cat[$line['content_name']]=stripslashes($line['content_value']);
         }
-        $preloaded_lang_cats[$content_type][$language]=$cat;
+        $preloaded_lang_cats[$content_type][$language][$order_by]=$cat;
         return $cat;
     }
 }

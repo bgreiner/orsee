@@ -1,10 +1,17 @@
 <?php
 // part of orsee. see orsee.org
 
-function subpools__select_field($postvarname,$selected,$hidden=array(),$class='') {
+function subpools__select_field($postvarname,$selected,$hidden=array(),$class='',$select_wrapper_class='select is-primary',$compact=false) {
 
     $subpools=subpools__get_subpools();
-    $out='<SELECT name="'.$postvarname.'"';
+    if ($compact && stripos($select_wrapper_class,'select-compact')===false) {
+        $select_wrapper_class=trim($select_wrapper_class.' select-compact');
+    }
+    $out='';
+    if ($select_wrapper_class) {
+        $out.='<span class="'.$select_wrapper_class.'">';
+    }
+    $out.='<SELECT name="'.$postvarname.'"';
     if ($class) $out.=' class="'.$class.'"';
     $out.='>';
     foreach ($subpools as $pool) {
@@ -16,6 +23,9 @@ function subpools__select_field($postvarname,$selected,$hidden=array(),$class=''
             }
         }
     $out.='</SELECT>';
+    if ($select_wrapper_class) {
+        $out.='</span>';
+    }
     return $out;
 }
 
@@ -33,8 +43,7 @@ function subpools__multi_select_field($postvarname,$selected,$mpoptions=array())
     }
 
     if (!is_array($mpoptions)) $mpoptions=array();
-    if (!isset($mpoptions['picker_icon'])) $mpoptions['picker_icon']='globe';
-    $out.= get_multi_picker($postvarname,$mylist,$selected,$mpoptions);
+    $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
     return $out;
 }
 

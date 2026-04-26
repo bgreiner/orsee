@@ -14,7 +14,7 @@ function stats__get_data($condition=array(),$type='stats',$restrict=array(),$opt
     $formfields=participantform__load();
     $pform_fields=array(); $pform_types=array();
     foreach ($formfields as $f) {
-        if( (!preg_match("/(textline|textarea)/i",$f['type'])) &&
+        if( (!preg_match("/(textline|email|textarea)/i",$f['type'])) &&
             isset($f['include_in_statistics']) &&
             ($f['include_in_statistics']=='pie' || $f['include_in_statistics']=='bars')) {
                 $pform_fields[]=$f['mysql_column_name'];
@@ -219,17 +219,13 @@ function stats__get_data($condition=array(),$type='stats',$restrict=array(),$opt
             $d['charttype']=$pform_types[$c]['include_in_statistics'];
             $d['type_of_data']='count';
             $d['yname']=lang('count');
-            $d['xname']=lang($pform_types[$c]['name_lang']);
-            $d['title']=lang($pform_types[$c]['name_lang']);
+            $d['xname']=participant__field_localized_text($pform_types[$c],'name_text_lang_json','name_lang');
+            $d['title']=participant__field_localized_text($pform_types[$c],'name_text_lang_json','name_lang');
             if (preg_match("/(select_lang|radioline_lang)/",$pform_types[$c]['type'])) $d['value_names']=lang__load_lang_cat($c,lang('lang'));
             elseif(preg_match("/(radioline|select_list)/",$pform_types[$c]['type'])) {
-                $optionvalues=explode(",",$pform_types[$c]['option_values']);
-                $optionnames=explode(",",$pform_types[$c]['option_values_lang']);
                 $d['value_names']=array();
-                foreach($optionvalues as $k=>$v) {
-                    if (isset($optionnames[$k])) {
-                        $d['value_names'][$v]=lang($optionnames[$k]);
-                    }
+                foreach($pform_types[$c]['option_values'] as $v=>$option_symbol) {
+                    $d['value_names'][$v]=lang($option_symbol);
                 }
             } else $d['value_names']=array(); // select numbers?
             if ($pform_types[$c]['type']=='select_numbers') krsort($nums);
@@ -385,7 +381,7 @@ function stats__get_data($condition=array(),$type='stats',$restrict=array(),$opt
 
 
 function stats__report_display_table($table1,$table1_name,$table2=array(),$table2_name="",$table3=array(),$table3_name="") {
-    global $settings, $color;
+    global $settings;
 
     $num_tables=1;
     $has_table2=false; $has_table3=false;
@@ -412,63 +408,61 @@ function stats__report_display_table($table1,$table1_name,$table2=array(),$table
     }
 
     $out="";
-    $out.= '<TABLE class="or_orr_spstatstable"><TR>';
-    $out.= '<TD colspan="'.($num_tables+1).'" class="orr_header_title">'.$table1['title'].'</TD></TR>';
-    $out.= '<TR><TD class="orr_header_poolnames"></TD>
-            <TD class="orr_header_poolnames">'.$table1_name.'</TD>';
-    if ($has_table2) $out.= '<TD class="orr_header_poolnames">'.$table2_name.'</TD>';
-    if ($has_table3) $out.= '<TD class="orr_header_poolnames">'.$table3_name.'</TD>';
-    $out.= '</TR>';
-    $out.= '<TR><TD class="orr_header_n"></TD>
-            <TD class="orr_header_n">N='.$table1['N'].'</TD>';
-    if ($has_table2) $out.= '<TD class="orr_header_n">N='.$table2['N'].'</TD>';
-    if ($has_table3) $out.= '<TD class="orr_header_n">N='.$table3['N'].'</TD>';
-    $out.= '</TR>';
-    $out.= '<TR><TD class="orr_header_varnames">'.$table1['xname'].'</TD>';
-    if ($table1['type_of_data']=='count') {
-        $out.='<TD class="orr_header_varnames"></TD><TD class="orr_header_varnames"></TD><TD class="orr_header_varnames"></TD>';
-    } else {
-        $out.='<TD class="orr_header_varnames">'.$table1['yname'].'</TD>';
-        if ($has_table2) $out.= '<TD class="orr_header_varnames">'.$table1['yname'].'</TD>';
-        if ($has_table3) $out.= '<TD class="orr_header_varnames">'.$table1['yname'].'</TD>';
-    }
-    $out.= '</TR>';
+    $out.= '<div class="orsee-table" style="width: 100%; max-width: 100%;">';
+    $out.= '<div class="orsee-table-row orsee-table-head">
+                <div class="orsee-table-cell" style="border-bottom: 0;">'.$table1['title'].'</div>
+                <div class="orsee-table-cell" style="border-bottom: 0;"></div>';
+    if ($has_table2) $out.= '<div class="orsee-table-cell" style="border-bottom: 0;"></div>';
+    if ($has_table3) $out.= '<div class="orsee-table-cell" style="border-bottom: 0;"></div>';
+    $out.= '</div>';
+    $out.= '<div class="orsee-table-row orsee-table-head">
+                <div class="orsee-table-cell" style="border-bottom: 0;"></div>
+                <div class="orsee-table-cell" style="border-bottom: 0;">'.$table1_name.'</div>';
+    if ($has_table2) $out.= '<div class="orsee-table-cell" style="border-bottom: 0;">'.$table2_name.'</div>';
+    if ($has_table3) $out.= '<div class="orsee-table-cell" style="border-bottom: 0;">'.$table3_name.'</div>';
+    $out.= '</div>';
+    $out.= '<div class="orsee-table-row orsee-table-head">
+                <div class="orsee-table-cell"></div>
+                <div class="orsee-table-cell">N='.$table1['N'].'</div>';
+    if ($has_table2) $out.= '<div class="orsee-table-cell">N='.$table2['N'].'</div>';
+    if ($has_table3) $out.= '<div class="orsee-table-cell">N='.$table3['N'].'</div>';
+    $out.= '</div>';
     $shade=false; $other=array('t1'=>0,'t2'=>0,'t3'=>0);
     foreach ($table1['data'] as $k=>$value) {
         if (in_array($k,$usevals)) {
-            $out.= '<TR';
-            if ($shade) { $out.= ' class="or_orr_list_shade_even"'; $shade=false; }
-            else { $out.= ' class="or_orr_list_shade_odd"'; $shade=true; }
-            $out.='>';
-            $out.= '<TD>';
+            $row_class='orsee-table-row';
+            if ($shade) $row_class.=' is-alt';
+            $shade=!$shade;
+            $out.= '<div class="'.$row_class.'">';
+            $out.= '<div class="orsee-table-cell">';
             if (isset($table1['value_names'][$k])) $out.= $table1['value_names'][$k];
             else $out.=$k;
-            $out.= '</TD>';
-            $out.= '<TD>';
+            $out.= '</div>';
+            $out.= '<div class="orsee-table-cell">';
                 if ($table1['type_of_data']=='count') $out.= round(($value/$table1['N'])*100,1).'%';
                 else $out.= $value;
-            $out.='</TD>';
+            $out.='</div>';
             if ($has_table2) {
-                $out.= '<TD>';
+                $out.= '<div class="orsee-table-cell">';
                 if ($has_data2 && $table2['N']>0) {
                     if (isset($table2['data'][$k])) {
                         if ($table1['type_of_data']=='count') $out.= round(($table2['data'][$k]/$table2['N'])*100,1).'%';
                         else $out.= $table2['data'][$k];
                     } else $out.= 0;
                 } else $out.= '-';
-                $out.= '</TD>';
+                $out.= '</div>';
             }
             if ($has_table3) {
-                $out.= '<TD>';
+                $out.= '<div class="orsee-table-cell">';
                 if ($has_data3 && $table3['N']>0) {
                     if (isset($table3['data'][$k])) {
                         if ($table1['type_of_data']=='count') $out.= round(($table3['data'][$k]/$table3['N'])*100,1).'%';
                         else $out.= $table3['data'][$k];
                     } else $out.= 0;
                 } else $out.= '-';
-                $out.= '</TD>';
+                $out.= '</div>';
             }
-            $out.= '</TR>';
+            $out.= '</div>';
         } else {
             $other['t1']+=$value;
             if (isset($table2['data'][$k])) $other['t2']+=$table2['data'][$k];
@@ -476,34 +470,33 @@ function stats__report_display_table($table1,$table1_name,$table2=array(),$table
         }
     }
     if ($other['t1']>0 || $other['t2']>0 || $other['t3']>0) {
-        $out.= '<TR';
-        if ($shade) { $out.= ' bgcolor="'.$color['list_shade1'].'"'; $shade=false; }
-        else { $out.= ' bgcolor="'.$color['list_shade2'].'"'; $shade=true; }
-        $out.='>';
-        $out.= '<TD>'.lang('other_categories').'</TD>';
-        $out.= '<TD>';
+        $row_class='orsee-table-row';
+        if ($shade) $row_class.=' is-alt';
+        $out.= '<div class="'.$row_class.'">';
+        $out.= '<div class="orsee-table-cell">'.lang('other_categories').'</div>';
+        $out.= '<div class="orsee-table-cell">';
         if ($table1['type_of_data']=='count') $out.= round(($other['t1']/$table1['N'])*100,1).'%';
         else $out.= $other['t1'];
-        $out.='</TD>';
+        $out.='</div>';
         if ($has_table2) {
-            $out.= '<TD>';
+            $out.= '<div class="orsee-table-cell">';
             if ($has_data2) {
                 if ($table1['type_of_data']=='count') $out.= round(($other['t2']/$table2['N'])*100,1).'%';
                 else $out.= $other['t2'];
             } else $out.= '-';
-            $out.= '</TD>';
+            $out.= '</div>';
         }
         if ($has_table3) {
-            $out.= '<TD>';
+            $out.= '<div class="orsee-table-cell">';
             if ($has_data3) {
                 if ($table1['type_of_data']=='count') $out.= round(($other['t3']/$table3['N'])*100,1).'%';
                 else $out.= $other['t3'];
             } else $out.= '-';
-            $out.= '</TD>';
+            $out.= '</div>';
         }
-        $out.= '</TR>';
+        $out.= '</div>';
     }
-    $out.= '</TABLE>';
+    $out.= '</div>';
     return $out;
 }
 
@@ -547,60 +540,61 @@ function stats__stats_get_table_array($table) {
 }
 
 function stats__stats_display_table($table,$browsable=false,$restrict=array()) {
-    global $color;
     if ($browsable && isset($table['browsable']) && $table['browsable']) $browsable=true;
     else $browsable=false;
     $ta=stats__stats_get_table_array($table);
     $out="";
-    $out.= '<TABLE class="or_listtable" style="width: 100%;"><thead>';
+    $out.= '<TABLE class="orsee-table" style="width: 100%;"><thead>';
     if (isset($ta['multi_header'])) {
-        $out.= '<TR style="background: '.$color['list_header_background'].'; color: '.$color['list_header_textcolor'].';">';
-        if ($browsable) $out.='<TD></TD>';
-        foreach ($ta['multi_header'] as $c) $out.='<TD>'.$c.'</TD>';
+        $out.= '<TR class="orsee-table-row orsee-table-head">';
+        if ($browsable) $out.='<TD class="orsee-table-cell"></TD>';
+        foreach ($ta['multi_header'] as $c) $out.='<TD class="orsee-table-cell">'.$c.'</TD>';
         $out.= '</TR>';
     }
     if (isset($ta['header'])) {
-        $out.= '<TR style="background: '.$color['list_header_background'].'; color: '.$color['list_header_textcolor'].';">';
-        if ($browsable) $out.='<TD>'.lang('filter_out').'</TD>';
-        foreach ($ta['header'] as $c) $out.='<TD>'.$c.'</TD>';
+        $out.= '<TR class="orsee-table-row orsee-table-head">';
+        if ($browsable) $out.='<TD class="orsee-table-cell">'.lang('filter_out').'</TD>';
+        foreach ($ta['header'] as $c) $out.='<TD class="orsee-table-cell">'.$c.'</TD>';
         $out.= '</TR>';
     }
     $out.='</thead><tbody>';
     $shade=false;
     foreach ($ta['data'] as $vk=>$r) {
         $k=substr($vk,1);
-        $out.= '<TR';
-        if ($shade) { $out.= ' bgcolor="'.$color['list_shade1'].'"'; $shade=false; }
-        else { $out.= ' bgcolor="'.$color['list_shade2'].'"'; $shade=true; }
+        $out.= '<TR class="orsee-table-row';
+        if ($shade) { $out.= ' is-alt'; $shade=false; }
+        else { $shade=true; }
         if ($browsable && isset($table['name']) && isset($restrict[$table['name']][$k])) {
             $tr=true;
-            $style_sn=' style="background: #8B8B8B; font-style: italic;"';
+            $style_sn=' style="background: var(--color-list-header-highlighted-background); color: var(--color-list-header-highlighted-text); font-style: italic;"';
         } else {
              $tr=false;
              $style_sn='';
         }
-        $out.='>';
+        $out.='">';
         if ($browsable && isset($table['name'])) {
-            $out.='<TD '.$style_sn.'>'.lang('n').
+            $out.='<TD class="orsee-table-cell" '.$style_sn.'>'.lang('n').
                     '<INPUT type="radio" name="restrict['.$table['name'].']['.$k.']" value="n"';
             if (!$tr) $out.=' CHECKED';
             $out.='><INPUT type="radio" name="restrict['.$table['name'].']['.$k.']" value="y"';
             if ($tr) $out.=' CHECKED';
             $out.='>'.lang('y').'</TD>';
         }
-        foreach ($r as $c) $out.= '<TD '.$style_sn.'>'.$c.'</TD>';
+        foreach ($r as $c) $out.= '<TD class="orsee-table-cell" '.$style_sn.'>'.$c.'</TD>';
         $out.= '</TR>';
     }
     if (isset($table['name']) && isset($restrict[$table['name']]) && $browsable) {
         foreach ($restrict[$table['name']] as $k=>$v) {
-            $out.= '<TR style="background: '.$color['list_header_highlighted_background'].'; color: '.$color['list_header_highlighted_textcolor'].'; font-style: italic;">';
-            $out.='<TD '.$style_sn.'>'.lang('n').
+            if (isset($ta['data']['v'.$k])) continue;
+            $style_hl='style="background: var(--color-list-header-highlighted-background); color: var(--color-list-header-highlighted-text); font-style: italic;"';
+            $out.= '<TR class="orsee-table-row">';
+            $out.='<TD class="orsee-table-cell" '.$style_hl.'>'.lang('n').
                     '<INPUT type="radio" name="restrict['.$table['name'].']['.$k.']" value="n">'.
                     '<INPUT type="radio" name="restrict['.$table['name'].']['.$k.']" value="y" CHECKED>'.lang('y').'</TD>';
-            if (isset($table['value_names'][$k])) $out.='<TD>'.$table['value_names'][$k].'</TD>';
-            else $out.='<TD>'.$k.'</TD>';
-            if ($table['charttype']=='multibars') foreach ($table['column_names'] as $c=>$col) $out.='<TD>-</TD>';
-            else $out.='<TD>-</TD>';
+            if (isset($table['value_names'][$k])) $out.='<TD class="orsee-table-cell" '.$style_hl.'>'.$table['value_names'][$k].'</TD>';
+            else $out.='<TD class="orsee-table-cell" '.$style_hl.'>'.$k.'</TD>';
+            if ($table['charttype']=='multibars') foreach ($table['column_names'] as $c=>$col) $out.='<TD class="orsee-table-cell" '.$style_hl.'>-</TD>';
+            else $out.='<TD class="orsee-table-cell" '.$style_hl.'>-</TD>';
             $out.= '</TR>';
         }
     }

@@ -17,7 +17,7 @@ $settings__root_directory="/orsee";
 //$settings__server_url="www.orsee.org";
 $settings__server_url="127.0.0.1";
 
-// servr protocol (either "http://" or "https://"
+// server protocol (either "http://" or "https://")
 $settings__server_protocol="http://";
 
 // Double-check your entries above! The URL to your ORSEE installation will be:
@@ -50,7 +50,7 @@ $site__database_ssl_ca='/etc/mysql/ssl/ca-cert.pem';
 // PHP >= 5.1.0 requires the timezone to be explicitely set.
 // If you have not set it in php.ini, then set it here. (Otherwise, you can uncomment.)
 // List of timezones: http://php.net/manual/en/timezones.php
-date_default_timezone_set("Australia/Sydney");
+date_default_timezone_set("Europe/Vienna");
 
 // INCOMING EMAIL MODULE
 // These settings are only needed when you plan to enable the email module
@@ -65,7 +65,10 @@ $settings__email_ssl=FALSE; // whether to use SSL to connect to IMAP/POP3 server
 // "Access for less secure apps" in your google account settings.
 
 // SECURITY SETTINGS
+// on a http server, use
 session_set_cookie_params(array('httponly'=>true,'samesite'=>'Strict'));
+// on a https server, use
+// session_set_cookie_params(array('secure' => true,'httponly' => true,'samesite' => 'Strict'));
 
 // STOP SITE, TRACKING, DEBUGGING
 // If below is set to "y", the admin part of ORSEE won't be reachable for anybody

@@ -25,9 +25,7 @@ if ($proceed) {
 if ($proceed) {
     // with token-only, do not allow access to these pages
     $token_exclude=array("participant_reset_pw.php",
-            "participant_change_pw.php",
-            "participant_login.php",
-            "participant_login_mob.php");
+            "participant_login.php");
     if ($settings['subject_authentication']=='token' && in_array(thisdoc(),$token_exclude)) {
         redirect("public/");
     }
@@ -58,6 +56,7 @@ if ($proceed) {
         }
     }
     $lang=load_language($_SESSION['pauthdata']['language']);
+    $lang_icons_prepare=true;
 }
 
 if ($proceed) {
@@ -70,10 +69,7 @@ if ($proceed) {
 if ($proceed) {
     // require participant login for the following pages
     $part_load=array("participant_edit.php",
-            "participant_delete.php",
             "participant_show.php",
-            "participant_show_mob.php",
-            "participant_change_pw.php",
             "participant_logout.php");
 
     if (in_array(thisdoc(),$part_load)) {
@@ -98,8 +94,7 @@ if ($proceed) {
                     $participant=orsee_db_load_array("participants",$participant_id,"participant_id");
                     // if pw exists, the send to login page
                     if ($participant['password_crypted']) {
-                        if (isset($mobile) && $mobile) redirect("public/participant_login_mob.php");
-                        else redirect("public/participant_login.php");
+                        redirect("public/participant_login.php");
                     } else {
                             // prepare password reset: generate token, save token to db and session
                             $participant['pwreset_token']=create_random_token(get_entropy($participant));
@@ -118,13 +113,11 @@ if ($proceed) {
                     }
                 } else {
                 // send to login page if no token is present
-                    if (isset($mobile) && $mobile) redirect("public/participant_login_mob.php");
-                    else redirect("public/participant_login.php");
+                    redirect("public/participant_login.php");
                 }
             } else {
                 // and if we only allow username/passsword, send to login page
-                if (isset($mobile) && $mobile) redirect("public/participant_login_mob.php");
-                else redirect("public/participant_login.php");
+                redirect("public/participant_login.php");
             }
         }
         if ($proceed) {
@@ -133,7 +126,7 @@ if ($proceed) {
             $statuses_profile=participant_status__get("access_to_profile");
             if (isset($participant) && !in_array($participant['status_id'],$statuses_profile)) {
                 message ($statuses[$participant['status_id']]['error']." ".
-                lang('if_you_have_questions_write_to')." ".support_mail_link());
+                lang('if_you_have_questions_write_to')." ".support_mail_link(),'error');
                 redirect("public/");
             }
         }
@@ -141,17 +134,143 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    $pagetitle=$settings['default_area'];
+    // load public menu configuration and initialize localized page title
+    $menu_config=html__menu_load_config('public');
+    $title_lang=(isset($title) && $title!=='' ? lang($title) : '');
+    $is_logged_in=((isset($_SESSION['pauthdata']['user_logged_in']) && $_SESSION['pauthdata']['user_logged_in']) || (isset($show_logged_in_menu) && $show_logged_in_menu));
+    $menu_item=false;
+    if (!isset($menu_item_id)) $menu_item_id=false;
 
-    if (!isset($title)) $title="";
-    if ($title) $title=lang($title);
-    $pagetitle=$pagetitle.': '.$title;
+    if (thisdoc()==='index.php') {
+        // resolve requested richtext page for index.php (fallback: mainpage_welcome)
+        $requested_page='mainpage_welcome';
+        if (isset($_REQUEST['page']) && trim((string)$_REQUEST['page'])!=='') {
+            $requested_page=trim((string)$_REQUEST['page']);
+        }
+
+        $menu_item_id=false;
+        if (isset($menu_config['public_content_to_id'][$requested_page])
+            && isset($menu_config['items'][$menu_config['public_content_to_id'][$requested_page]])
+            && is_array($menu_config['items'][$menu_config['public_content_to_id'][$requested_page]])
+            && isset($menu_config['items'][$menu_config['public_content_to_id'][$requested_page]]['richtext'])
+            && $menu_config['items'][$menu_config['public_content_to_id'][$requested_page]]['richtext']==='y') {
+            $menu_item_id=(string)$menu_config['public_content_to_id'][$requested_page];
+        } else {
+            $menu_item_id=$menu_config['public_content_to_id']['mainpage_welcome'];
+            $requested_page='mainpage_welcome';
+        }
+        $menu_item=$menu_config['items'][$menu_item_id];
+
+        // set active menu item and title from resolved menu definition
+        if (isset($menu_item['id']) && trim((string)$menu_item['id'])!=='') {
+            $menu__area=(string)$menu_item['id'];
+        }
+
+        if (isset($menu_item['page_title_lang'][lang('lang')]) && $menu_item['page_title_lang'][lang('lang')]!=='') {
+            $title_lang=$menu_item['page_title_lang'][lang('lang')];
+        }
+        $GLOBALS['public__menu_page_item']=$menu_item;
+        $GLOBALS['public__show_mainpage']=($requested_page==='mainpage_welcome');
+
+        // show quick actions on public mainpage
+        if ($GLOBALS['public__show_mainpage']) {
+            if ($is_logged_in) {
+                $public_pagebar_actions=array(
+                    array('href'=>'participant_edit.php','icon'=>'fa-user','label'=>'my_data'),
+                    array('href'=>'participant_show.php','icon'=>'fa-calendar','label'=>'mobile_enrolments')
+                );
+            } else {
+                $public_pagebar_actions=array(
+                    array('href'=>'participant_create.php','icon'=>'fa-user','label'=>'register')
+                );
+                if ($settings['subject_authentication']!=='token') {
+                    $public_pagebar_actions[]=array('href'=>'participant_login.php','icon'=>'fa-sign-in orsee-public-pagebar-login-icon','label'=>'login');
+                }
+            }
+        }
+    } else {
+        // resolve explicit menu item access gate for non-index public pages
+        if ($menu_item_id && trim((string)$menu_item_id)!=='') {
+            $menu_item_id=trim((string)$menu_item_id);
+            if (isset($menu_config['items'][$menu_item_id]) && is_array($menu_config['items'][$menu_item_id])) {
+                $menu_item=$menu_config['items'][$menu_item_id];
+            }
+        }
+    }
+
+    // centralized access check for any page that resolved to a menu item id
+    if ($menu_item_id && trim((string)$menu_item_id)!=='') {
+        if (!is_array($menu_item) || !html__menu_can_access_item('public',$menu_item,$is_logged_in)) {
+            redirect('public/');
+        }
+    }
+}
+
+if ($proceed) {
+    // render page header and optional public pagebar
+    $pagetitle=$settings['default_area'];
+    $pagetitle=$pagetitle.': '.$title_lang;
     if (!isset($suppress_html_header) || !$suppress_html_header) {
         html__header();
-        html__show_style_header('public',$title);
-        echo "<center>";
+        html__show_style_header('public',$title_lang);
+        $has_title=($title_lang!=='');
+        $has_public_pagebar_actions=(isset($public_pagebar_actions) && is_array($public_pagebar_actions) && count($public_pagebar_actions)>0);
+        if ($has_title || $has_public_pagebar_actions) {
+            echo '<div class="orsee-public-pagebar'.($has_public_pagebar_actions ? ' has-actions' : '').'">';
+            if ($has_title) {
+                echo '<span class="orsee-public-pagebar-title">'.$title_lang.'</span>';
+            }
+            if ($has_public_pagebar_actions) {
+                echo '<span class="orsee-public-pagebar-actions">';
+                foreach ($public_pagebar_actions as $action) {
+                    if (!is_array($action) || !isset($action['href']) || !$action['href']) continue;
+                    $label_key=(isset($action['label']) ? (string)$action['label'] : '');
+                    $label_text=($label_key ? lang($label_key) : '');
+                    $icon_class=(isset($action['icon']) ? trim((string)$action['icon']) : '');
+                    $href=(string)$action['href'];
+                    if (in_array($settings['subject_authentication'],array('token','migration'),true) && isset($_REQUEST['p']) && trim((string)$_REQUEST['p'])!=='') {
+                        $href.=((strpos($href,'?')===false) ? '?' : '&').'p='.urlencode((string)$_REQUEST['p']);
+                    }
+                    echo '<a class="orsee-public-pagebar-action" href="'.htmlspecialchars($href,ENT_QUOTES,'UTF-8').'">';
+                    if ($icon_class!=='') echo '<i class="fa '.htmlspecialchars($icon_class,ENT_QUOTES,'UTF-8').'" aria-hidden="true"></i> ';
+                    echo htmlspecialchars($label_text,ENT_QUOTES,'UTF-8');
+                    echo '</a>';
+                }
+                echo '</span>';
+            }
+            echo '</div>';
+        }
+        // render flash/toast host and initialize responsive panel min-height sync
+        $toast_duration_ms=3200;
+        if (isset($settings['public_mobile_toast_duration_ms'])) {
+            $toast_duration_ms=(int)$settings['public_mobile_toast_duration_ms'];
+            if ($toast_duration_ms<800) $toast_duration_ms=800;
+            if ($toast_duration_ms>12000) $toast_duration_ms=12000;
+        }
+        echo '<div id="orsee-public-message-host">';
         show_message();
-        echo "</center>";
+        echo '</div>';
+        echo javascript__toast_messages($toast_duration_ms,'.orsee','orsee-public-message-host','orsee-public-toast-host');
+        echo '<script type="text/javascript">
+            document.addEventListener("DOMContentLoaded", function () {
+                var root = document.querySelector(".orsee");
+                if (!root) return;
+
+                function syncPublicPanelMinHeight() {
+                    if (!window.matchMedia || !window.matchMedia("(min-width: 741px)").matches) {
+                        root.style.removeProperty("--orsee-public-panel-min-height");
+                        return;
+                    }
+                    var menu = root.querySelector(".orsee-menu");
+                    if (!menu) return;
+                    var menuHeight = Math.ceil(menu.getBoundingClientRect().height);
+                    if (menuHeight > 0) root.style.setProperty("--orsee-public-panel-min-height", menuHeight + "px");
+                }
+
+                syncPublicPanelMinHeight();
+                window.addEventListener("resize", syncPublicPanelMinHeight);
+            });
+        </script>';
     }
 }
 ?>

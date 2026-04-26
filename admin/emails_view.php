@@ -4,14 +4,13 @@ ob_start();
 
 $menu__area="emails";
 $title="view email";
-$jquery=array('popup','arraypicker','textext','switchy');
+$js_modules=array('switchy');
 
 if (isset($_REQUEST['hide_header']) && $_REQUEST['hide_header']) $hide_header=true; else $hide_header=false;
 if ($hide_header) {
     include ("nonoutputheader.php");
     html__header();
-    echo '<basefont face="Arial,Helvetica,sans-serif"><center><BR>';
-    echo '<TABLE width="90%" border="0"><TR><TD style="border-radius: 20px 20px 20px 20px; background: '.$color['content_background_color'].';"><BR>';
+    echo '<div class="orsee"><div class="orsee-panel" style="width: 90%; margin: 1rem auto;"><div class="orsee-content">';
 } else {
     include ("header.php");
 }
@@ -89,16 +88,14 @@ if ($proceed) {
 
 if ($proceed) {
     // show email
-    echo '<BR><BR><center><TABLE width="80%" border=0><TR><TD align="center">';
+    if (!$hide_header) echo '<div class="orsee-panel"><div class="orsee-content">';
     email__show_email($email,$open_reply,$open_note);
-    echo '</td></tr></table>';
-    echo '<br><br</center>';
+    if (!$hide_header) echo '</div></div>';
 }
 
 if ($hide_header) {
-    echo '<BR><BR><BR><BR>';
     debug_output();
-    echo '</TD></TR><TABLE></center><BR>';
+    echo '</div></div></div>';
     html__footer();
 } else {
     include ("footer.php");

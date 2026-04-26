@@ -151,7 +151,7 @@ function cron__job_is_due($cronjob,$now='') {
             $then=mktime(22,0,0);
             if ($lexec <= $then && $now > $then) $due=true;
             break;
-        case 'every_monday_at_8';
+        case 'every_monday_at_8':
             $then=mktime(8,0,0);
             $nowarray=getdate($now);
             if ($nowarray['wday']==1 && $lexec <= $then && $now > $then) $due=true;

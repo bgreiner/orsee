@@ -2,7 +2,7 @@
 // part of orsee. see orsee.org
 
 function downloads__list_files_general($showsize=false,$showtype=false,$showdate=false) {
-    global $lang, $color;
+    global $lang;
     $out='';
 
     $continue=true;
@@ -25,56 +25,61 @@ function downloads__list_files_general($showsize=false,$showtype=false,$showdate
             $shade=true;
             $categories=lang__load_lang_cat('file_upload_category');
             $uptype='';
-            $cols=2;
-            if ($showsize) $cols++;
-            if ($showtype) $cols++;
-            if ($showdate) $cols++;
-            if ($allow_edit) $cols++;
-            if ($allow_delete) $cols++;
-            $out.= '<TABLE width="100%" border=0 cellspacing="0">';
+            $out.= '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
+            $out.= '<div class="orsee-table-row orsee-table-head">';
+            $out.= '<div class="orsee-table-cell">'.lang('name').'</div>';
+            if ($showsize) $out.= '<div class="orsee-table-cell">'.lang('size').'</div>';
+            if ($showtype) $out.= '<div class="orsee-table-cell">'.lang('type').'</div>';
+            if ($showdate) $out.= '<div class="orsee-table-cell">'.lang('date').'</div>';
+            $out.= '<div class="orsee-table-cell">'.lang('action').'</div>';
+            $out.= '</div>';
             while ($upload = pdo_fetch_assoc($result)) {
-                if ($shade) { $bgcolor=' bgcolor="'.$color['list_shade1'].'"'; $shade=false; }
-                else { $bgcolor=' bgcolor="'.$color['list_shade2'].'"'; $shade=true; }
                 if ($upload['upload_type']!=$uptype) {
                     $uptype=$upload['upload_type'];
-                    $out.= '<TR bgcolor="'.$color['list_shade_subtitle'].'">
-                        <TD colspan='.$cols.'>';
+                    $out.= '<div class="orsee-table-row orsee-table-subheader-row">';
+                    $out.= '<div class="orsee-table-cell">';
                     if (isset($categories[$uptype])) $out.=$categories[$uptype];
                     else $out.='???';
-                    $out.='</TD></TR>';
+                    $out.='</div>';
+                    if ($showsize) $out.= '<div class="orsee-table-cell"></div>';
+                    if ($showtype) $out.= '<div class="orsee-table-cell"></div>';
+                    if ($showdate) $out.= '<div class="orsee-table-cell"></div>';
+                    $out.= '<div class="orsee-table-cell"></div>';
+                    $out.= '</div>';
                 }
-                $out.= '<TR'.$bgcolor.'><TD>&nbsp;&nbsp;</TD><TD>';
+                $row_class='orsee-table-row';
+                if ($shade) $row_class.=' is-alt';
+                $out.= '<div class="'.$row_class.'">';
+                $out.= '<div class="orsee-table-cell" data-label="'.lang('name').'">';
                 if ($allow_dl) $out.= '<A HREF="download_file.php'.
                         '/'.rawurlencode($upload['upload_name'].'.'.$upload['upload_suffix']).
                         '?t=d&i='.$upload['upload_id'].'">';
                 $out.= $upload['upload_name'];
                 if ($allow_dl) $out.= '</A>';
-                $out.= '</TD>';
-                if ($showsize) $out.= '<TD>'.number_format(round($upload['upload_filesize']/1024),0).' KB</TD>';
-                if ($showtype) $out.= '<TD>'.$upload['upload_suffix'].'</TD>';
-                if ($showdate) $out.= '<TD>'.ortime__format($upload['upload_id'],'',lang('lang')).'</TD>';
+                $out.= '</div>';
+                if ($showsize) $out.= '<div class="orsee-table-cell" data-label="'.lang('size').'">'.number_format(round($upload['upload_filesize']/1024),0).' KB</div>';
+                if ($showtype) $out.= '<div class="orsee-table-cell" data-label="'.lang('type').'">'.$upload['upload_suffix'].'</div>';
+                if ($showdate) $out.= '<div class="orsee-table-cell" data-label="'.lang('date').'">'.ortime__format($upload['upload_id'],'',lang('lang')).'</div>';
+                $out.= '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'">';
                 if ($allow_edit) {
-                    $out.= '<TD>';
-                    $out.= '<A HREF="download_edit.php?file='.$upload['upload_id'].
-                            '"><FONT class="small">['.lang('edit').']</FONT></A>';
-                    $out.= '</TD>';
+                    $out.= '<A HREF="download_edit.php?file='.$upload['upload_id'].'">'.lang('edit').'</A> ';
                 }
                 if ($allow_delete) {
-                    $out.= '<TD>';
-                    $out.= '<A HREF="download_delete.php?dl='.$upload['upload_id'].'&csrf_token='.urlencode(csrf__get_token()).
-                            '"><FONT class="small">['.lang('delete').']</FONT></A>';
-                    $out.= '</TD>';
+                    $out.= '<A HREF="download_delete.php?dl='.$upload['upload_id'].'&csrf_token='.urlencode(csrf__get_token()).'">'.lang('delete').'</A>';
                 }
-                $out.= '</TR>';
+                if ((!$allow_edit) && (!$allow_delete)) $out.='-';
+                $out.= '</div>';
+                $out.= '</div>';
+                if ($shade) $shade=false; else $shade=true;
             }
-            $out.= '</TABLE>';
+            $out.= '</div>';
         }
     }
     return $out;
 }
 
 function downloads__list_files_experiment($experiment_id,$showsize=false,$showtype=false,$showdate=false) {
-    global $lang, $color, $expadmindata;
+    global $lang, $expadmindata;
     $out='';
 
     $continue=true;
@@ -111,66 +116,75 @@ function downloads__list_files_experiment($experiment_id,$showsize=false,$showty
             $shade=true;
             $categories=lang__load_lang_cat('file_upload_category');
             $uptype=-1; $tsession_id=-1;
-            $cols=3;
-            if ($showsize) $cols++;
-            if ($showtype) $cols++;
-            if ($showdate) $cols++;
-            if ($allow_edit) $cols++;
-            if ($allow_delete) $cols++;
-            $out.= '<TABLE width="100%" border=0 cellspacing="0">';
+            $out.= '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
+            $out.= '<div class="orsee-table-row orsee-table-head">';
+            $out.= '<div class="orsee-table-cell">'.lang('name').'</div>';
+            if ($showsize) $out.= '<div class="orsee-table-cell">'.lang('size').'</div>';
+            if ($showtype) $out.= '<div class="orsee-table-cell">'.lang('type').'</div>';
+            if ($showdate) $out.= '<div class="orsee-table-cell">'.lang('date').'</div>';
+            $out.= '<div class="orsee-table-cell">'.lang('action').'</div>';
+            $out.= '</div>';
             while ($upload = pdo_fetch_assoc($result)) {
-                if ($shade) { $bgcolor=' bgcolor="'.$color['list_shade1'].'"'; $shade=false; }
-                else { $bgcolor=' bgcolor="'.$color['list_shade2'].'"'; $shade=true; }
                 if ($upload['session_id']!=$tsession_id) {
                     $tsession_id=$upload['session_id'];
                     $uptype=0;
-                    $out.= '<TR bgcolor="'.$color['list_shade_subtitle'].'">
-                        <TD colspan='.$cols.'>';
+                    $out.= '<div class="orsee-table-row orsee-table-subheader-row">';
+                    $out.= '<div class="orsee-table-cell">';
                     if ($upload['session_id']>0) $out.='<i>'.lang('session').' '.ortime__format(ortime__sesstime_to_unixtime($upload['session_start'])).'</i>';
                     else $out.='<i>'.lang('no_session').'</i>';
-                    $out.='</TD></TR>';
+                    $out.='</div>';
+                    if ($showsize) $out.= '<div class="orsee-table-cell"></div>';
+                    if ($showtype) $out.= '<div class="orsee-table-cell"></div>';
+                    if ($showdate) $out.= '<div class="orsee-table-cell"></div>';
+                    $out.= '<div class="orsee-table-cell"></div>';
+                    $out.= '</div>';
                 }
                 if ($upload['upload_type']!=$uptype) {
                     $uptype=$upload['upload_type'];
-                    $out.= '<TR bgcolor="'.$color['list_shade_subtitle'].'">
-                        <TD>&nbsp;</TD>
-                        <TD colspan='.($cols-1).'>';
+                    $out.= '<div class="orsee-table-row orsee-table-subheader-row">';
+                    $out.= '<div class="orsee-table-cell">';
                     if (isset($categories[$uptype])) $out.=$categories[$uptype];
                     else $out.='???';
-                    $out.='</TD></TR>';
+                    $out.='</div>';
+                    if ($showsize) $out.= '<div class="orsee-table-cell"></div>';
+                    if ($showtype) $out.= '<div class="orsee-table-cell"></div>';
+                    if ($showdate) $out.= '<div class="orsee-table-cell"></div>';
+                    $out.= '<div class="orsee-table-cell"></div>';
+                    $out.= '</div>';
                 }
-                $out.= '<TR'.$bgcolor.'><TD>&nbsp;&nbsp;</TD><TD>';
+                $row_class='orsee-table-row';
+                if ($shade) $row_class.=' is-alt';
+                $out.= '<div class="'.$row_class.'">';
+                $out.= '<div class="orsee-table-cell" data-label="'.lang('name').'">';
                 if ($allow_dl) $out.= '<A HREF="download_file.php'.
                             '/'.rawurlencode($upload['upload_name'].'.'.$upload['upload_suffix']).
                             '?t=d&i='.$upload['upload_id'].'">';
                 $out.= $upload['upload_name'];
                 if ($allow_dl) $out.= '</A>';
-                $out.= '</TD>';
-                if ($showsize) $out.= '<TD>'.number_format(round($upload['upload_filesize']/1024),0).' KB</TD>';
-                if ($showtype) $out.= '<TD>'.$upload['upload_suffix'].'</TD>';
-                if ($showdate) $out.= '<TD>'.ortime__format($upload['upload_id'],'',lang('lang')).'</TD>';
+                $out.= '</div>';
+                if ($showsize) $out.= '<div class="orsee-table-cell" data-label="'.lang('size').'">'.number_format(round($upload['upload_filesize']/1024),0).' KB</div>';
+                if ($showtype) $out.= '<div class="orsee-table-cell" data-label="'.lang('type').'">'.$upload['upload_suffix'].'</div>';
+                if ($showdate) $out.= '<div class="orsee-table-cell" data-label="'.lang('date').'">'.ortime__format($upload['upload_id'],'',lang('lang')).'</div>';
+                $out.= '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'">';
                 if ($allow_edit) {
-                    $out.= '    <TD>';
-                    $out.= '    <A HREF="download_edit.php?file='.$upload['upload_id'].
-                                '"><FONT class="small">['.lang('edit').']</FONT></A>';
-                    $out.= '    </TD>';
+                    $out.= '<A HREF="download_edit.php?file='.$upload['upload_id'].'">'.lang('edit').'</A> ';
                 }
                 if ($allow_delete) {
-                    $out.= '    <TD>';
-                    $out.= '    <A HREF="download_delete.php?dl='.$upload['upload_id'].'&csrf_token='.urlencode(csrf__get_token()).
-                                '"><FONT class="small">['.lang('delete').']</FONT></A>';
-                    $out.= '    </TD>';
+                    $out.= '<A HREF="download_delete.php?dl='.$upload['upload_id'].'&csrf_token='.urlencode(csrf__get_token()).'">'.lang('delete').'</A>';
                 }
-                $out.= '</TR>';
+                if ((!$allow_edit) && (!$allow_delete)) $out.='-';
+                $out.= '</div>';
+                $out.= '</div>';
+                if ($shade) $shade=false; else $shade=true;
             }
-            $out.= '</TABLE>';
+            $out.= '</div>';
         }
     }
     return $out;
 }
 
 function downloads__list_experiments($showsize=false,$showtype=false,$showdate=false) {
-    global $lang, $color, $expadmindata;
+    global $lang, $expadmindata;
 
     $out='';
     $continue=true;
@@ -197,14 +211,20 @@ function downloads__list_experiments($showsize=false,$showtype=false,$showdate=f
         }
         
         if (count($experiments)>0) {
-            $out.='<TABLE width=100% border=0>';
+            $out.='<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
+            $out.='<div class="orsee-table-row orsee-table-head">';
+            $out.='<div class="orsee-table-cell">'.lang('experiment').'</div>';
+            $out.='<div class="orsee-table-cell">'.lang('date').'</div>';
+            $out.='<div class="orsee-table-cell">'.lang('experimenter').'</div>';
+            $out.='<div class="orsee-table-cell">'.lang('action').'</div>';
+            $out.='</div>';
             $shade=true;
             foreach($experiments as $exp) {
-                if ($shade) { $bgcolor=' bgcolor="'.$color['list_shade1'].'"'; $shade=false; }
-                else { $bgcolor=' bgcolor="'.$color['list_shade2'].'"'; $shade=true; }
-                $out.='<TR'.$bgcolor.'><TD>';
-                $out.=$exp['experiment_name'].'</TD><TD>(';
-                $out.=lang('from').' ';
+                $row_class='orsee-table-row';
+                if ($shade) $row_class.=' is-alt';
+                $out.='<div class="'.$row_class.'">';
+                $out.='<div class="orsee-table-cell" data-label="'.lang('experiment').'">'.$exp['experiment_name'].'</div>';
+                $out.='<div class="orsee-table-cell" data-label="'.lang('date').'">'.lang('from').' ';
                 if ($exp['first_session_date']==0) {
                     $out.='???';
                 } else {
@@ -216,13 +236,16 @@ function downloads__list_experiments($showsize=false,$showtype=false,$showdate=f
                 } else {
                     $out.=ortime__format(ortime__sesstime_to_unixtime($exp['last_session_date']),'hide_time:true');
                 }
-                $out.=')</TD><TD>';
-                $out.=experiment__list_experimenters($exp['experimenter'],true,true);
-                $out.='</TD><TD><A HREF="download_main.php?experiment_id='.$exp['experiment_id'].'">'.
-                    lang('show_files').'</A>';
-                $out.='</TD></TR>';
+                $out.='</div>';
+                $out.='<div class="orsee-table-cell" data-label="'.lang('experimenter').'">'.
+                    experiment__list_experimenters($exp['experimenter'],true,true).'</div>';
+                $out.='<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'">'.
+                    button_link('download_main.php?experiment_id='.$exp['experiment_id'],lang('show_files'),'download').
+                    '</div>';
+                $out.='</div>';
+                if ($shade) $shade=false; else $shade=true;
             }
-            $out.='</TABLE>';
+            $out.='</div>';
         }
     }
     return $out;

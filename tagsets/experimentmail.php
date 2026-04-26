@@ -917,11 +917,24 @@ function experimentmail__get_session_list($experiment_id,$tlang="") {
         $session_full=sessions__session_full('',$s);
         $now=time();
         if ($registration_unixtime > $now && !$session_full) {
-            $list.=session__build_name($s,lang('lang')).' '.
-                laboratories__get_laboratory_name($s['laboratory_id']);
+            $is_rtl=lang__is_rtl(lang('lang'));
+            $session_name=session__build_name($s,lang('lang'));
+            $lab_name=laboratories__get_laboratory_name($s['laboratory_id']);
+            $signup_part='';
             if (or_setting('include_sign_up_until_in_invitation')) {
-                $list.=', '.lang('registration_until').' '.
-                    ortime__format($registration_unixtime,'',lang('lang'));
+                if ($is_rtl) {
+                    $signup_part=ortime__format($registration_unixtime,'',lang('lang')).' '.lang('registration_until');
+                } else {
+                    $signup_part=lang('registration_until').' '.ortime__format($registration_unixtime,'',lang('lang'));
+                }
+            }
+
+            if ($is_rtl) {
+                if ($signup_part!=='') $list.=$signup_part.', '.$lab_name.', '.$session_name;
+                else $list.=$lab_name.', '.$session_name;
+            } else {
+                $list.=$session_name.' '.$lab_name;
+                if ($signup_part!=='') $list.=', '.$signup_part;
             }
             $list.="\n";
         }
@@ -1281,13 +1294,36 @@ function experimentmail__delete_from_queue($mail_id) {
     return $result;
 }
 
-function experimentmail__fill_participant_details($participant_array,$pform_fields) {
+function experimentmail__fill_participant_details($participant_array,$pform_fields,$tlang='') {
     // $participant_array is a row from or_participants
     // $pform_fields is loaded with participant__load_participant_email_fields(lang)
     // return value is the participant array with ids replaced by values from or_lang
+    if (!$tlang) $tlang=lang('lang');
     foreach ($pform_fields as $f) {
+        if (!isset($f['mysql_column_name']) || !isset($participant_array[$f['mysql_column_name']])) continue;
         if(preg_match("/(radioline|select_list|select_lang|radioline_lang)/",$f['type']) && isset($f['lang'][$participant_array[$f['mysql_column_name']]]))
             $participant_array[$f['mysql_column_name']]=$f['lang'][$participant_array[$f['mysql_column_name']]];
+        elseif ($f['type']==='checkboxlist_lang') {
+            $raw_value=(string)$participant_array[$f['mysql_column_name']];
+            $raw_values=explode(',',$raw_value);
+            $display_values=array();
+            foreach ($raw_values as $raw_item) {
+                $raw_item=trim($raw_item);
+                if ($raw_item==='') continue;
+                if (isset($f['lang'][$raw_item])) $display_values[]=$f['lang'][$raw_item];
+                else $display_values[]=$raw_item;
+            }
+            $participant_array[$f['mysql_column_name']]=implode(', ',$display_values);
+        } elseif ($f['type']==='date') {
+            $raw_value=(string)$participant_array[$f['mysql_column_name']];
+            $date_mode=(isset($f['date_mode']) ? $f['date_mode'] : 'ymd');
+            $date_value=ortime__format_ymd_localized($raw_value,'',$date_mode);
+            if ($date_value) $participant_array[$f['mysql_column_name']]=$date_value;
+        } elseif ($f['type']==='boolean') {
+            $bool_value=(string)$participant_array[$f['mysql_column_name']];
+            if ($bool_value==='y') $participant_array[$f['mysql_column_name']]=load_language_symbol('y',$tlang);
+            elseif ($bool_value==='n') $participant_array[$f['mysql_column_name']]=load_language_symbol('n',$tlang);
+        }
     }
     return $participant_array;
 }
@@ -1331,16 +1367,110 @@ function experimentmail__get_session_reminder_details($part,$exp,$session,$lab) 
     return $part;
 }
 
+function experimentmail__get_secondary_email_addresses($part,$fields=array()) {
+    if (!is_array($fields) || count($fields)<1) {
+        $fields=participantform__load();
+    }
+    $secondary=array();
+    foreach ($fields as $field) {
+        if (!isset($field['type']) || !in_array($field['type'],array('textline','email'),true)) {
+            continue;
+        }
+        if (!isset($field['use_as_secondary_email']) || $field['use_as_secondary_email']!=='y') {
+            continue;
+        }
+        if (!isset($field['mysql_column_name']) || !isset($part[$field['mysql_column_name']])) {
+            continue;
+        }
+        $address=trim((string)$part[$field['mysql_column_name']]);
+        if ($address!=='') {
+            $secondary[]=$address;
+        }
+    }
+    return $secondary;
+}
+
+function experimentmail__recipient_list_for_queue_mail($part,$mail_type) {
+    $valid_addresses=array();
+    $error_addresses=array();
+
+    $primary_address=(isset($part['email']) ? trim((string)$part['email']) : '');
+    if (filter_var($primary_address,FILTER_VALIDATE_EMAIL)) {
+        $valid_addresses[]=$primary_address;
+    } else {
+        $error_addresses[]=$primary_address;
+    }
+
+    $secondary_whitelist=array(
+        'invitation',
+        'session_reminder',
+        'noshow_warning',
+        'bulk_mail',
+        'enrolment_confirmation',
+        'enrolment_cancellation'
+    );
+    if (in_array($mail_type,$secondary_whitelist,true)) {
+        $secondary_addresses=experimentmail__get_secondary_email_addresses($part);
+        foreach ($secondary_addresses as $secondary_address) {
+            if (filter_var($secondary_address,FILTER_VALIDATE_EMAIL)) {
+                $valid_addresses[]=$secondary_address;
+            } else {
+                $error_addresses[]=$secondary_address;
+            }
+        }
+    }
+
+    return array(
+        'valid_addresses'=>$valid_addresses,
+        'error_addresses'=>$error_addresses
+    );
+}
+
+function experimentmail__send_to_recipient_list($recipients,$subject,$message,$headers) {
+    if (!is_array($recipients) || count($recipients)<1) {
+        return false;
+    }
+    $done=true;
+    foreach ($recipients as $recipient) {
+        $sent=experimentmail__mail($recipient,$subject,$message,$headers);
+        if (!$sent) {
+            $done=false;
+        }
+    }
+    return $done;
+}
+
+function experimentmail__log_recipient_issue($part,$mail,$error_addresses,$details=array()) {
+    if (!is_array($error_addresses) || count($error_addresses)<1) {
+        return;
+    }
+    $participant_id=(isset($part['participant_id']) ? $part['participant_id'] : '');
+    $mail_type=(isset($mail['mail_type']) ? $mail['mail_type'] : '');
+    $target='participant_id:'.$participant_id.
+            ', errors in: '.implode(', ',$error_addresses).
+            ', mail_type:'.$mail_type;
+    if (isset($details['experiment_id']) && $details['experiment_id']) {
+        $target.=', experiment_id:'.$details['experiment_id'];
+    }
+    log__cron_job('mail_queue_email_recipient_issue',$target,'','process_mail_queue');
+}
+
 function experimentmail__send_session_reminder_mail($mail,$part,$exp,$session,$reminder_text,$lab,$footer) {
     global $settings;
     $part=experimentmail__get_session_reminder_details($part,$exp,$session,$lab);
     $mailtext=stripslashes($reminder_text['body']);
     $subject=$reminder_text['subject'];
-    $recipient=$part['email'];
     $message=process_mail_template($mailtext,$part)."\n".process_mail_template($footer,$part);
     $sender=experimentmail__get_sender_email($exp);
     $headers="From: ".$sender."\r\n";
-    $done=experimentmail__mail($recipient,$subject,$message,$headers);
+    $recipients=experimentmail__recipient_list_for_queue_mail($part,'session_reminder');
+    $valid_email_addresses=$recipients['valid_addresses'];
+    $error_addresses=$recipients['error_addresses'];
+    experimentmail__log_recipient_issue($part,$mail,$error_addresses,array('experiment_id'=>$exp['experiment_id']));
+    if (count($valid_email_addresses)<1) {
+        return false;
+    }
+    $done=experimentmail__send_to_recipient_list($valid_email_addresses,$subject,$message,$headers);
     return $done;
 }
 
@@ -1362,11 +1492,17 @@ function experimentmail__send_noshow_warning_mail($mail,$part,$exp,$session,$war
     $part=experimentmail__get_noshow_warning_details($part,$exp,$session,$lab);
     $mailtext=stripslashes($warning_text['text']);
     $subject=$warning_text['subject'];
-    $recipient=$part['email'];
     $message=process_mail_template($mailtext,$part)."\n".process_mail_template($footer,$part);
     $sender=$settings['support_mail'];
     $headers="From: ".$sender."\r\n";
-    $done=experimentmail__mail($recipient,$subject,$message,$headers);
+    $recipients=experimentmail__recipient_list_for_queue_mail($part,'noshow_warning');
+    $valid_email_addresses=$recipients['valid_addresses'];
+    $error_addresses=$recipients['error_addresses'];
+    experimentmail__log_recipient_issue($part,$mail,$error_addresses,array('experiment_id'=>$exp['experiment_id']));
+    if (count($valid_email_addresses)<1) {
+        return false;
+    }
+    $done=experimentmail__send_to_recipient_list($valid_email_addresses,$subject,$message,$headers);
     return $done;
 }
 
@@ -1434,11 +1570,17 @@ function experimentmail__send_invitation_mail($mail,$part,$exp,$inv_text,$slist,
     // split in subject and text
     $subject=stripslashes(str_replace(strstr($inv_text,"\n"),"",$inv_text));
     $mailtext=stripslashes(substr($inv_text,strpos($inv_text,"\n")+1,strlen($inv_text)));
-    $recipient=$part['email'];
     $message=process_mail_template($mailtext,$part)."\n".process_mail_template($footer,$part);
     $sender=experimentmail__get_sender_email($exp);
     $headers="From: ".$sender."\r\n";
-    $done=experimentmail__mail($recipient,$subject,$message,$headers);
+    $recipients=experimentmail__recipient_list_for_queue_mail($part,'invitation');
+    $valid_email_addresses=$recipients['valid_addresses'];
+    $error_addresses=$recipients['error_addresses'];
+    experimentmail__log_recipient_issue($part,$mail,$error_addresses,array('experiment_id'=>$exp['experiment_id']));
+    if (count($valid_email_addresses)<1) {
+        return false;
+    }
+    $done=experimentmail__send_to_recipient_list($valid_email_addresses,$subject,$message,$headers);
     $done2=experimentmail__update_invited_flag($mail);
     return $done;
 }
@@ -1455,11 +1597,17 @@ function experimentmail__send_bulk_mail($mail,$part,$bulk_mail,$footer) {
         // split in subject and text
         $subject=stripslashes($bulk_mail['bulk_subject']);
         $mailtext=stripslashes($bulk_mail['bulk_text']);
-        $recipient=$part['email'];
         $message=process_mail_template($mailtext,$part)."\n".process_mail_template($footer,$part);
         $sender=$settings['support_mail'];
         $headers="From: ".$sender."\r\n";
-        $done=experimentmail__mail($recipient,$subject,$message,$headers);
+        $recipients=experimentmail__recipient_list_for_queue_mail($part,'bulk_mail');
+        $valid_email_addresses=$recipients['valid_addresses'];
+        $error_addresses=$recipients['error_addresses'];
+        experimentmail__log_recipient_issue($part,$mail,$error_addresses,array());
+        if (count($valid_email_addresses)<1) {
+            return false;
+        }
+        $done=experimentmail__send_to_recipient_list($valid_email_addresses,$subject,$message,$headers);
         return $done;
 }
 
@@ -1512,18 +1660,18 @@ function experimentmail__mail_pwreset_link($participant) {
 
 function experimentmail__get_pwreset_mail_text($participant) {
     global $authdata, $lang, $settings__root_url, $settings;
-    $pform_fields=participant__load_participant_email_fields();
-    foreach ($pform_fields as $f) {
-        if(preg_match("/(radioline|select_list|select_lang|radioline_lang)/",$f['type']) && isset($participant[$f['mysql_column_name']]) && isset($f['lang'][$participant[$f['mysql_column_name']]]))
-        $participant[$f['mysql_column_name']]=$f['lang'][$participant[$f['mysql_column_name']]];
-    }
+    $maillang=experimentmail__get_language($participant['language']);
+    $pform_fields=participant__load_participant_email_fields($maillang);
+    $participant=experimentmail__fill_participant_details($participant,$pform_fields,$maillang);
     $exptype_ids=db_string_to_id_array($participant['subscriptions']);
     $exptypes=load_external_experiment_types();
     $invnames=array();
-    foreach ($exptype_ids as $exptype_id) $invnames[]=$exptypes[$exptype_id][lang('lang')];
+    foreach ($exptype_ids as $exptype_id) {
+        if (isset($exptypes[$exptype_id][$maillang])) $invnames[]=$exptypes[$exptype_id][$maillang];
+        elseif (isset($exptypes[$exptype_id][lang('lang')])) $invnames[]=$exptypes[$exptype_id][lang('lang')];
+    }
     $participant['invitations']=implode(", ",$invnames);
     $participant['password_reset_link']=$settings__root_url."/public/participant_reset_pw.php?t=".urlencode($participant['pwreset_token']);
-    $maillang=experimentmail__get_language($participant['language']);
     $mailtext=load_mail("public_password_reset",$maillang);
     $message=process_mail_template($mailtext,$participant);
     return $message;
@@ -1571,18 +1719,18 @@ function experimentmail__confirmation_mail($participant) {
 
 function experimentmail__get_confirmation_mail_text($participant) {
     global $authdata, $lang, $settings__root_url, $settings;
-    $pform_fields=participant__load_participant_email_fields();
-    foreach ($pform_fields as $f) {
-        if(preg_match("/(radioline|select_list|select_lang|radioline_lang)/",$f['type']) && isset($participant[$f['mysql_column_name']]) && isset($f['lang'][$participant[$f['mysql_column_name']]]))
-        $participant[$f['mysql_column_name']]=$f['lang'][$participant[$f['mysql_column_name']]];
-    }
+    $maillang=experimentmail__get_language($participant['language']);
+    $pform_fields=participant__load_participant_email_fields($maillang);
+    $participant=experimentmail__fill_participant_details($participant,$pform_fields,$maillang);
     $exptype_ids=db_string_to_id_array($participant['subscriptions']);
     $exptypes=load_external_experiment_types();
     $invnames=array();
-    foreach ($exptype_ids as $exptype_id) $invnames[]=$exptypes[$exptype_id][lang('lang')];
+    foreach ($exptype_ids as $exptype_id) {
+        if (isset($exptypes[$exptype_id][$maillang])) $invnames[]=$exptypes[$exptype_id][$maillang];
+        elseif (isset($exptypes[$exptype_id][lang('lang')])) $invnames[]=$exptypes[$exptype_id][lang('lang')];
+    }
     $participant['invitations']=implode(", ",$invnames);
     $participant['registration_link']=$settings__root_url."/public/participant_confirm.php?c=".urlencode($participant['confirmation_token']);
-    $maillang=experimentmail__get_language($participant['language']);
     $mailtext=load_mail("public_system_registration",$maillang);
     $message=process_mail_template($mailtext,$participant);
     return $message;
@@ -1644,7 +1792,23 @@ function experimentmail__experiment_registration_mail($participant,$session) {
     $message=$message."\n".experimentmail__get_mail_footer($participant);
     $sendermail=experimentmail__get_sender_email($experiment);
     $headers="From: ".$sendermail."\r\n";
-    experimentmail__mail($participant['email'],$mailtext['subject'],$message,$headers);
+    $recipients=experimentmail__recipient_list_for_queue_mail($participant,'enrolment_confirmation');
+    $valid_email_addresses=$recipients['valid_addresses'];
+    $error_addresses=$recipients['error_addresses'];
+    if (count($error_addresses)>0) {
+        log__participant(
+            'participant_email_recipient_issue',
+            $participant['participant_id'],
+            'errors in: '.implode(', ',$error_addresses).
+            ', mail_type:enrolment_confirmation'.
+            ', experiment_id:'.$session['experiment_id'].
+            ', session_id:'.$session['session_id']
+        );
+    }
+    if (count($valid_email_addresses)<1) {
+        return false;
+    }
+    return experimentmail__send_to_recipient_list($valid_email_addresses,$mailtext['subject'],$message,$headers);
 }
 
 function experimentmail__experiment_cancellation_mail($participant,$session) {
@@ -1668,7 +1832,23 @@ function experimentmail__experiment_cancellation_mail($participant,$session) {
     $message=$message."\n".experimentmail__get_mail_footer($participant);
     $sendermail=experimentmail__get_sender_email($experiment);
     $headers="From: ".$sendermail."\r\n";
-    experimentmail__mail($participant['email'],$mailtext['subject'],$message,$headers);
+    $recipients=experimentmail__recipient_list_for_queue_mail($participant,'enrolment_cancellation');
+    $valid_email_addresses=$recipients['valid_addresses'];
+    $error_addresses=$recipients['error_addresses'];
+    if (count($error_addresses)>0) {
+        log__participant(
+            'participant_email_recipient_issue',
+            $participant['participant_id'],
+            'errors in: '.implode(', ',$error_addresses).
+            ', mail_type:enrolment_cancellation'.
+            ', experiment_id:'.$session['experiment_id'].
+            ', session_id:'.$session['session_id']
+        );
+    }
+    if (count($valid_email_addresses)<1) {
+        return false;
+    }
+    return experimentmail__send_to_recipient_list($valid_email_addresses,$mailtext['subject'],$message,$headers);
 }
 
 
@@ -1803,10 +1983,16 @@ function experimentmail__send_participant_statistics() {
     return "statistics sent to ".$i." out of ".$rec_count." administrators\n";
 }
 
-function experimentmail__bulk_mail_form() {
+function experimentmail__bulk_mail_form($experiment_id='',$session_id='',$focus='') {
     global $lang;
     //echo '<A HREF="participants_bulk_mail.php">'.lang('send_mail_to_listed_participants').'</A>';
-    echo button_link("participants_bulk_mail.php",lang('send_mail_to_listed_participants'),"envelope-o");
+    $url='participants_bulk_mail.php';
+    $pars=array();
+    if ($experiment_id!=='') $pars[]='experiment_id='.urlencode($experiment_id);
+    if ($session_id!=='') $pars[]='session_id='.urlencode($session_id);
+    if ($focus!=='') $pars[]='focus='.urlencode($focus);
+    if (count($pars)>0) $url.='?'.implode('&',$pars);
+    echo button_link($url,lang('send_mail_to_listed_participants'),"envelope-o");
 }
 
 }

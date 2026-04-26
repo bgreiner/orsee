@@ -3,7 +3,7 @@
 ob_start();
 
 $title="delete_faq";
-$menu__area="options_main";
+$menu__area="options";
 include ("header.php");
 if ($proceed) {
 
@@ -57,57 +57,32 @@ if ($proceed) {
 
      // form
 
-    echo '     <center>
-               <FORM action="faq_delete.php" method="POST">
-                <INPUT type=hidden name="faq_id" value="'.$faq_id.'">
-                '.csrf__field().'
-
-                <TABLE class="or_formtable">
-                    <TR><TD colspan="2">
-                        <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                                <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                                    "'.$question[lang('lang')].'"
-                                </TD>
-                        </TR></TABLE>
-                    </TD></TR>
-                    <TR>
-                        <TD colspan="2">
-                                        <B>'.lang('do_you_really_want_to_delete').'</B>
-                                        <BR><BR>
-                    <TABLE>';
-    foreach ($languages as $language) {
-        echo '  <TR>
-                            <TD align=right>
-                                '.$language.'
-                            </TD>
-                            <TD>&nbsp;&nbsp;</TD>
-                            <TD>
-                                '.stripslashes($question[$language]).'
-                            </TD>
-                            </TR>
-                        <TR>
-                            <TD colspan=2></TD>
-                            <TD>
-                                '.stripslashes($answer[$language]).'
-                            </TD>
-                        </TR>';
-    }
-    echo '
-                    </TABLE>
-                                </TD>
-                        </TR>
-                        <TR>
-                                <TD align=left>
-                                <INPUT class="button" type="submit" name="reallydelete" value="'.lang('yes_delete').'">
-                                </TD>
-                                <TD align=right>
-                                <INPUT class="button" type="submit" name="betternot" value="'.lang('no_sorry').'">
-                                </TD>
-                        </TR>
-                </TABLE>
-
-                </FORM>
-                </center>';
+    echo '<div class="orsee-panel orsee-form-shell">
+            <div class="orsee-panel-title">'.lang('delete_faq').'</div>
+            <div class="orsee-content">
+                <div class="orsee-callout orsee-message-box orsee-callout-warning"><b>'.lang('do_you_really_want_to_delete').'</b></div>
+                <div class="field">
+                    <label class="label">'.lang('id').'</label>
+                    <div><span class="orsee-dense-id-tag">'.htmlspecialchars($faq_id).'</span></div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('question').'</label>
+                    <div>'.stripslashes($question[lang('lang')]).'</div>
+                </div>
+                <form action="faq_delete.php" method="POST">
+                    <input type="hidden" name="faq_id" value="'.$faq_id.'">
+                    '.csrf__field().'
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                        <div class="orsee-form-row-col">
+                            <button class="button orsee-btn orsee-btn--delete" type="submit" name="reallydelete" value="1"><i class="fa fa-check-square"></i> '.lang('yes_delete').'</button>
+                        </div>
+                        <div class="orsee-form-row-col has-text-right">
+                            <button class="button orsee-btn" type="submit" name="betternot" value="1"><i class="fa fa-undo"></i> '.lang('no_sorry').'</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>';
 
 }
 include ("footer.php");

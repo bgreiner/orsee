@@ -2,7 +2,7 @@
 // part of orsee. see orsee.org
 
 function query__show_form($hide_modules,$experiment=array(),$load_query="",$button_title='Search and show',$saved_queries=array(),$status_query="",$formextra="") {
-    global $lang, $color;
+    global $lang;
 
     if (is_array($experiment) && isset($experiment['experiment_id']) && $experiment['experiment_id']) $experiment_id=$experiment['experiment_id']; else $experiment_id="";
 
@@ -14,7 +14,7 @@ function query__show_form($hide_modules,$experiment=array(),$load_query="",$butt
     if (is_array($saved_queries) && count($saved_queries)>0) {
         foreach($saved_queries as $id => $query){
             $decoded = json_decode($query,true);
-            $pastitems = $pastitems . '<a style="text-align: left;" onclick="javascript:loadFromObj(pastQueries[' . $id . ']); return false;">' . query__display_pseudo_query(query__get_pseudo_query_array($decoded['query'])) . '</a>';
+            $pastitems = $pastitems . '<a style="text-align: start;" onclick="javascript:loadFromObj(pastQueries[' . $id . ']); return false;">' . query__display_pseudo_query(query__get_pseudo_query_array($decoded['query'])) . '</a>';
             $pastitemsdata = $pastitemsdata . $query;
             if((count($saved_queries)-1) != $id){
                 $pastitems = $pastitems . '<hr>';
@@ -24,77 +24,52 @@ function query__show_form($hide_modules,$experiment=array(),$load_query="",$butt
     }
     echo '<script>var pastQueries = [' . $pastitemsdata . '];</script>';
 
-    // display form table
+    // display form
     echo '  <form id="queryForm" action="'.thisdoc().'" method="POST">';
     echo csrf__field();
     if ($formextra) echo $formextra;
     if ($experiment_id) echo '<INPUT type="hidden" name="experiment_id" value="'.$experiment_id.'">';
-    echo '  <TABLE border=0 width=100%>
-            <TR>
-                <TD align=left>
-                    <TABLE width=100% border=0>
-                        <TR>
-                            <TD width="80" align=left style="font-size: 12pt; font-weight: bold;">
-                                '.str_replace(" ","&nbsp;",trim(lang('query_select_all'))).'
-                            </TD>
-                            <TD>&nbsp;&nbsp;</TD>
-                            <TD >
-                                <ul id="addDropdown" class="query_add">
-                                    <li><A HREF="#" class="button fa-plus-circle">'.lang('add_condition').'</A>
-                                        <ul id="protoDropdown">
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </TD>
-                            <TD align=right>
-                                <button class="button fa-eraser" style="font-size: 8pt;" onclick="javascript:clearQuery(); return false;">'.lang('reset_query_form').'</button>
-                            </TD>';
+    echo '<div class="orsee-querytool orsee-listtool">';
+    echo '<div class="orsee-querytool-topline">'.str_replace(" ","&nbsp;",trim(lang('query_select_all'))).'</div>';
+    echo '<div class="orsee-querytool-toolbar">';
+    echo '<div class="orsee-querytool-toolbar-left">';
+    echo '  <ul id="addDropdown" class="query_add">
+                <li><A HREF="#" class="button orsee-btn query_add_btn"><i class="fa fa-plus-circle" style="padding: 0 0.3em 0 0"></i>'.lang('add_condition').'</A>
+                    <ul id="protoDropdown"></ul>
+                </li>
+            </ul>';
+    echo '</div>';
+    echo '<div class="orsee-querytool-toolbar-left">';
+    echo '  <button type="button" class="button orsee-btn" onclick="javascript:clearQuery(); return false;"><i class="fa fa-eraser" style="padding: 0 0.3em 0 0"></i>'.lang('reset_query_form').'</button>';
     if ($pastitemsdata) {
-        echo '              <TD align=right width="205">
-                                <ul id="savedDropdown" class="past_queries">
-                                    <li>
-                                        <A HREF="#" class="button fa-file-text">'.lang('load_saved_query').'</A>
-                                        <ul id="saveDropdown">
-                                        ' . $pastitems . '
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </TD>';
+        echo '  <ul id="savedDropdown" class="past_queries query_add">
+                    <li>
+                        <A HREF="#" class="button orsee-btn"><i class="fa fa-file-text" style="padding: 0 0.3em 0 0"></i>'.lang('load_saved_query').'</A>
+                        <ul id="saveDropdown">'.$pastitems.'</ul>
+                    </li>
+                </ul>';
     }
-    echo '                  </TR>
-                    </TABLE>
-                </TD>
-            </TR>';
+    echo '</div>';
+    echo '</div>';
+    echo '<div id="queryTable" class="orsee-listtable orsee-querytable">';
+    echo '  <div class="orsee-listbody listbody querybody"></div>';
+    echo '  <div class="orsee-listbody listbody queryfoot"></div>';
+    echo '</div>';
+    echo '<div class="orsee-querytool-actions">';
+    echo '  <input type="hidden" name="search_submit" value="true">';
+    echo '  <button name="search_submit" class="button orsee-btn" type="submit"><i class="fa fa-search" style="padding: 0 0.3em 0 0"></i>'.$button_title.'</button>';
+    echo '</div>';
+    echo '</div>';
+    echo '</form>';
+}
 
-    echo '<TR><TD>
-            <table id="queryTable" width="100%">';
-
-    echo '
-                <tbody>
-
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan=4>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-            </TD></TR>';
-    echo '      <TR>
-                    <TD>
-                    <TABLE border=0 width=100%><TR>';
-
-    echo '
-                        <TD align=right>
-                            <input type="hidden" name="search_submit" value="true">
-                            <button name="search_submit" class="fa-search button" type="submit">'.$button_title.'</button>
-                        </TD>
-                    </TR></TABLE>
-                    </TD>
-            </TR>
-        </TABLE>
-        </form>';
+function query__debug_sql_panel($sql,$pars=array(),$title='Query') {
+    $content='<div><code style="white-space: pre-wrap; word-break: break-word;">'.htmlspecialchars($sql).'</code></div>';
+    if (is_array($pars) && count($pars)>0) {
+        $content.='<div style="margin-top: 0.5rem;"><strong>Parameters</strong></div>';
+        $content.='<div><code style="white-space: pre-wrap; word-break: break-word;">'.htmlspecialchars(print_r($pars,true)).'</code></div>';
+    }
+    orsee_callout($content,'note',$title);
 }
 
 
@@ -113,11 +88,10 @@ function query__extract_string(&$string, $start, $end) {
 function query__echo_form_javascript($prototypes,$load_query="") {
 
             function pos_prototype($icon='bars') {
-                $dragbuttonstyle=
                 $out='';
-                $out.='\'<td class="queryControl"><button class="fa-'.$icon.' dragHandle" style="';
+                $out.='\'<div class="orsee-listcell orsee-listcell-drag"><button type="button" class="fa-'.$icon.' dragHandle" style="';
                 $out.='font-family: FontAwesome; height: 2em; width: 2em; font-size: 1em';
-                $out.='" onclick="return false;"></button></td>\';';
+                $out.='" onclick="return false;"></button></div>\';';
                 return $out;
             }
 
@@ -129,7 +103,7 @@ function query__echo_form_javascript($prototypes,$load_query="") {
             ';
             if ($load_query) echo 'var jsonData = '.$load_query.';
             ';
-            echo '  var deletionPrototype = \'<td class="queryControl"><i class="fa fa-times-circle fa-lg" style="color: red;" onclick="javascript:removeFromQuery($(this).parent().parent());"></i></td>\';
+            echo '  var deletionPrototype = \'<div class="orsee-listcell orsee-listcell-action"><i class="fa fa-times-circle fa-lg" style="color: red;" onclick="javascript:removeFromQuery(this.parentNode.parentNode); return false;"></i></div>\';
                     var positionPrototype = '.pos_prototype('bars').'
                     var positionPrototypeOpenBracket = '.pos_prototype('arrows').'
                     var positionPrototypeCloseBracket = '.pos_prototype('arrows-v').'
@@ -276,7 +250,6 @@ function query__pseudo_query_not_not($params) {
 
 
 function query__display_pseudo_query($pseudo_query_array,$active=false) {
-    global $color;
     // get max level
     $maxlevel=0;
     foreach ($pseudo_query_array as $key=>$entry) {
@@ -294,27 +267,27 @@ function query__display_pseudo_query($pseudo_query_array,$active=false) {
         $pseudo_query_array[$key]['previous_level']=$previous_level;
     }
     $out='';
-    $out.='<TABLE border=0>';
+    $out.='<TABLE class="orsee-pseudo-query-table" border="0" cellpadding="0" cellspacing="0">';
     $numcol=$maxlevel+2+$maxlevel-1;
     if ($active) $select_phrase=lang('query_select_all_active'); else $select_phrase=lang('query_select_all');
-    $out.='<TR><TD colspan="'.($numcol).'"><B>'.$select_phrase.'</B></TD></TR>';
+    $out.='<TR class="orsee-pseudo-query-row orsee-pseudo-query-row-title"><TD class="orsee-pseudo-query-cell orsee-pseudo-query-title" colspan="'.($numcol).'"><B>'.$select_phrase.'</B></TD></TR>';
     $thiscol=0;
     foreach ($pseudo_query_array as $entry) {
         //$entry['text']=str_replace(" ","&nbsp;",$entry['text']);
         if ($entry['previous_level']=='') {
-            $out.= '<TR>';
+            $out.= '<TR class="orsee-pseudo-query-row">';
             for ($i=1; $i<=$entry['level']; $i++) {
-                $out.= '<TD></TD>'; $thiscol++;
+                $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-indent"></TD>'; $thiscol++;
             }
-            $out.= '<TD>'.$entry['op_text'].'</TD>'; $thiscol++;
+            $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-op">'.$entry['op_text'].'</TD>'; $thiscol++;
         }
         if ($entry['next_level']=='') {
             $span=$numcol-$thiscol;
-            $out.= '<TD colspan="'.$span.'">'.$entry['text'].'</TD>';
+            $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-text" colspan="'.$span.'">'.$entry['text'].'</TD>';
             $out.= '</TR>';
             $thiscol=0;
         } else {
-            $out.= '<TD>'.$entry['text'].'</TD>'; $thiscol++;
+            $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-text">'.$entry['text'].'</TD>'; $thiscol++;
         }
     }
     $out.='</TABLE>';
@@ -333,10 +306,9 @@ function query_show_query_result($query_arr,$type="participants_search_active",$
     $result=or_query($query_arr['query'],$query_arr['pars']);
     $count_results=pdo_num_rows($result);
 
-    echo '<B>'.$count_results.' '.lang('xxx_participants_in_result_set').'</B>';
-    if ($type=='assign') echo '<BR>'.lang('only_ny_assigned_part_showed');
-    elseif($type=='deassign') echo '<BR>'.lang('only_assigned_part_ny_reg_shownup_part_showed');
-    echo '<BR><BR>';
+    echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;"><strong>'.$count_results.' '.lang('xxx_participants_in_result_set').'</strong></div>';
+    if ($type=='assign') echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;">'.lang('only_ny_assigned_part_showed').'</div>';
+    elseif($type=='deassign') echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;">'.lang('only_assigned_part_ny_reg_shownup_part_showed').'</div>';
     if ($type=='participants_search_active' || $type=='participants_search_all') query__resulthead_participantsearch();
     elseif ($type=='assign' || $type=='deassign') query__resulthead_assign($type);
 
@@ -345,102 +317,59 @@ function query_show_query_result($query_arr,$type="participants_search_active",$
     elseif ($type=='participants_unconfirmed') $cols=participant__get_result_table_columns('result_table_search_unconfirmed');
     else $cols=participant__get_result_table_columns('result_table_assign');
 
+    $table_classes='orsee-table orsee-table-tablet-2rows orsee-table-mobile orsee-table-cells-compact';
+    $head_row_classes='orsee-table-row orsee-table-head';
+    $body_row_base='orsee-table-row';
 
-
-    echo '<table class="or_listtable" style="width: 95%;">';
-    echo '<thead>';
-    echo '<TR style="background: '.$color['list_header_background'].'; color: '.$color['list_header_textcolor'].';">';
+    echo '<div class="'.$table_classes.'">';
+    echo '<div class="'.$head_row_classes.'">';
     echo participant__get_result_table_headcells($cols,$allow_sort);
-    echo '</TR>';
-    echo '</thead><tbody>';
+    echo '</div>';
 
     $shade=false; $assign_ids=array();
     while ($p=pdo_fetch_assoc($result)) {
         if ($type=='participants_unconfirmed') $assign_ids[]=$p['email'];
         else $assign_ids[]=$p['participant_id'];
-        echo '<tr class="small"';
-            if ($shade) echo ' bgcolor="'.$color['list_shade1'].'"';
-            else echo 'bgcolor="'.$color['list_shade2'].'"';
-        echo '>';
+        echo '<div class="'.$body_row_base;
+        if ($shade) echo ' is-alt';
+        echo '">';
         echo participant__get_result_table_row($cols,$p);
-        echo '</tr>';
+        echo '</div>';
         if ($shade) $shade=false; else $shade=true;
     }
-    echo '</tbody></table>';
+    echo '</div>';
 
     return $assign_ids;
 }
 
 function query__headcell($name,$sort="",$allow_sort=true) {
-    global $color;
-    $celltag='td';
+    $celltag='div';
 
     $out='';
     if (!isset($_REQUEST['focus'])) $_REQUEST['focus']="";
     if (!isset($_REQUEST['experiment_id'])) $_REQUEST['experiment_id']="";
     if (!isset($_REQUEST['session_id'])) $_REQUEST['session_id']="";
     if (!isset($_REQUEST['active'])) $_REQUEST['active']="";
+    $is_sorted=($allow_sort && isset($_REQUEST['search_sort']) && $_REQUEST['search_sort']==$sort && $sort);
     $out.= '
-        <'.$celltag.' class="small"';
-    if ($allow_sort && isset($_REQUEST['search_sort']) && $_REQUEST['search_sort']==$sort && $sort) $out.= ' style="background: '.$color['list_header_highlighted_background'].'"';
+        <'.$celltag.' class="orsee-table-cell';
+    if ($is_sorted) $out.=' is-sorted';
+    $out.='"';
     $out.= '>';
     if ($allow_sort && $sort) {
-        $out.= '<A HREF="'.thisdoc().'?search_sort='.urlencode($sort);
+        $out.= '<A class="orsee-sort-link" HREF="'.thisdoc().'?search_sort='.urlencode($sort);
         if ($_REQUEST['experiment_id']) $out.= '&experiment_id='.$_REQUEST['experiment_id'];
         if ($_REQUEST['session_id']) $out.= '&session_id='.$_REQUEST['session_id'];
         if ($_REQUEST['focus']) $out.= '&focus='.$_REQUEST['focus'];
         if ($_REQUEST['active']) $out.= '&active='.$_REQUEST['active'];
         $out.= '">';
     }
-    $out.= '<FONT class="small"';
-    if ($allow_sort && isset($_REQUEST['search_sort']) && $_REQUEST['search_sort']==$sort && $sort) $out.= ' style="color: '.$color['list_header_highlighted_textcolor'].';"';
-    else $out.= ' style="color: '.$color['list_header_textcolor'].';"';
-    $out.= '>';
     $out.= $name;
-    $out.= '</FONT>';
-    if ($allow_sort && $sort) $out.= '</A>';
+    if ($allow_sort && $sort) $out.='<i class="fa fa-sort-asc orsee-sort-icon" aria-hidden="true"></i></A>';
     $out.= '</'.$celltag.'>';
     return $out;
 }
 
-function query__headcell_new($name,$sort="",$allow_sort=true) {
-    global $color;
-    $celltag='td';
-
-    $out='';
-    if (!isset($_REQUEST['focus'])) $_REQUEST['focus']="";
-    if (!isset($_REQUEST['experiment_id'])) $_REQUEST['experiment_id']="";
-    if (!isset($_REQUEST['session_id'])) $_REQUEST['session_id']="";
-    if (!isset($_REQUEST['active'])) $_REQUEST['active']="";
-    if ($allow_sort && $sort) {
-        $out.= '<FORM action="'.thisdoc().'?search_sort='.urlencode($sort);
-        if ($_REQUEST['experiment_id']) $out.= '&experiment_id='.$_REQUEST['experiment_id'];
-        if ($_REQUEST['session_id']) $out.= '&session_id='.$_REQUEST['session_id'];
-        if ($_REQUEST['focus']) $out.= '&focus='.$_REQUEST['focus'];
-        if ($_REQUEST['active']) $out.= '&active='.$_REQUEST['active'];
-        $out.= '" method=POST>';
-    }
-    $out.= '
-        <'.$celltag.' class=small';
-    if ($allow_sort && isset($_REQUEST['search_sort']) && $_REQUEST['search_sort']==$sort && $sort) $out.= ' style="background: '.$color['list_header_highlighted_background'].'; color: '.$color['list_header_highlighted_textcolor'].';"';
-    $out.= '>';
-    if ($allow_sort && $sort) {
-        $out.= '<A HREF="'.thisdoc().'?search_sort='.urlencode($sort);
-        if ($_REQUEST['experiment_id']) $out.= '&experiment_id='.$_REQUEST['experiment_id'];
-        if ($_REQUEST['session_id']) $out.= '&session_id='.$_REQUEST['session_id'];
-        if ($_REQUEST['focus']) $out.= '&focus='.$_REQUEST['focus'];
-        if ($_REQUEST['active']) $out.= '&active='.$_REQUEST['active'];
-        $out.= '">';
-    }
-    $out.= '<FONT class="small"';
-    if ($allow_sort && isset($_REQUEST['search_sort']) && $_REQUEST['search_sort']==$sort && $sort) $out.= ' color="'.$color['list_header_highlighted_textcolor'].'"';
-    $out.= '>';
-    $out.= $name;
-    $out.= '</FONT>';
-    if ($allow_sort && $sort) $out.= '</A>';
-    $out.= '</'.$celltag.'>';
-    return $out;
-}
 function query__load_default_sort($type,$experiment_id=0) {
     //type can be: participants_search_active, participants_search_all, assign, deassign, session_list
 
@@ -489,7 +418,6 @@ function query__get_sort($type,$search_sort,$experiment_id=0) {
 }
 
 function query__get_bulkactions() {
-    global $color;
     $bulkactions=array();
     // don't use ' in text!
 
@@ -497,22 +425,12 @@ function query__get_bulkactions() {
         // BULK EMAIL
         $display_text=lang('send_bulk_mail');
         $inv_langs=lang__get_part_langs();
-        $html=' <center>
-                <TABLE class="or_page_subtitle" style="background: '.$color['page_subtitle_background'].'; color: '.$color['page_subtitle_textcolor'].'; width: 90%;">
-                    <TR><TD align="center">
-                        '.lang('send_bulk_mail_to').' #xyz_participants#
-                </TD></TR></TABLE>
-                <input class="bforminput" type="hidden" name="action" value="bulkmail">
-                <TABLE class="or_formtable" style="width: 90%;">';
+        $html='<div class="orsee-form-shell">';
+        $html.='<div class="field"><label class="label">'.lang('send_bulk_mail_to').' #xyz_participants#</label></div>';
+        $html.='<input class="bforminput" type="hidden" name="action" value="bulkmail">';
         foreach ($inv_langs as $inv_lang) {
             if (count($inv_langs) > 1) {
-                $html.= '<TR><TD colspan=2>
-                                                <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                        <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'">
-                            '.$inv_lang.':
-                        </TD>
-                        </TR></TABLE>
-                        </TD></TR>';
+                $html.='<div class="field"><label class="label">'.$inv_lang.':</label></div>';
             }
             if (isset($_REQUEST['message_subject_'.$inv_lang])) {
                 $tsubject=$_REQUEST['message_subject_'.$inv_lang];
@@ -520,16 +438,17 @@ function query__get_bulkactions() {
             if (isset($_REQUEST['message_text_'.$inv_lang])) {
                 $ttext=$_REQUEST['message_text_'.$inv_lang];
             } else $ttext='';
-            $html.= '   <TR>
-                    <TD>'.lang('subject').':</TD>
-                    <TD><input class="bforminput" type="text" name="message_subject_'.$inv_lang.'" size="50" max-length="200" value="'.$tsubject.'"></TD>
-                </TR><TR>
-                    <TD valign="top">'.lang('message_text').':</TD>
-                    <TD><textarea class="bforminput" name="message_text_'.$inv_lang.'" rows="20" cols="50" wrap="virtual">'.$ttext.'</textarea></TD>
-                </TR>';
+            $html.='<div class="field">';
+            $html.='<label class="label">'.lang('subject').':</label>';
+            $html.='<div class="control"><input class="bforminput input is-primary orsee-input orsee-input-text" type="text" name="message_subject_'.$inv_lang.'" value="'.htmlspecialchars($tsubject).'"></div>';
+            $html.='</div>';
+            $html.='<div class="field">';
+            $html.='<label class="label">'.lang('message_text').':</label>';
+            $html.='<div class="control"><textarea class="bforminput textarea is-primary orsee-textarea" name="message_text_'.$inv_lang.'" rows="17" wrap="virtual">'.htmlspecialchars($ttext).'</textarea></div>';
+            $html.='</div>';
         }
-        $html.= '<TR><TD colspan="2" align="center"><INPUT id="popupsubmit" class="button" type="submit" name="popupsubmit" value="'.lang('send').'"></TD></TR>
-                </TABLE></center>';
+        $html.='<div class="orsee-form-actions has-text-centered"><input id="popupsubmit" class="button orsee-btn" type="submit" name="popupsubmit" value="'.lang('send').'"></div>';
+        $html.='</div>';
         $bulkactions['bulkmail']=array('display_text'=>$display_text,'html'=>$html);
     }
 
@@ -543,26 +462,19 @@ function query__get_bulkactions() {
             $remark=$_REQUEST['remark'];
         } else $remark='';
         $status_select=participant_status__select_field('new_status',$new_status,array(),'bforminput');
-        $html=' <center>
-                <TABLE class="or_page_subtitle" style="background: '.$color['page_subtitle_background'].'; color: '.$color['page_subtitle_textcolor'].'; width: 90%;">
-                    <TR><TD align="center">
-                        '.lang('set_participant_status_for').' #xyz_participants#
-                </TD></TR></TABLE>
-                <input class="bforminput" type="hidden" name="action" value="status">
-                <TABLE class="or_formtable" style="width: 90%;">
-                <TR>
-                    <TD>'.lang('new_status').':</TD>
-                    <TD>'.$status_select.'</TD>
-                </TR>
-                <TR>
-                    <TD valign="top">'.lang('add_remark_to_profile').':</TD>
-                    <TD><textarea class="bforminput" name="remark" rows="5" cols="30" wrap="virtual">'.$remark.'</textarea></TD>
-                </TR>
-
-
-                <TR><TD colspan="2" align="center"><INPUT id="popupsubmit" class="button" type="submit" name="popupsubmit" value="'.lang('set_status').'"></TD></TR>
-                </TABLE></center>
-                ';
+        $html='<div class="orsee-form-shell">';
+        $html.='<div class="field"><label class="label">'.lang('set_participant_status_for').' #xyz_participants#</label></div>';
+        $html.='<input class="bforminput" type="hidden" name="action" value="status">';
+        $html.='<div class="field">';
+        $html.='<label class="label">'.lang('new_status').':</label>';
+        $html.='<div class="control">'.$status_select.'</div>';
+        $html.='</div>';
+        $html.='<div class="field">';
+        $html.='<label class="label">'.lang('add_remark_to_profile').':</label>';
+        $html.='<div class="control"><textarea class="bforminput textarea is-primary orsee-textarea" name="remark" rows="5" wrap="virtual">'.htmlspecialchars($remark).'</textarea></div>';
+        $html.='</div>';
+        $html.='<div class="orsee-form-actions has-text-centered"><input id="popupsubmit" class="button orsee-btn" type="submit" name="popupsubmit" value="'.lang('set_status').'"></div>';
+        $html.='</div>';
         $bulkactions['status']=array('display_text'=>$display_text,'html'=>$html);
     }
 
@@ -579,33 +491,27 @@ function query__get_bulkactions() {
             $do_pool_transfer=$_REQUEST['do_pool_transfer'];
         } else $do_pool_transfer='';
         $pool_select=subpools__select_field('new_pool',$new_pool,array(),'bforminput');
-        $html=' <center>
-                <TABLE class="or_page_subtitle" style="background: '.$color['page_subtitle_background'].'; color: '.$color['page_subtitle_textcolor'].'; width: 90%;">
-                    <TR><TD align="center">
-                        '.lang('set_profile_update_request_for').' #xyz_participants#
-                </TD></TR></TABLE>
-                <input class="bforminput" type="hidden" name="action" value="profile_update">
-                <TABLE class="or_formtable" style="width: 90%;">
-                <TR>
-                    <TD>'.lang('set_profile_update_request_status_equal_to').
-                        ' <SELECT name="new_profile_update_status" class="bforminput">
-                            <OPTION value="y"';
+        $html='<div class="orsee-form-shell">';
+        $html.='<div class="field"><label class="label">'.lang('set_profile_update_request_for').' #xyz_participants#</label></div>';
+        $html.='<input class="bforminput" type="hidden" name="action" value="profile_update">';
+        $html.='<div class="field">';
+        $html.='<label class="label">'.lang('set_profile_update_request_status_equal_to').'</label>';
+        $html.='<div class="control"><span class="select is-primary"><select name="new_profile_update_status" class="bforminput">';
+        $html.='<OPTION value="y"';
         if ($new_profile_update_status=='y') $html.=' SELECTED';
         $html.='>'.lang('active').'</OPTION>
                             <OPTION value="n"';
         if ($new_profile_update_status!='y') $html.=' SELECTED';
         $html.='>'.lang('inactive').'</OPTION>
-                            </SELECT>
-                    </TD>
-                </TR>
-                <TR>
-                    <TD><INPUT class="bforminput" type="checkbox" name="do_pool_transfer" value="y"';
+                            </select></span></div>';
+        $html.='</div>';
+        $html.='<div class="field">';
+        $html.='<div class="control"><label class="checkbox"><input class="bforminput" type="checkbox" name="do_pool_transfer" value="y"';
         if ($do_pool_transfer=='y') $html.=' CHECKED';
-        $html.='>'.lang('upon_profile_update_transfer_to_subject_pool').' '.$pool_select.'</TD>
-                </TR>
-                <TR><TD colspan="2" align="center"><INPUT id="popupsubmit" class="button" type="submit" name="popupsubmit" value="'.lang('set_status').'"></TD></TR>
-                </TABLE></center>
-                ';
+        $html.='> '.lang('upon_profile_update_transfer_to_subject_pool').' '.$pool_select.'</label></div>';
+        $html.='</div>';
+        $html.='<div class="orsee-form-actions has-text-centered"><input id="popupsubmit" class="button orsee-btn" type="submit" name="popupsubmit" value="'.lang('set_status').'"></div>';
+        $html.='</div>';
         $bulkactions['profile_update']=array('display_text'=>$display_text,'html'=>$html);
     }
     
@@ -620,33 +526,30 @@ function query__get_bulkactions() {
         } else $do_status_change='';
         $anon_fields=participant__get_result_table_columns('anonymize_profile_list');
         $status_select=participant_status__select_field('new_status',$new_status,array(),'bforminput');
-        $html=' <center>
-                <TABLE class="or_page_subtitle" style="background: '.$color['page_subtitle_background'].'; color: '.$color['page_subtitle_textcolor'].'; width: 90%;">
-                    <TR><TD align="center">
-                        '.lang('anonymize_profiles_for').' #xyz_participants#
-                </TD></TR></TABLE>
-                <input class="bforminput" type="hidden" name="action" value="bulk_anonymization">
-                <TABLE class="or_formtable" style="width: 90%;">
-                <TR>
-                    <TD>'.lang('fields_will_be_anonymized_as_follows').':<br>';
+        $status_select='<span class="select is-primary">'.$status_select.'</span>';
+        $html='<div class="orsee-form-shell">';
+        $html.='<div class="field"><label class="label">'.lang('anonymize_profiles_for').' #xyz_participants#</label></div>';
+        $html.='<input class="bforminput" type="hidden" name="action" value="bulk_anonymization">';
+        $html.='<div class="field">';
+        $html.='<label class="label">'.lang('fields_will_be_anonymized_as_follows').':</label>';
+        $html.='<div class="control">';
         foreach ($anon_fields as $field_name=>$anon_field) {
             if (isset($anon_field['item_details']['field_value'])) {
                 $fvalue=$anon_field['item_details']['field_value'];
             } else {
                 $fvalue='';
             }
-            $html.=$anon_field['display_text'].'=&gt;'.$fvalue.'<br>';
+            $html.='<div>'.$anon_field['display_text'].'=&gt;'.$fvalue.'</div>';
         } 
-        $html.='<br>'.lang('disclaimer_anonymize_profiles').'</TD>
-                </TR>
-                <TR>
-                    <TD><INPUT class="bforminput" type="checkbox" name="do_status_change" value="y"';
+        $html.='<div>'.lang('disclaimer_anonymize_profiles').'</div></div>';
+        $html.='</div>';
+        $html.='<div class="field">';
+        $html.='<div class="control"><label class="checkbox"><input class="bforminput" type="checkbox" name="do_status_change" value="y"';
         if ($do_status_change=='y') $html.=' CHECKED';
-        $html.='>'.lang('upon_anonymization_change_status_to').' '.$status_select.'</TD>
-                </TR>
-                <TR><TD align="center"><INPUT id="popupsubmit" class="button" type="submit" name="popupsubmit" value="'.lang('profile_anonymize').'"></TD></TR>
-                </TABLE></center>
-                ';
+        $html.='> '.lang('upon_anonymization_change_status_to').' '.$status_select.'</label></div>';
+        $html.='</div>';
+        $html.='<div class="orsee-form-actions has-text-centered"><input id="popupsubmit" class="button orsee-btn" type="submit" name="popupsubmit" value="'.lang('profile_anonymize').'"></div>';
+        $html.='</div>';
         $bulkactions['bulk_anonymization']=array('display_text'=>$display_text,'html'=>$html);
     }
     return $bulkactions;
@@ -656,100 +559,120 @@ function query__get_bulkactions() {
 function query__resulthead_participantsearch() {
     global $color;
 
-    echo '<TABLE border="0" width="95%"><TR>';
+    echo '<div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap" style="gap: 0.75rem; margin-bottom: 0.75rem;">';
 
     $bulkactions=query__get_bulkactions();
     if (count($bulkactions)>0) {
-        echo '<div id="bulkPopupDiv" class="bulkpopupDiv" style=" background: '.$color['popup_bgcolor'].'; color: '.$color['popup_text'].';">
-                <div align="right"><button class="b-close button fa-backward popupBack">'.lang('back_to_results').'</button></div>
-                <div id="bulkPopupContent" style="margin-left: 20px; margin-top: 0px;"></div>
-            </div>
-            <script type="text/javascript">
+        echo '<script type="text/javascript">
                 var bulkactions = ';
         echo json_encode($bulkactions);
         echo ';
-                $(document).ready(function(){
-                    $.each(bulkactions, function(actionName, action){
-                        var item = $.parseHTML("<li><a>" + action.display_text + "</a></li>");
-                        $(item).on("click", function(){
-                            bulkaction(actionName);
-                        });
-                        $("#bulkDropdown").append(item);
-                    });
-                });
-                var bulkBpopup;
                 function bulkaction(act){
-                    var participant_count = $("input[name*=\'sel[\']:checked").length;
+                    var modal = document.getElementById("bulkActionModal");
+                    var content = document.getElementById("bulkPopupContent");
+                    if (!modal || !content || !bulkactions[act]) return;
+                    var participant_count = document.querySelectorAll("input[name*=\'sel[\']:checked").length;
                     var parstr = participant_count + " '.lang('selected_participants').'";
                     var str = bulkactions[act].html;
                     str = str.replace("#xyz_participants#", parstr);
-                    $("#bulkPopupContent").html("");
-                    $("#bulkPopupContent").append($.parseHTML(str));
-                    bulkBpopup = $("#bulkPopupDiv").bPopup({
-                        contentContainer: "#bulkPopupContent",
-                        amsl: 50,
-                        positionStyle: "fixed",
-                        modalColor: "'.$color['popup_modal_color'].'",
-                        opacity: 0.8
-                        });
-                    $("#popupsubmit").click(function(event){
-                        event.preventDefault();
-                        $(".bforminput").each(function(){
-                            var $input = $( this );
-                            var tval = "";
-                            if ($input.is(":checkbox")) {
-                                if ($input.prop("checked")) tval="y";
-                                else tval="n";
-                            } else {
-                                tval=$input.val();
-                            }
-                            var tstr = \'<input type="hidden" name="\'+$input.prop("name")+\'" value="\'+tval+\'" />\';
-                            $("#bulkactionform").append($.parseHTML(tstr));
-                        });
-                        bulkBpopup.close();
-                        $("#bulkactionform").submit();
-                    });
+                    content.innerHTML = str;
+                    modal.classList.add("is-active");
+                    document.documentElement.classList.add("is-clipped");
                 }
+                document.addEventListener("DOMContentLoaded", function(){
+                    var modal = document.getElementById("bulkActionModal");
+                    var dropdown = document.getElementById("bulkDropdown");
+                    var content = document.getElementById("bulkPopupContent");
+                    var bulkactionform = document.getElementById("bulkactionform");
+                    function closeBulkModal() {
+                        if (!modal) return;
+                        modal.classList.remove("is-active");
+                        document.documentElement.classList.remove("is-clipped");
+                    }
+                    if (dropdown) {
+                        Object.keys(bulkactions).forEach(function(actionName){
+                            var item = document.createElement("li");
+                            var anchor = document.createElement("a");
+                            anchor.textContent = bulkactions[actionName].display_text;
+                            anchor.href = "#";
+                            anchor.addEventListener("click", function(event){
+                                event.preventDefault();
+                                bulkaction(actionName);
+                            });
+                            item.appendChild(anchor);
+                            dropdown.appendChild(item);
+                        });
+                    }
+                    document.querySelectorAll("[data-close-bulk-modal]").forEach(function(btn){
+                        btn.addEventListener("click", function(){
+                            closeBulkModal();
+                        });
+                    });
+                    if (content && bulkactionform) {
+                        content.addEventListener("click", function(event){
+                            var target = event.target;
+                            if (target && target.id === "popupsubmit") {
+                                event.preventDefault();
+                                content.querySelectorAll(".bforminput").forEach(function(input){
+                                    if (!input.name) return;
+                                    var tval = "";
+                                    if (input.type === "checkbox") tval = input.checked ? "y" : "n";
+                                    else tval = input.value;
+                                    var hidden = document.createElement("input");
+                                    hidden.type = "hidden";
+                                    hidden.name = input.name;
+                                    hidden.value = tval;
+                                    bulkactionform.appendChild(hidden);
+                                });
+                                closeBulkModal();
+                                bulkactionform.submit();
+                            }
+                        });
+                    }
+                    document.addEventListener("keydown", function(e){
+                        if (e.key === "Escape" && modal && modal.classList.contains("is-active")) {
+                            closeBulkModal();
+                        }
+                    });
+                });
             </script>';
-        echo '<TD>';
-        echo '<TABLE border="0" class="or_panel" style="width: auto;">';
-        echo '<TR><TD>'.lang('for_all_selected_participants').'</TD>
-                <TD><ul id="bulkactionDropdown" class="bulkaction">
-                        <li><A HREF="#" class="button fa-group">'.lang('do___').'</A>
-                            <ul id="bulkDropdown">
+        echo '<div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">';
+        echo '<span>'.lang('for_all_selected_participants').'</span>';
+        echo '<ul id="bulkactionDropdown" class="query_add bulkaction" style="display: inline-block; vertical-align: middle;">';
+        echo '  <li><A HREF="#" class="button orsee-btn query_add_btn"><i class="fa fa-users" style="padding: 0 0.3em 0 0"></i>'.lang('do___').'</A>
+                    <ul id="bulkDropdown">
 
-                            </ul>
-                        </li>
                     </ul>
-                </TD>';
-        echo '</TR>';
-        echo '</TABLE>';
+                </li>';
+        echo '</ul>';
         echo '
         <script type="text/javascript">
-        $(document).ready(function(){
-            $("#bulkactionDropdown").dropit(
-                {
+        document.addEventListener("DOMContentLoaded", function(){
+            if (typeof _qfInitDropit === "function") {
+                _qfInitDropit(document.getElementById("bulkactionDropdown"), {
                     action: "mouseenter",
                     beforeShow: function(){
-                        $("#bulkactionDropdown .dropit-submenu").css("width", "250px");
+                        var submenu = document.querySelector("#bulkactionDropdown .dropit-submenu");
+                        if (submenu) submenu.style.width = "250px";
                     }
-                }
-            )
-        });
+                });
+                    }
+                });
         </script>';
-        echo '</TD>';
+        echo '</div>';
+    } else {
+        echo '<div></div>';
     }
 
-    echo '<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>';
+    echo '<div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">';
 
     // back to query form button
     $cgivars=array();
     if (isset($_REQUEST['active']) && $_REQUEST['active']) $cgivars[]='active=true';
     if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
-    echo '<TD><A HREF="'.thisdoc();
+    echo '<A HREF="'.thisdoc();
     if (count($cgivars)>0) echo '?'.implode("&",$cgivars);
-    echo '" class="button fa-backward" style="font-size: 8pt">'.lang('back_to_query_form').'</A>';
-    echo '</TD>';
+    echo '" class="button orsee-btn"><i class="fa fa-'.(lang__is_rtl() ? 'arrow-right' : 'arrow-left').'" style="padding: 0 0.3em 0 0"></i>'.lang('back_to_query_form').'</A>';
 
     // save query button
     $cgivars=array();
@@ -758,45 +681,39 @@ function query__resulthead_participantsearch() {
     if(isset($_REQUEST['search_sort'])) $cgivars[]='search_sort='.urlencode($_REQUEST['search_sort']);
     if (isset($_REQUEST['active']) && $_REQUEST['active']) $cgivars[]='active=true';
     if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
-    echo '<TD><A HREF="'.thisdoc();
+    echo '<A HREF="'.thisdoc();
     if (count($cgivars)>0) echo '?'.implode("&",$cgivars);
-    echo '" class="button fa-floppy-o">'.lang('save_query').'</A>';
-    echo '</TD>';
+    echo '" class="button orsee-btn"><i class="fa fa-floppy-o" style="padding: 0 0.3em 0 0"></i>'.lang('save_query').'</A>';
+    echo '</div>';
 
-    echo '</TR></TABLE>';
+    echo '</div>';
 
 }
 
 function query__resulthead_assign($type='assign') {
-
-    echo '<TABLE border="0" width="95%">';
-
-    echo '<TR><TD>';
-    // assign/deassign
-    echo '<TABLE border="0" style="outline: 1px solid black;"><TR>';
+    echo '<div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">';
+    echo '<div class="orsee-form-row-col">';
+    echo '<div class="orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">';
     if ($type=='assign') {
-        echo '<TD><INPUT class="button" type=submit name="addselected" value="'.lang('assign_only_marked_participants').'"></TD>';
-        echo '<TD><INPUT class="button" type=submit name="addall" value="'.lang('assign_all_participants_in_list').'"></TD>';
+        echo '<div class="orsee-form-row-col"><INPUT class="button orsee-btn" type=submit name="addselected" value="'.lang('assign_only_marked_participants').'"></div>';
+        echo '<div class="orsee-form-row-col"><INPUT class="button orsee-btn" type=submit name="addall" value="'.lang('assign_all_participants_in_list').'"></div>';
     } else {
-        echo '<TD><INPUT class="button" type=submit name="dropselected" value="'.lang('remove_only_marked_participants').'"></TD>';
-        echo '<TD><INPUT class="button" type=submit name="dropall" value="'.lang('remove_all_participants_in_list').'"></TD>';
+        echo '<div class="orsee-form-row-col"><INPUT class="button orsee-btn" type=submit name="dropselected" value="'.lang('remove_only_marked_participants').'"></div>';
+        echo '<div class="orsee-form-row-col"><INPUT class="button orsee-btn" type=submit name="dropall" value="'.lang('remove_all_participants_in_list').'"></div>';
     }
-    echo '</TR>';
-    echo '</TABLE>';
-    echo '</TD>';
+    echo '</div>';
+    echo '</div>';
 
-    echo '<TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>';
-
+    echo '<div class="orsee-form-row-col has-text-right">';
     // back to query form button
     $cgivars=array();
     if (isset($_REQUEST['active']) && $_REQUEST['active']) $cgivars[]='active=true';
     if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
-    echo '<TD><A HREF="'.thisdoc();
-    if (count($cgivars)>0) echo '?'.implode("&",$cgivars);
-    echo '" class="button fa-backward" style="font-size: 8pt">Back to query form</A>';
-    echo '</TD>';
-
-    echo '</TR></TABLE>';
+    $backlink=thisdoc();
+    if (count($cgivars)>0) $backlink.='?'.implode("&",$cgivars);
+    echo button_back($backlink,lang('back_to_query_form'));
+    echo '</div>';
+    echo '</div>';
 
 }
 

@@ -1,7 +1,6 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-$jquery=array('popup');
 $title="registered_but_not_confirmed_xxx";
 $menu__area="participants";
 include ("header.php");
@@ -73,7 +72,7 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<center>';
+    echo '<div class="orsee-panel">';
 
     echo '<FORM action="participants_unconfirmed.php" method="POST">';
     echo csrf__field();
@@ -82,29 +81,24 @@ if ($proceed) {
         $query_array=query__get_query_array($posted_query['query']);
         $query=query__get_query($query_array,0,array(),'creation_time DESC',false);
 
-    echo '<BR>
-        <TABLE width="80%" border="0">
-        <TR><TD>
-            <TABLE width="100%" border="0">
-            <TR><TD width="50%" align="right">
-            <input class="button" type=submit name="deleteall" value="'.lang('delete_all').'">
-            </TD><TD width="50%" align="right">
-            <input class="button" type=submit name="deletesel" value="'.lang('delete_selected').'">
-            </TD></TR>
-            </TABLE>
-        </TD></TR>
-        <TR><TD colspan="2">';
+    echo '<div class="orsee-options-actions" style="justify-content: flex-end; gap: 0.6rem; margin-bottom: 0.6rem;">';
+    echo button_submit_delete('deleteall',lang('delete_all'));
+    echo button_submit_delete('deletesel',lang('delete_selected'));
+    echo '</div>';
 
     $emails=query_show_query_result($query,"participants_unconfirmed",false);
 
     echo '</FORM>';
-    echo '</TD></TR></TABLE>';
 
     $emailstring=implode(",",$emails);
-        echo '<BR><BR>'.button_link('mailto:'.$settings['support_mail'].'?bcc='.$emailstring,lang('write_message_to_all_listed'),'envelope');
-    echo '<BR><BR>'.button_link('participants_main.php',lang('back'),'level-up').'<BR><BR>';
+    echo '<div class="orsee-options-actions-center" style="margin-top: 0.84rem;">';
+    echo button_link('mailto:'.$settings['support_mail'].'?bcc='.$emailstring,lang('write_message_to_all_listed'),'envelope');
+    echo '</div>';
+    echo '<div class="orsee-options-actions">';
+    echo button_back('participants_main.php');
+    echo '</div>';
 
-    echo '</CENTER>';
+    echo '</div>';
 
 }
 include ("footer.php");

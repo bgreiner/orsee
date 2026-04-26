@@ -3,10 +3,8 @@
 ob_start();
 
 $suppress_html_header=true;
+$menu_item_id='faqs';
 include ("header.php");
-if ($proceed) {
-    if ($settings['show_public_faqs']!='y') redirect("public/");
-}
 if ($proceed) {
     if (!isset($_REQUEST['id'])) $_REQUEST['id']="";
     if (!isset($_SESSION['vote'])) $_SESSION['vote']=array();

@@ -1,11 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 
-function payments__paytype_selectfield($formfieldvarname,$selected,$exclude=array(),$only=array()) {
+function payments__paytype_selectfield($formfieldvarname,$selected,$exclude=array(),$only=array(),$select_wrapper_class='select is-primary') {
     $paytypes=payments__load_paytypes();
     $first=true; if (count($only)>0) $restrict=true; else $restrict=false;
     $out='';
-    $out.='<SELECT name="'.$formfieldvarname.'">';
+    $out.='<span class="'.$select_wrapper_class.'"><SELECT name="'.$formfieldvarname.'">';
     foreach ($paytypes as $k=>$v) {
         if (($restrict && in_array($k,$only)) || ((!$restrict) && (!in_array($k,$exclude)))) {
             $out.='<OPTION value="'.$k.'"';
@@ -18,15 +18,15 @@ function payments__paytype_selectfield($formfieldvarname,$selected,$exclude=arra
             $out.='>'.$v.'</OPTION>';
         }
     }
-    $out.='</SELECT>';
+    $out.='</SELECT></span>';
     return $out;
 }
 
-function payments__budget_selectfield($formfieldvarname,$selected,$exclude=array(),$only=array()) {
+function payments__budget_selectfield($formfieldvarname,$selected,$exclude=array(),$only=array(),$select_wrapper_class='select is-primary') {
     $budgets=payments__load_budgets();
     $first=true; if (count($only)>0) $restrict=true; else $restrict=false;
     $out='';
-    $out.='<SELECT name="'.$formfieldvarname.'">';
+    $out.='<span class="'.$select_wrapper_class.'"><SELECT name="'.$formfieldvarname.'">';
     foreach ($budgets as $k=>$v) {
         if (($restrict && in_array($k,$only)) || ((!$restrict) && (!in_array($k,$exclude)))) {
             $out.='<OPTION value="'.$k.'"';
@@ -39,37 +39,7 @@ function payments__budget_selectfield($formfieldvarname,$selected,$exclude=array
             $out.='>'.$v['budget_name'].'</OPTION>';
         }
     }
-    $out.='</SELECT>';
-    return $out;
-}
-
-function payments__budget_multiselectfield($postvarname,$selected,$mpoptions=array()) {
-    // $postvarname - name of form field
-    // selected - array of pre-selected class ids
-    $out="";
-    if (!is_array($mpoptions)) $mpoptions=array();
-    $default_options=array('tag_color'=>'#FF6600','picker_icon'=>'credit-card',
-                    'picker_color'=>'#FF6600','picker_maxnumcols'=>1);
-    foreach ($default_options as $k=>$v) if (!isset($mpoptions[$k])) $mpoptions[$k]=$v;
-    $budgets=payments__load_budgets(true);
-    $mylist=array();
-    foreach ($budgets as $k=>$v) {
-        if ($v['enabled'] || in_array($k,$selected)) $mylist[$k]=$v['budget_name'];
-    }
-    $out.= get_multi_picker($postvarname,$mylist,$selected,$mpoptions);
-    return $out;
-}
-
-function payments__paytype_multiselectfield($postvarname,$selected,$mpoptions=array()) {
-    // $postvarname - name of form field
-    // selected - array of pre-selected class ids
-    if (!is_array($mpoptions)) $mpoptions=array();
-    $default_options=array('tag_color'=>'#33CC33','picker_icon'=>'money',
-                    'picker_color'=>'#33CC33','picker_maxnumcols'=>1);
-    foreach ($default_options as $k=>$v) if (!isset($mpoptions[$k])) $mpoptions[$k]=$v;
-    $mylist=payments__load_paytypes();
-    $out="";
-    $out.= get_multi_picker($postvarname,$mylist,$selected,$mpoptions);
+    $out.='</SELECT></span>';
     return $out;
 }
 

@@ -50,7 +50,7 @@ if ($proceed) {
     $graph->SetDataType($stat['data_type']);
     $graph->SetFileFormat($stat['file_format']);
     $graph->SetPlotType($stat['graphtype']);
-    $graph->SetDefaultTTFont('../tagsets/fonts/FreeSerif.ttf');
+    $graph->SetDefaultTTFont('../tagsets/fonts/Inter-Regular.ttf');
 
     $graph->SetPlotBorderType('none'); // plotleft, plotright, both, full, none
     $graph->SetBackgroundColor($stat['background_color']);

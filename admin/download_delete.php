@@ -87,27 +87,45 @@ if ($proceed) {
 if ($proceed) {
 
     // form
-    echo '  <CENTER>
-        <TABLE class="or_formtable">
-            <TR>
-                <TD colspan=2>
-                    '.lang('do_you_really_want_to_delete').'
-                    <BR><BR>';
-                    dump_array($upload); echo '
-                </TD>
-            </TR>
-            <TR>
-                <TD align=left>
-                    '.button_link('download_delete.php?dl='.$upload_id.'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
-                    lang('yes_delete'),'check-square biconred').'
-                </TD>
-                <TD align=right>
-                    '.button_link('download_delete.php?dl='.$upload_id.'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
-                    lang('no_sorry'),'undo bicongreen').'
-                </TD>
-            </TR>
-        </TABLE>
-        </center>';
+    echo '<div class="orsee-panel orsee-form-shell">
+            <div class="orsee-panel-title">'.lang('delete_download').'</div>
+            <div class="orsee-content">
+                <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('do_you_really_want_to_delete').'</div>
+                <div class="field">
+                    <label class="label">'.lang('id').'</label>
+                    <div><span class="orsee-dense-id-tag">'.htmlspecialchars($upload['upload_id']).'</span></div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('name').'</label>
+                    <div>'.htmlspecialchars($upload['upload_name']).'.'.htmlspecialchars($upload['upload_suffix']).'</div>
+                </div>';
+    if ($experiment_id>0) {
+        echo '      <div class="field">
+                        <label class="label">'.lang('experiment').'</label>
+                        <div>'.htmlspecialchars($experiment['experiment_name']).'</div>
+                    </div>';
+    }
+    echo '      <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                    <div class="orsee-form-row-col">
+                        '.button_link(
+                            'download_delete.php?dl='.$upload_id.'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
+                            lang('yes_delete'),
+                            'check-square',
+                            '',
+                            '',
+                            'orsee-btn--delete'
+                        ).'
+                    </div>
+                    <div class="orsee-form-row-col has-text-right">
+                        '.button_link(
+                            'download_delete.php?dl='.$upload_id.'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
+                            lang('no_sorry'),
+                            'undo'
+                        ).'
+                    </div>
+                </div>
+            </div>
+        </div>';
 
 }
 include ("footer.php");

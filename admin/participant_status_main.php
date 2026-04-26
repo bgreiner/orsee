@@ -10,29 +10,25 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    echo '<center>';
+    echo '<div class="orsee-panel">';
+    echo '<div class="orsee-options-actions-end">';
 
     if (check_allow('participantstatus_add')) {
-        echo '
-                <BR>
-                '.button_link('participant_status_edit.php?addit=true',
-                        lang('create_new'),'plus-circle');
+        echo button_link('participant_status_edit.php?addit=true',lang('create_new'),'plus-circle');
     }
+    echo '</div>';
 
-    echo '<BR>
-        <table class="or_listtable" style="width: 80%;"><thead>
-            <TR style="background: '.$color['list_header_background'].'; color: '.$color['list_header_textcolor'].';">
-                <TD>'.lang('id').'</TD>
-                <TD>'.lang('name').'
-                <TD>'.lang('access_to_profile').'</TD>
-                <TD>'.lang('eligible_for_experiments').'</TD>
-                <TD>'.lang('default_for_active_participants').'</TD>
-                <TD>'.lang('default_for_inactive_participants').'</TD>
-                <TD>'.lang('subjects').'</TD>';
-    if (check_allow('participantstatus_edit')) echo '<TD></TD>';
-    echo '
-            </TR></thead>
-            <tbody>';
+    echo '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
+    echo '<div class="orsee-table-row orsee-table-head">';
+    echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('id').'</div>';
+    echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('name').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('access_to_profile').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('eligible_for_experiments').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('default_for_active_participants').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('default_for_inactive_participants').'</div>';
+    echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('subjects').'</div>';
+    if (check_allow('participantstatus_edit')) echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('action').'</div>';
+    echo '</div>';
 
     // load status names from lang table
     $status_names=lang__load_lang_cat('participant_status_name');
@@ -52,38 +48,40 @@ if ($proceed) {
     $result=or_query($query);
     $shade=false;
     while ($line=pdo_fetch_assoc($result)) {
-        echo '  <tr class="small"';
-        if ($shade) echo ' bgcolor="'.$color['list_shade1'].'"';
-        else echo ' bgcolor="'.$color['list_shade2'].'"';
-        echo '>
-                <TD>'.$line['status_id'].'</TD>
-                <td valign=top>'.$status_names[$line['status_id']].'</td>
-                <TD>'.$line['access_to_profile'].'</TD>
-                <TD>'.$line['eligible_for_experiments'].'</TD>
-                <TD>';
-        if ($line['is_default_active']=='y') echo '<B>'.lang('y').'</B>';
-        echo '</TD>
-                <TD>';
-        if ($line['is_default_inactive']=='y') echo '<B>'.lang('y').'</B>';
-        echo '</TD>
-                <TD>';
+        $row_class='orsee-table-row';
+        if ($shade) {
+            $row_class.=' is-alt';
+            $shade=false;
+        } else {
+            $shade=true;
+        }
+
+        echo '<div class="'.$row_class.'">';
+        echo '<div class="orsee-table-cell" data-label="'.lang('id').'" style="white-space: nowrap;">'.$line['status_id'].'</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('name').'" style="white-space: nowrap;">'.$status_names[$line['status_id']].'</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('access_to_profile').'">'.$line['access_to_profile'].'</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('eligible_for_experiments').'">'.$line['eligible_for_experiments'].'</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('default_for_active_participants').'">';
+        if ($line['is_default_active']=='y') echo '<strong>'.lang('y').'</strong>';
+        echo '</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('default_for_inactive_participants').'">';
+        if ($line['is_default_inactive']=='y') echo '<strong>'.lang('y').'</strong>';
+        echo '</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('subjects').'" style="white-space: nowrap;">';
         if (isset($status_counts[$line['status_id']])) echo $status_counts[$line['status_id']];
         else echo '0';
-        echo '</TD>';
+        echo '</div>';
         if (check_allow('participantstatus_edit')) {
-            echo '<td valign=top>';
-            echo '<A HREF="participant_status_edit.php?status_id='.$line['status_id'].'">'.lang('edit').'</A>';
-            echo '</td>';
+            echo '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'" style="white-space: nowrap;">';
+            echo button_link('participant_status_edit.php?status_id='.$line['status_id'],lang('edit'),'pencil-square-o');
+            echo '</div>';
         }
-        echo '</tr>';
-        if ($shade) $shade=false; else $shade=true;
+        echo '</div>';
     }
-   echo '</tbody></table>';
+   echo '</div>';
 
-   echo '<BR><BR>
-                <A href="options_main.php">'.icon('back').' '.lang('back').'</A><BR><BR>';
-
-   echo '</CENTER>';
+   echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
+   echo '</div>';
 
 
 }

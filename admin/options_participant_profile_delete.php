@@ -21,15 +21,23 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    $field=orsee_db_load_array("profile_fields",$field_name,"mysql_column_name");
-    $allvalues=participantform__allvalues();
-    if (!isset($field['mysql_column_name'])) {
-        $field['mysql_column_name']=$field_name;
+    $field_row=orsee_db_load_array("profile_fields",$field_name,"mysql_column_name");
+    $profile_field_specs=participant__profile_field_editor_specs();
+    if (!isset($field_row['mysql_column_name'])) {
+        $field=array(
+            'mysql_column_name'=>$field_name,
+            'enabled'=>'y',
+            'name_lang'=>$field_name,
+            'type'=>'select_lang'
+        );
+        $field=participant__profile_field_properties_normalize($field,$profile_field_specs);
     } else {
-        $prop=db_string_to_property_array($field['properties']); unset($field['properties']);
-        foreach ($prop as $k=>$v) $field[$k]=$v;
+        $policy=participant__profile_field_policy_load($field_row,$profile_field_specs);
+        $field=$policy['draft']['baseline'];
+        $field['mysql_column_name']=$field_name;
+        $field['enabled']=($policy['draft']['enabled']==='y' ? 1 : 0);
+        $field['type']=$policy['draft']['type'];
     }
-    foreach ($allvalues as $k=>$v) if (!isset($field[$k])) $field[$k]=$v;
 }
 
 if ($proceed) {
@@ -64,39 +72,36 @@ if ($proceed) {
 if ($proceed) {
     // form
 
-    echo '  <CENTER>
-            <FORM action="options_participant_profile_delete.php" method="POST">
-            <INPUT type="hidden" name="mysql_column_name" value="'.$field_name.'">
-            '.csrf__field().'
-            <TABLE class="or_formtable">
-                <TR><TD colspan="2">
-                    <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                            <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                                '.lang('delete_participant_profile_field').' "'.$field_name.'"
-                            </TD>
-                    </TR></TABLE>
-                </TD></TR>
-                <TR>
-                    <TD colspan=2>'.lang('really_delete_profile_form_field?').'<BR><BR>
-                                <B>'.lang('delete_profile_form_field_note').'</B><BR><BR>';
-    dump_array($field);
-    echo '          </TD>
-                </TR>
-                <TR>
-                <TD align=center>
-                <INPUT class="button" type="submit" name="reallydelete" value="'.lang('yes_delete').'">
-                </TD>
-            </TR>
-            <TR>
-                <TD align="right" colspan=2><BR><BR>
-                '.button_link('options_participant_profile_edit.php?mysql_column_name='.urlencode($field_name),
-                                        lang('no_sorry'),'undo bicongreen').'
-                </TD>
-            </TR>
-            </TABLE>
-
-            </FORM>
-            </center>';
+    echo '<div class="orsee-panel orsee-form-shell">
+            <div class="orsee-panel-title">'.lang('delete_participant_profile_field').'</div>
+            <div class="orsee-content">
+                <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('really_delete_profile_form_field?').'<br><b>'.lang('delete_profile_form_field_note').'</b></div>
+                <div class="field">
+                    <label class="label">'.lang('mysql_column_name').'</label>
+                    <div><span class="orsee-dense-id-tag orsee-dense-id-tag--verbatim">'.htmlspecialchars($field_name).'</span></div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('type').'</label>
+                    <div>'.htmlspecialchars($field['type']).'</div>
+                </div>
+                <form action="options_participant_profile_delete.php" method="POST">
+                    <input type="hidden" name="mysql_column_name" value="'.$field_name.'">
+                    '.csrf__field().'
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                        <div class="orsee-form-row-col">
+                            <button class="button orsee-btn orsee-btn--delete" type="submit" name="reallydelete" value="1"><i class="fa fa-check-square"></i> '.lang('yes_delete').'</button>
+                        </div>
+                        <div class="orsee-form-row-col has-text-right">
+                            '.button_link(
+                                'options_participant_profile_edit.php?mysql_column_name='.urlencode($field_name),
+                                lang('no_sorry'),
+                                'undo'
+                            ).'
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>';
 
 }
 include ("footer.php");

@@ -56,7 +56,7 @@ if ($proceed) {
         $continue=true;
         if (!$_REQUEST['upload_name']) {
             $continue=false;
-            message (lang('error_no_upload_file_name'));
+            message (lang('error_no_upload_file_name'),'error');
         }
 
         if ($continue) {
@@ -84,56 +84,46 @@ if ($proceed) {
     //form for editing file
 
 
-    echo '<center>';
-
     show_message();
 
     echo '  <form method="post" action="download_edit.php">
                 <input type="hidden" name="file" value="'.$upload_id.'">
                 '.csrf__field().'
-
-            <table class="or_formtable">';
+                <div class="orsee-panel">
+                    <div class="orsee-form-shell">';
     if ($experiment_id) {
         $sessions=sessions__get_sessions($experiment_id);
-        echo '<TR>
-                    <TD>
-                            '.lang('session').':
-                    </TD>
-                    <TD>'.select__sessions($upload['session_id'],'session_id',$sessions).'
-                    </TD>
-            </TR>';
+        echo '          <div class="field">
+                            <label class="label">'.lang('session').':</label>
+                            <div class="control">
+                                <div class="select is-primary">'.select__sessions($upload['session_id'],'session_id',$sessions).'</div>
+                            </div>
+                        </div>';
     }
-    echo '  <TR>
-                <TD>
-                        '.lang('upload_category').':
-                </TD>
-                <TD>'.language__selectfield_item('file_upload_category','','upload_type',$upload['upload_type'],false,'fixed_order').'
-                </TD>
-            </TR>
-            <TR>
-                <TD>
-                    '.lang('upload_name').':
-                </TD>
-                <TD>
-                    <INPUT type="text" name="upload_name" size="30" maxlength="40" value="'.$upload['upload_name'].'">
-                </TD>
-            </TR>
-            <TR>
-                <TD></TD>
-                <TD>
-                    <input class="button" type="submit" name="edit" value="'.lang('save').'">
-                    <BR><BR>
-                </TD>
-            </TR>
-        </TABLE>
+    echo '          <div class="field">
+                        <label class="label">'.lang('upload_category').':</label>
+                        <div class="control">
+                            <div class="select is-primary">'.language__selectfield_item('file_upload_category','','upload_type',$upload['upload_type'],false,'fixed_order').'</div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="upload_name">'.lang('upload_name').':</label>
+                        <div class="control">
+                            <input id="upload_name" class="input is-primary orsee-input orsee-input-text" type="text" name="upload_name" maxlength="40" value="'.$upload['upload_name'].'">
+                        </div>
+                    </div>
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2 orsee-form-actions">
+                        <div class="orsee-form-row-col has-text-left">';
+    if ($experiment_id) echo button_back('download_main.php?experiment_id='.urlencode($experiment_id),lang('back'));
+    else echo button_back('download_main.php');
+    echo '              </div>
+                        <div class="orsee-form-row-col has-text-right">
+                            <input class="button orsee-btn" type="submit" name="edit" value="'.lang('save').'">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </form>';
-
-    if ($experiment_id) echo '<A href="download_main.php?experiment_id='.urlencode($experiment_id).'">'.icon('back').' '.lang('back').'</A>';
-    else echo '<A href="download_main.php">'.icon('back').' '.lang('back').'</A>';
-
-
-    echo '
-        </center>';
 
 }
 include ("footer.php");

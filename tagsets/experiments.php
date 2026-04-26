@@ -139,60 +139,124 @@ function experiment__current_experiment_summary($experimenter="",$finished="n",$
             }
         }
 
-    echo '
-
-        <center>
-        <BR>
-        <table class="or_panel">';
     if ($show_filter) {
-        echo '<TR><TD colspan=2>
-                    <FORM action="'.thisdoc().'"><TABLE border=0><TR><TD>'.
-                    lang('restrict_list_to_experiments_of_class').'</TD><TD>';
-                    echo experiment__experiment_class_select_field('class_search',$class_arr,true,array('cols'=>30,'picker_maxnumcols'=>3));
-        echo '  </TD><TD rowspan=2 valign=middle>
-                    <INPUT class="button" style="font-size: 8pt; margin: 0;" type=submit name="show" value="'.lang('show').'">
-                    </TD></TR><TR><TD>'.
-                    lang('restrict_list_to_experimenters').'</TD><TD>';
-                    echo experiment__experimenters_select_field("experimenter_search",$experimenter_arr,true,array('cols'=>30,'tag_color'=>'#f1c06f','picker_color'=>'#c58720','picker_maxnumcols'=>3));
-        echo '  </TD></TR></TABLE></FORM>
-            </TD></TR>';
-    }
-    echo '
-        <TR>
-        <TD colspan=2>
-            <TABLE width="100%" border=0 class="or_panel_title"><TR><TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'">';
-                if ($finished=="y") echo lang('finished_experiments');
-                elseif ($experimenter) echo lang('my_experiments');
-                else echo lang('experiments');
-                echo '</TD><TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'">';
-                    if ($addbutton && check_allow('experiment_edit')) echo button_link("experiment_edit.php?addit=true",lang('register_new_experiment'),'plus-circle');
-                    if(!$experimenter) {
-                            if ($finished=="n") echo button_link("experiment_old.php",lang('finished_experiments'),'fast-backward');
-                            else echo button_link("experiment_main.php",lang('current_experiments'),'fast-forward');
-                    }
-            echo '</TD></TR>
-            </TABLE>
-        </TD></TR>
-        <TR><TD colspan=2>';
-        echo count($experiments).' ';
-        if ($finished=="n") echo lang('xxx_current_experiments');
-        else echo lang('xxx_finished_experiments');
-        echo '
-        </TD></TR>
-        <TR><TD width="5%">&nbsp;&nbsp;&nbsp;</TD>
-        <TD width="95%" colspan=2>
-
-            <TABLE border=0 width="100%" cellspacing="0">';
-            foreach ($experiments as $id=>$exp) {
-                if ($finished=="n") experiment__experiments_format_alist($exp);
-                else experiment__old_experiments_format_alist($exp);
+        echo '<div class="orsee-panel">';
+        $experimenter_options=array();
+        foreach($experimenters as $k=>$e) {
+            if (in_array($e['admin_id'],$experimenter_arr) || ($e['experimenter_list']=='y' && $e['disabled']!='y')) {
+                $experimenter_options[(string)$e['admin_id']]=$e['lname'].', '.$e['fname'];
             }
-        echo '</TABLE>
-        </TD></TR>
-        </TABLE>
-        </center>
-        <BR><BR>
-        ';
+        }
+        asort($experimenter_options);
+
+        $class_options=$experimentclasses;
+        asort($class_options);
+        $num_filters_selected=0;
+        if (isset($_REQUEST['class_search']) && $_REQUEST['class_search']) {
+            $num_filters_selected += count($class_arr);
+        }
+        if (isset($_REQUEST['experimenter_search']) && $_REQUEST['experimenter_search']) {
+            $num_filters_selected += count($experimenter_arr);
+        }
+        $num_filters_active=count($class_arr)+count($experimenter_arr);
+        if ($num_filters_active>0) {
+            $filter_summary=$num_filters_active.' selected';
+        } else {
+            $filter_summary='No filters';
+        }
+
+        echo '<div class="orsee-filter" data-orsee-filter-selected="'.$num_filters_selected.'">
+                <div class="orsee-filter-mobilebar">
+                    <a href="#" class="orsee-filter-mobiletoggle" aria-expanded="false">Filter</a>
+                    <span class="orsee-filter-mobilesummary">'.$filter_summary.'</span>
+                </div>
+                <form action="'.thisdoc().'" class="orsee-filter-form">
+                    <div class="orsee-filter-fields">
+                        <div class="orsee-filter-row">
+                            <label class="orsee-filter-label">'.lang('restrict_list_to_experiments_of_class').'</label>
+                            <div class="orsee-picker-field">'.get_tag_picker('class_search',$class_options,$class_arr,array('tag_bg_color'=>'--color-selector-tag-bg-class')).'</div>
+                        </div>
+                        <div class="orsee-filter-row">
+                            <label class="orsee-filter-label">'.lang('restrict_list_to_experimenters').'</label>
+                            <div class="orsee-picker-field">'.get_tag_picker('experimenter_search',$experimenter_options,$experimenter_arr,array('tag_bg_color'=>'--color-selector-tag-bg-experimenters')).'</div>
+                        </div>
+                    </div>
+                    <div class="orsee-filter-actions">
+                        <button class="button orsee-btn" type="submit" name="show">'.lang('show').'</button>
+                    </div>
+                </form>
+                <script>
+                (function() {
+                    var root = document.currentScript ? document.currentScript.parentNode : null;
+                    if (!root) return;
+                    if (root.getAttribute("data-orsee-filter-init") === "1") return;
+                    root.setAttribute("data-orsee-filter-init", "1");
+                    var btn = root.querySelector(".orsee-filter-mobiletoggle");
+                    var form = root.querySelector(".orsee-filter-form");
+                    if (!btn || !form) return;
+
+                    var hasSelections = parseInt(root.getAttribute("data-orsee-filter-selected"), 10) > 0;
+                    var mq = window.matchMedia("(max-width: 1100px)");
+
+                    function applyState() {
+                        if (!mq.matches) {
+                            root.classList.remove("is-collapsed");
+                            root.classList.remove("is-open");
+                            btn.setAttribute("aria-expanded", "true");
+                            return;
+                        }
+                        if (!root.classList.contains("is-open") && !hasSelections) {
+                            root.classList.add("is-collapsed");
+                            btn.setAttribute("aria-expanded", "false");
+                        } else {
+                            root.classList.add("is-open");
+                            root.classList.remove("is-collapsed");
+                            btn.setAttribute("aria-expanded", "true");
+                        }
+                    }
+
+                    btn.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        root.classList.toggle("is-open");
+                        root.classList.toggle("is-collapsed", !root.classList.contains("is-open"));
+                        btn.setAttribute("aria-expanded", root.classList.contains("is-open") ? "true" : "false");
+                    });
+
+                    if (mq.addEventListener) mq.addEventListener("change", applyState);
+                    else if (mq.addListener) mq.addListener(applyState);
+                    applyState();
+                })();
+                </script>
+              </div>';
+        echo '</div>';
+    }
+
+    echo '<div class="orsee-panel">';
+    echo '<div class="orsee-panel-title">';
+    echo '<div>';
+    echo count($experiments).' ';
+    if ($finished=="n") echo lang('xxx_current_experiments');
+    else echo lang('xxx_finished_experiments');
+    echo '</div>';
+    echo '<div class="orsee-panel-actions">';
+    if ($addbutton && check_allow('experiment_edit')) echo button_link("experiment_edit.php?addit=true",lang('register_new_experiment'),'plus-circle');
+    if ($experimenter && $finished=="n" && (check_allow('calendar_view_my') || check_allow('calendar_view_all'))) {
+        echo button_link("calendar_main.php?experimenter_id=".urlencode((string)$experimenter),lang('show_my_calendar'),'calendar');
+    }
+    if(!$experimenter) {
+        if ($finished=="n") echo button_link("experiment_old.php",lang('finished_experiments'),'fast-backward','','data-orsee-mobile-hide="exp-switch"');
+        else echo button_link("experiment_main.php",lang('current_experiments'),'fast-forward','','data-orsee-mobile-hide="exp-switch"');
+    }
+    echo '</div>';
+    echo '</div>';
+
+    echo '<div class="orsee-dense-list">';
+    foreach ($experiments as $id=>$exp) {
+        if ($finished=="n") experiment__experiments_format_alist($exp);
+        else experiment__old_experiments_format_alist($exp);
+    }
+    echo '</div>';
+    echo '</div><br><br>';
 }
 
 function experiment__list_experimenters($namelist,$showlinks=true,$realnames=false,$just_emails=false,$reverse_names=false) {
@@ -218,11 +282,10 @@ function experiment__list_experimenters($namelist,$showlinks=true,$realnames=fal
             }  else {
                 $item=$admin;
             }
-            if ($admin==$expadmindata['admin_id']) $item='<b>'.$item.'</b>';
             $list[]=$item;
         }
         $string='';
-        if ($showlinks && count($emails)>0) $string.='<A class="small" HREF="mailto:'.implode(",",$emails).'">';
+        if ($showlinks && count($emails)>0) $string.='<A HREF="mailto:'.implode(",",$emails).'">';
         natsort($list);
         $string.=implode(", ",$list);
         if ($showlinks && count($emails)>0) $string.='</A>';
@@ -254,7 +317,7 @@ function experiment__load_experimenters() {
 function check_experiment_allowed ($experiment_var,$redirect="admin/experiment_main.php") {
     if (!experiment__allowed($experiment_var)) {
         global $lang;
-        message(lang('error_experiment_access_restricted'));
+        message(lang('error_experiment_access_restricted'),'error');
         redirect ($redirect);
         }
 }
@@ -293,7 +356,7 @@ function experiment__check_required($varname) {
 
 
 function experiment__experiments_format_alist($alist) {
-    global $lang, $color, $roweven;
+    global $lang, $roweven;
     extract($alist);
 
     $exptypes=load_external_experiment_types();
@@ -305,78 +368,82 @@ function experiment__experiments_format_alist($alist) {
     if (!isset($num_registered)) $num_registered=0;
     if ($no_sessions==1) $num_sessions=0;
 
-        echo '<tr';
-        if ($roweven) echo ' bgcolor="'.$color['list_shade1'].'"';
-        else echo ' bgcolor="'.$color['list_shade2'].'"';
-        echo '><td>';
+    if (!isset($exptypes[$experiment_ext_type]['exptype_name'])) $exptypes[$experiment_ext_type]['exptype_name']='type undefined';
+    $ssicons=array("planned"=>"wrench","live"=>"spinner fa-spin fa-fw","completed"=>"thumbs-o-up","balanced"=>"money");
 
-    if (check_allow('experiment_show')) echo '<A HREF="experiment_show.php?experiment_id='.$experiment_id.'">';
-    echo '<span style="color: black; font-weight: bold; text-decoration: underline;" title="experiment name; click to edit experiment">'.$experiment_name.' ('.$experiment_public_name.')</span>';
-    if (check_allow('experiment_show')) echo '</A>';
+    $rowclass=$roweven ? 'is-even' : 'is-odd';
 
-        echo '</td>
-            <td align="center">';
-        if ($num_sessions>0) {
-            echo '<span title="first and last session"><i class="fa fa-calendar" style="font-size: 9pt; padding-right: 3px;"></i>'.
-            ortime__format(ortime__sesstime_to_unixtime($first_session_date),'hide_time');
-            echo '&nbsp;'.lang('to').'&nbsp;'.ortime__format(ortime__sesstime_to_unixtime($last_session_date),'hide_time').'</span>';
-        }
-        if (!isset($exptypes[$experiment_ext_type]['exptype_name'])) $exptypes[$experiment_ext_type]['exptype_name']='type undefined';
-        echo '</td>
-            <TD><span title="experiment type">'.lang($experiment_type).' ('.$exptypes[$experiment_ext_type]['exptype_name'].')</span></TD>
-            </TR>
-            <TR';
-        if ($roweven) echo ' bgcolor="'.$color['list_shade1'].'"';
-        else echo ' bgcolor="'.$color['list_shade2'].'"';
-        echo '>
-        <TD class="small">
-            <A HREF="mailto:'.experiment__list_experimenters($experimenter_mail,false,false,true).
-            '" class="explist_link small" title="email to experimenters">'.
-            experiment__list_experimenters($experimenter,false,true).'</A></TD>
-        <TD class="small" align="center">';
-            if ($experiment_type=="laboratory") {
-                echo lang('sessions').': <span style="font-weight: bold;" title="number of sessions">'.$num_sessions.'</span>';
-                echo '&nbsp&nbsp&nbsp<span title="number of subjects assigned / enroled / participated"><i class="fa fa-users" style="font-size: 7pt; padding-right: 2px;"></i>'.
-                $num_assigned.'/'.$num_registered.'/'.$num_participated.'</span>';
+    echo '<div class="orsee-dense-row orsee-dense-row--experiment '.$rowclass.'">';
+    echo '<div class="orsee-dense-grid">';
+
+    echo '<div class="orsee-dense-cell is-row1">';
+    if (check_allow('experiment_show')) echo '<a href="experiment_show.php?experiment_id='.$experiment_id.'" class="orsee-dense-row-title">';
+    else echo '<span class="orsee-dense-row-title">';
+    echo $experiment_name.' ('.$experiment_public_name.')';
+    if (check_allow('experiment_show')) echo '</a>';
+    else echo '</span>';
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell is-row1 is-col2">';
+    if ($num_sessions>0) {
+        $first=ortime__format(ortime__sesstime_to_unixtime($first_session_date),'hide_time:true');
+        $last=ortime__format(ortime__sesstime_to_unixtime($last_session_date),'hide_time:true');
+        echo '<i class="fa fa-calendar"></i> <bdi>'.$first.'</bdi> '.lang('to').' <bdi>'.$last.'</bdi>';
+    } else {
+        echo '-';
+    }
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell orsee-dense-cell-right is-row1">';
+    echo '<span class="orsee-dense-row-type">'.lang($experiment_type).' ('.$exptypes[$experiment_ext_type]['exptype_name'].')</span>';
+    echo '</div>';
+
+    $classlist=trim((string)experiment__experiment_class_field_to_list($experiment_class));
+
+    echo '<div class="orsee-dense-cell is-row2">';
+    echo '<a href="mailto:'.experiment__list_experimenters($experimenter_mail,false,false,true).'" class="orsee-dense-link orsee-dense-link-muted">'.experiment__list_experimenters($experimenter,false,true).'</a>';
+    if ($classlist!=="") {
+        echo '<div class="orsee-dense-row-class">'.$classlist.'</div>';
+    }
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell is-row2 is-col2">';
+    if ($experiment_type=="laboratory") {
+        echo '<span><strong>'.lang('sessions').':</strong> '.$num_sessions.' <strong><i class="fa fa-users"></i>:</strong> '.$num_assigned.'/'.$num_registered.'/'.$num_participated.'</span>';
+    } else {
+        echo '-';
+    }
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell orsee-dense-cell-sessions is-row2">';
+    if (count($sessions)>0) {
+        echo '<div class="orsee-dense-sessions-list">';
+        foreach ($sessions as $s) {
+            if (isset($s['num_registered'])) $reg=$s['num_registered']; else $reg=0;
+            if ($reg < $s['part_needed']) {
+                $regfontcolor='var(--color-session-not-enough-participants)';
+            }  elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
+                $regfontcolor='var(--color-session-not-enough-reserve)';
+            } else {
+                $regfontcolor='var(--color-session-complete)';
             }
-        echo '</TD>
-            <TD class="small" rowspan=2 valign="top">
-                <TABLE border=0 cellpadding=0 cellspacing=0>';
-                $ssicons=array("planned"=>"wrench","live"=>"spinner fa-spin fa-fw","completed"=>"thumbs-o-up","balanced"=>"money");
-                foreach ($sessions as $s) {
-                    if (isset($s['num_registered'])) $reg=$s['num_registered']; else $reg=0;
-                    if ($reg < $s['part_needed']) {
-                        $regfontcolor=$color['session_not_enough_participants'];
-                    }  elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
-                        $regfontcolor=$color['session_not_enough_reserve'];
-                    } else {
-                        $regfontcolor=$color['session_complete'];
-                    }
-                    echo '<TR><TD>';
-                    echo '<A HREF="session_edit.php?session_id='.$s['session_id'].'" class="explist_link small" title="'.$s['session_status'].' session; click to edit session">';
-                    echo '<span class="session_status_'.$s['session_status'].'">';
-                    echo '<i class="fa fa-'.$ssicons[$s['session_status']].'" style="font-size: 8pt;"></i>';
-                    echo ortime__format(ortime__sesstime_to_unixtime($s['session_start']));
-                    echo '</span>';
-                    echo '</A>';
-                    echo '</TD><TD>&nbsp;&nbsp;</TD><TD align=right>';
-                    echo '<A HREF="experiment_participants_show.php?experiment_id='.$experiment_id.'&session_id='.
-                    $s['session_id'].'" class="explist_link small" title="signed-up (needed, reserve); click to see participants list" style="color: '.$regfontcolor.';">';
-                    echo $reg.'&nbsp;('.$s['part_needed'].','.$s['part_reserve'].')';
-                    echo '</A>';
-                    echo '</TD></TR>';
-                }
-        echo '</TABLE></TD>
-        </TR>
-        <TR';
-        if ($roweven) echo ' bgcolor="'.$color['list_shade1'].'"';
-        else echo ' bgcolor="'.$color['list_shade2'].'"';
-        echo '><TD colspan=2 class="small" valign="top">
-                <span style="color: #888888;" title="experiment classifications">';
-        echo experiment__experiment_class_field_to_list($experiment_class);
-        echo '</span>
-        </TD>
-        </TR>';
+            $s_start=ortime__sesstime_to_unixtime($s['session_start']);
+            echo '<div class="orsee-dense-session-item">';
+            echo '<span class="orsee-dense-session-status"><span class="session_status_'.$s['session_status'].'"><i class="fa fa-'.$ssicons[$s['session_status']].'"></i></span></span>';
+            echo '<span class="orsee-dense-session-main">';
+            echo '<a href="session_edit.php?session_id='.$s['session_id'].'" class="orsee-dense-session-datetime-link is-'.htmlspecialchars($s['session_status']).'"><bdi>'.ortime__format($s_start,'hide_time:true').'</bdi> <bdi>'.ortime__format($s_start,'hide_date:true,hide_second:true').'</bdi></a> ';
+            echo '<a href="experiment_participants_show.php?experiment_id='.$experiment_id.'&session_id='.$s['session_id'].'" class="orsee-dense-session-count-link" style="color: '.$regfontcolor.';">'.$reg.' ('.$s['part_needed'].','.$s['part_reserve'].')</a>';
+            echo '</span>';
+            echo '</div>';
+        }
+        echo '</div>';
+    } else {
+        echo '-';
+    }
+    echo '</div>';
+
+    echo '</div>';
+    echo '</div>';
 
 }
 //-----------------------------------------------------------------------
@@ -384,7 +451,7 @@ function experiment__experiments_format_alist($alist) {
 
 // finished experiments - overview table
 function experiment__old_experiments_format_alist($alist) {
-    global $lang, $color;
+    global $lang;
     static $shade=true;
     extract($alist);
 
@@ -397,88 +464,92 @@ function experiment__old_experiments_format_alist($alist) {
     if (!isset($num_participated)) $num_participated=0;
     if ($no_sessions==1) $num_sessions=0;
 
-    echo '<tr bgcolor="';
-    if ($shade) echo $color['list_shade1']; else echo $color['list_shade2'];
-    echo '"><td class="small">';
+    if (!isset($exptypes[$experiment_ext_type]['exptype_name'])) $exptypes[$experiment_ext_type]['exptype_name']='type undefined';
 
-    if (check_allow('experiment_show')) echo '<A HREF="experiment_show.php?experiment_id='.$experiment_id.'">';
-    echo '<span class="small" style="color: black; font-weight: bold; text-decoration: underline;" title="experiment name; click to edit experiment">'.$experiment_name.' ('.$experiment_public_name.')</span>';
-    if (check_allow('experiment_show')) echo '</A>';
+    $rowclass=$shade ? 'is-even' : 'is-odd';
+    $ssicons=array("planned"=>"wrench","live"=>"spinner fa-spin fa-fw","completed"=>"thumbs-o-up","balanced"=>"money");
+    $classlist=trim((string)experiment__experiment_class_field_to_list($experiment_class));
 
-        echo '</td>
-            <td class="small">';
-        if ($num_sessions>0) {
-            echo '<span title="first and last session"><i class="fa fa-calendar" style="font-size: 9pt; padding-right: 3px;"></i>'.
-            ortime__format(ortime__sesstime_to_unixtime($first_session_date),'hide_time');
-            echo '&nbsp;'.lang('to').'&nbsp;'.ortime__format(ortime__sesstime_to_unixtime($last_session_date),'hide_time').'</span>';
-        }
-        echo '&nbsp;<span title="experiment type">'.$lang[$experiment_type].' ('.$exptypes[$experiment_ext_type]['exptype_name'].')</span></TD>
-            <TD class="small">';
-            if ($experiment_type=="laboratory") {
-                    if (!isset($comp_num_registered)) $comp_num_registered=0;
-                    if (!isset($comp_num_noshow)) $comp_num_noshow=0;
-                    if ($comp_num_registered==0) $noshowrate="??";
-                    else $noshowrate=round(($comp_num_noshow/$comp_num_registered)*100,1).'%';
+    echo '<div class="orsee-dense-row orsee-dense-row--experiment '.$rowclass.' is-all-compact">';
+    echo '<div class="orsee-dense-grid">';
 
-                echo lang('sessions').': <span style="font-weight: bold;" title="number of sessions">'.$num_sessions.'</span>';
-                echo '&nbsp&nbsp&nbsp<span title="number of subjects assigned / enroled / participated"><i class="fa fa-users" style="font-size: 7pt; padding-right: 2px;"></i>'.
-                $num_assigned.'/'.$num_registered.'/'.$num_participated.'</span>';
-                echo '&nbsp&nbsp;<span title="noshow rate">'.str_replace("-","&#8209;",lang('noshowup')).':&nbsp;'.$noshowrate.'</span>';
+    echo '<div class="orsee-dense-cell is-row1">';
+    if (check_allow('experiment_show')) echo '<a href="experiment_show.php?experiment_id='.$experiment_id.'" class="orsee-dense-row-title">';
+    else echo '<span class="orsee-dense-row-title">';
+    echo $experiment_name.' ('.$experiment_public_name.')';
+    if (check_allow('experiment_show')) echo '</a>';
+    else echo '</span>';
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell is-row1 is-col2">';
+    if ($num_sessions>0) {
+        $first=ortime__format(ortime__sesstime_to_unixtime($first_session_date),'hide_time:true');
+        $last=ortime__format(ortime__sesstime_to_unixtime($last_session_date),'hide_time:true');
+        echo '<i class="fa fa-calendar"></i> <bdi>'.$first.'</bdi> '.lang('to').' <bdi>'.$last.'</bdi>';
+    } else {
+        echo '-';
+    }
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell orsee-dense-cell-right is-row1">';
+    echo '<span class="orsee-dense-row-type">'.lang($experiment_type).' ('.$exptypes[$experiment_ext_type]['exptype_name'].')</span>';
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell is-row2">';
+    echo '<a href="mailto:'.experiment__list_experimenters($experimenter_mail,false,false,true).'" class="orsee-dense-link orsee-dense-link-muted">'.experiment__list_experimenters($experimenter,false,true).'</a>';
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell is-row2 is-col2">';
+    if ($experiment_type=="laboratory") {
+        if (!isset($comp_num_registered)) $comp_num_registered=0;
+        if (!isset($comp_num_noshow)) $comp_num_noshow=0;
+        if ($comp_num_registered==0) $noshowrate="??";
+        else $noshowrate=round(($comp_num_noshow/$comp_num_registered)*100,1).'%';
+        echo '<span><strong>'.lang('sessions').':</strong> '.$num_sessions.' <strong><i class="fa fa-users"></i>:</strong> '.$num_assigned.'/'.$num_registered.'/'.$num_participated.' <strong>'.str_replace("-","&#8209;",lang('noshowup')).':</strong> '.$noshowrate.'</span>';
+    } else {
+        echo '-';
+    }
+    echo '</div>';
+
+    echo '<div class="orsee-dense-cell orsee-dense-cell-sessions is-row2">';
+    if (count($sessions)>0) {
+        echo '<div class="orsee-dense-row-warning"><i class="fa fa-exclamation-triangle"></i> Incomplete sessions!</div>';
+        echo '<div class="orsee-dense-sessions-list">';
+        foreach ($sessions as $s) {
+            if (isset($s['num_registered'])) $reg=$s['num_registered']; else $reg=0;
+            if ($reg < $s['part_needed']) {
+                $regfontcolor='var(--color-session-not-enough-participants)';
+            }  elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
+                $regfontcolor='var(--color-session-not-enough-reserve)';
+            } else {
+                $regfontcolor='var(--color-session-complete)';
             }
-        echo '</TD>
-            </TR>
-            <TR bgcolor="';
-            if ($shade) echo $color['list_shade1']; else echo $color['list_shade2'];
-            echo '">
-        <TD class="small" valign="top">
-            <A HREF="mailto:'.experiment__list_experimenters($experimenter_mail,false,false,true).
-            '" class="explist_link small" title="email to experimenters">'.
-            experiment__list_experimenters($experimenter,false,true).'</A></TD>
-        <TD class="small" valign="top">
-                <span style="color: #888888;" title="experiment classifications">';
-            echo experiment__experiment_class_field_to_list($experiment_class);
-            echo '</span>
-        </TD>
-        <TD class="small" valign="top">';
-        if (count($sessions)>0) {
-                echo '
-                <TABLE border=0 cellpadding=0 cellspacing=0>
-                <TR><TD colspan=3 class="small"><span style="color: red;"><i class="fa fa-exclamation-triangle" style="font-size: 8pt;"></i>Incomplete sessions!</span></TD></TR>';
-                $ssicons=array("planned"=>"wrench","live"=>"spinner fa-spin fa-fw","completed"=>"thumbs-o-up","balanced"=>"money");
-                foreach ($sessions as $s) {
-                    if (isset($s['num_registered'])) $reg=$s['num_registered']; else $reg=0;
-                    if ($reg < $s['part_needed']) {
-                        $regfontcolor=$color['session_not_enough_participants'];
-                    }  elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
-                        $regfontcolor=$color['session_not_enough_reserve'];
-                    } else {
-                        $regfontcolor=$color['session_complete'];
-                    }
-                    echo '<TR><TD>';
-                    echo '<A HREF="session_edit.php?session_id='.$s['session_id'].'" class="explist_link small" title="'.$s['session_status'].' session; click to edit session">';
-                    echo '<span class="session_status_'.$s['session_status'].'">';
-                    echo '<i class="fa fa-'.$ssicons[$s['session_status']].'" style="font-size: 8pt;"></i>';
-                    echo ortime__format(ortime__sesstime_to_unixtime($s['session_start']));
-                    echo '</span>';
-                    echo '</A>';
-                    echo '</TD><TD>&nbsp;&nbsp;</TD><TD align=right>';
-                    echo '<A HREF="experiment_participants_show.php?experiment_id='.$experiment_id.'&session_id='.
-                    $s['session_id'].'" class="explist_link small" title="signed-up (needed, reserve); click to see participants list" style="color: '.$regfontcolor.';">';
-                    echo $reg.'&nbsp;('.$s['part_needed'].','.$s['part_reserve'].')';
-                    echo '</A>';
-                    echo '</TD></TR>';
-                }
-                echo '</TABLE>';
+            $s_start=ortime__sesstime_to_unixtime($s['session_start']);
+            echo '<div class="orsee-dense-session-item">';
+            echo '<span class="orsee-dense-session-status"><span class="session_status_'.$s['session_status'].'"><i class="fa fa-'.$ssicons[$s['session_status']].'"></i></span></span>';
+            echo '<span class="orsee-dense-session-main">';
+            echo '<a href="session_edit.php?session_id='.$s['session_id'].'" class="orsee-dense-session-datetime-link is-'.htmlspecialchars($s['session_status']).'"><bdi>'.ortime__format($s_start,'hide_time:true').'</bdi> <bdi>'.ortime__format($s_start,'hide_date:true,hide_second:true').'</bdi></a> ';
+            echo '<a href="experiment_participants_show.php?experiment_id='.$experiment_id.'&session_id='.$s['session_id'].'" class="orsee-dense-session-count-link" style="color: '.$regfontcolor.';">'.$reg.' ('.$s['part_needed'].','.$s['part_reserve'].')</a>';
+            echo '</span>';
+            echo '</div>';
         }
-        echo '</TD>
-        </TR>';
+        echo '</div>';
+    } elseif ($classlist!=="") {
+        echo '<div class="orsee-dense-row-class">'.$classlist.'</div>';
+    }
+    echo '</div>';
+
+    echo '</div>';
+    echo '</div>';
 
 }
 
 
-function experiment__exptype_select_field($postvarname,$var,$showvar,$selected,$hidden='') {
+function experiment__exptype_select_field($postvarname,$var,$showvar,$selected,$hidden='',$compact=false) {
 
-    echo '<SELECT name="'.$postvarname.'">';
+    echo '<span class="select is-primary';
+    if ($compact) echo ' select-compact';
+    echo '"><SELECT name="'.$postvarname.'">';
     $query="SELECT *
             FROM ".table('experiment_types')." as ttype, ".table('lang')." as tlang
             WHERE ttype.exptype_id=tlang.content_name
@@ -494,7 +565,7 @@ function experiment__exptype_select_field($postvarname,$var,$showvar,$selected,$
             echo '</OPTION>';
         }
     }
-    echo '</SELECT>';
+    echo '</SELECT></span>';
 }
 
 // multipicker form fields
@@ -504,9 +575,6 @@ function experiment__experimenters_select_field($postvarname,$selected,$multi=tr
     global $lang;
     $out="";
     if (!is_array($mpoptions)) $mpoptions=array();
-    $default_options=array('cols'=>30,'tag_color'=>'#f1c06f','picker_color'=>'#c58720','picker_maxnumcols'=>3,'picker_icon'=>'user');
-    foreach ($default_options as $k=>$v) if (!isset($mpoptions[$k])) $mpoptions[$k]=$v;
-
 
     $experimenters=experiment__load_experimenters();
 
@@ -517,9 +585,9 @@ function experiment__experimenters_select_field($postvarname,$selected,$multi=tr
     }
     asort($mylist);
     if ($multi) {
-        $out.= get_multi_picker($postvarname,$mylist,$selected,$mpoptions);
+        $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
     } else {
-        $out.= '<SELECT name="'.$postvarname.'">
+        $out.= '<span class="select is-primary select-compact"><SELECT name="'.$postvarname.'">
                 <OPTION value=""'; if (!$selected) $out.= ' SELECTED'; $out.= '>-</OPTION>
                 ';
         foreach ($mylist as $k=>$v) {
@@ -527,7 +595,7 @@ function experiment__experimenters_select_field($postvarname,$selected,$multi=tr
                 if ($selected==$k) $out.= ' SELECTED'; $out.= '>'.$v.'</OPTION>
                 ';
         }
-        $out.= '</SELECT>
+        $out.= '</SELECT></span>
         ';
     }
     return $out;
@@ -539,12 +607,12 @@ function experiment__experiment_class_select_field($postvarname,$selected,$multi
     global $lang;
     $out="";
     if (!is_array($mpoptions)) $mpoptions=array();
-    $default_options=array('cols'=>40,'picker_maxnumcols'=>3);
-    foreach ($default_options as $k=>$v) if (!isset($mpoptions[$k])) $mpoptions[$k]=$v;
 
     $experimentclasses=experiment__load_experimentclassnames();
     $mylist=$experimentclasses;
-    if ($multi) $out.= get_multi_picker($postvarname,$mylist,$selected,$mpoptions);
+    if ($multi) {
+        $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
+    }
     else {
         $out.= '<SELECT name="'.$postvarname.'">
                 <OPTION value=""'; if (!$selected) $out.= ' SELECTED'; $out.= '>-</OPTION>
@@ -562,34 +630,32 @@ function experiment__experiment_class_select_field($postvarname,$selected,$multi
 
 
 function experiment__get_ethics_approval_desc($experiment,$maxsessiontime=-1) {
-    global $color;
     $out=lang('human_subjects_ethics_approval').':';
     if (!$experiment['ethics_by'] && !$experiment['ethics_number']) {
         $out.=' '.lang('ethics_not_entered_yet');
         $expired=false;
-        $row_bgcolor=$color['ethics_approval_not_entered'];
+        $row_bgcolor='var(--color-ethics-approval-not-entered)';
     } else {
-        $out.=' - '.lang('ethics_by').' '.$experiment['ethics_by'].'
-                '.lang('ethics_number').' '.$experiment['ethics_number'].', ';
+        $out.='<br>'.lang('ethics_by').' '.$experiment['ethics_by'].'
+                '.lang('ethics_number').' '.$experiment['ethics_number'];
         if ($experiment['ethics_exempt']=='y') {
-            $out.=lang('ethics_exempt_status');
             $expired=false;
-            $row_bgcolor=$color['ethics_approval_valid'];
+            $row_bgcolor='var(--color-ethics-approval-valid)';
         } else {
             $expiration_unixtime=ortime__sesstime_to_unixtime($experiment['ethics_expire_date']);
             if ($maxsessiontime==-1) $last_session_unixtime=time();
             else $last_session_unixtime=ortime__sesstime_to_unixtime($maxsessiontime);
             if ($expiration_unixtime>$last_session_unixtime) {
-                $out.=lang('ethics_expires_on').' '.ortime__format($expiration_unixtime,'hide_time:true');
+                $out.='<br>'.lang('ethics_expires_on').' '.ortime__format($expiration_unixtime,'hide_time:true');
                 $expired=false;
-                $row_bgcolor=$color['ethics_approval_valid'];
+                $row_bgcolor='var(--color-ethics-approval-valid)';
             } else {
-                $out.='<B>';
+                $out.='<br><B>';
                 if ($expiration_unixtime>time()) $out.=lang('ethics_will_expire_on');
                 else $out.=lang('ethics_has_expired_on');
                 $out.=' '.ortime__format($expiration_unixtime,'hide_time:true').'</B>';
                 $expired=true;
-                $row_bgcolor=$color['ethics_approval_expired'];
+                $row_bgcolor='var(--color-ethics-approval-expired)';
             }
         }
     }
@@ -830,9 +896,8 @@ function experiment__other_experiments_select_field($postvarname,$type="assigned
     }
 
     if (!is_array($mpoptions)) $mpoptions=array();
-    if (!isset($mpoptions['picker_icon'])) $mpoptions['picker_icon']='cogs';
     if ($multi) {
-        $out.= get_multi_picker($postvarname,$mylist,$selected,$mpoptions);
+        $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
     } else {
         $out.= '<SELECT name="'.$postvarname.'">
                 <OPTION value=""'; if (!$selected) $out.= ' SELECTED'; $out.= '>-</OPTION>

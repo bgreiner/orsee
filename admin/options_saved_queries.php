@@ -2,7 +2,6 @@
 // part of orsee. see orsee.org
 ob_start();
 
-$jquery=array();
 $title="options";
 $menu__area="options";
 include ("header.php");
@@ -49,7 +48,7 @@ if ($proceed) {
             if ($number>0) log__admin("query_delete","Type: ".$type.", Count: ".$number);
             redirect ("admin/options_saved_queries.php?type=".$type);
         } else {
-            message(lang('error__query_delete_no_queries_selected'));
+            message(lang('error__query_delete_no_queries_selected'),'warning');
             redirect ("admin/options_saved_queries.php?type=".$type);
         }
     }
@@ -68,54 +67,37 @@ if ($proceed) {
     $titles=array('participants_search_active'=>'saved_queries_for_active_participants',
                 'participants_search_all'=>'saved_queries_for_all_participants');
 
-    echo '<center>';
-    echo '<TABLE class="or_page_subtitle" style="background: '.$color['page_subtitle_background'].'; color: '.$color['page_subtitle_textcolor'].'">
-            <TR><TD align="center">
-            '.lang($titles[$type]).'
-            </TD>';
-    echo '</TR></TABLE><br>';
+    echo '<div class="orsee-panel">';
+    echo '<div class="orsee-panel-title"><div class="orsee-panel-title-main">'.lang($titles[$type]).'</div><div class="orsee-panel-actions"></div></div>';
 
     if (check_allow('pform_saved_queries_delete')) {
         echo '<FORM action="'.thisdoc().'" method="POST">
                 <INPUT type="hidden" name="type" value="'.$type.'">
                 '.csrf__field().'
                 ';
-        echo '<TABLE width=90% border=0>
-            <TD align=right>
-            <input class="button" type=submit name="deletesel" value="'.lang('delete_selected').'">
-            </TD></TR></TABLE>';
+        echo '<div class="orsee-options-actions-end">';
+        echo button_submit_delete('deletesel',lang('delete_selected'));
+        echo '</div>';
     }
-    echo '<TABLE class="or_listtable" style="width: 90%;">';
+    echo '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
+    $is_rtl=lang__is_rtl();
     // header
-    echo '
-        <thead>
-        <TR style="background: '.$color['list_header_background'].'; color: '.$color['list_header_textcolor'].';">
-        <TD>'.lang('date_and_time').'</TD>
-        <TD>'.lang('query').'</TD>';
-    if (check_allow('pform_saved_queries_delete')) {
-        echo '<TD>
+    echo '<div class="orsee-table-row orsee-table-head">';
+    if ($is_rtl && check_allow('pform_saved_queries_delete')) {
+        echo '<div class="orsee-table-cell">
             '.lang('select_all').'
-            <INPUT id="selall" type="checkbox" name="selall" value="y">
-            <script language="JavaScript">
-                $("#selall").change(function() {
-                    if (this.checked) {
-                        $("input[name*=\'del[\']").each(function() {
-                            this.checked = true;
-                        });
-                    } else {
-                        $("input[name*=\'del[\']").each(function() {
-                            this.checked = false;
-                        });
-                    }
-                });
-            </script>
-        </TD>';
+            '.javascript__selectall_checkbox_script('del').'
+        </div>';
     }
-    echo '
-          </TR>
-          </thead>
-          <tbody>
-        ';
+    echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('date_and_time').'</div>';
+    echo '<div class="orsee-table-cell">'.lang('query').'</div>';
+    if (!$is_rtl && check_allow('pform_saved_queries_delete')) {
+        echo '<div class="orsee-table-cell">
+            '.lang('select_all').'
+            '.javascript__selectall_checkbox_script('del').'
+        </div>';
+    }
+    echo '</div>';
 
     $shade=false; $ids=array();
     if ($type=='participants_search_active') $active=true; else $active=false;
@@ -124,27 +106,31 @@ if ($proceed) {
         $pseudo_query_array=query__get_pseudo_query_array($posted_query['query']);
         $pseudo_query_display=query__display_pseudo_query($pseudo_query_array,$active);
 
-        echo '<TR';
-        if ($shade) $shade=false; else $shade=true;
-        if ($shade) echo ' bgcolor="'.$color['list_shade1'].'"';
-        else echo ' bgcolor="'.$color['list_shade2'].'"';
-
-        echo '>
-            <TD>'.ortime__format($line['query_time'],'hide_second:false',lang('lang')).'</TD>
-            <TD>'.$pseudo_query_display.'</TD>';
-        $reference=array();
-        if (check_allow('pform_saved_queries_delete')) {
-            echo '<TD><INPUT type="checkbox" name="del['.$line['query_id'].']" value="y"></TD';
+        $row_class='orsee-table-row';
+        if ($shade) {
+            $row_class.=' is-alt';
+            $shade=false;
+        } else {
+            $shade=true;
         }
-        echo '</TR>';
+        echo '<div class="'.$row_class.'">';
+        if ($is_rtl && check_allow('pform_saved_queries_delete')) {
+            echo '<div class="orsee-table-cell" data-label="'.lang('action').'"><INPUT type="checkbox" name="del['.$line['query_id'].']" value="y"></div>';
+        }
+        echo '<div class="orsee-table-cell" data-label="'.lang('date_and_time').'" style="white-space: nowrap;">'.ortime__format($line['query_time'],'hide_second:false',lang('lang')).'</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('query').'">'.$pseudo_query_display.'</div>';
+        $reference=array();
+        if (!$is_rtl && check_allow('pform_saved_queries_delete')) {
+            echo '<div class="orsee-table-cell" data-label="'.lang('action').'"><INPUT type="checkbox" name="del['.$line['query_id'].']" value="y"></div>';
+        }
+        echo '</div>';
     }
-    echo '</tbody></TABLE>';
+    echo '</div>';
     if (check_allow('pform_saved_queries_delete')) {
         echo '</FORM>';
     }
-    echo '<BR><BR><A href="options_main.php">'.icon('back').' '.lang('back').'</A><BR><BR>';
-
-    echo '</center>';
+    echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
+    echo '</div>';
 
 }
 include ("footer.php");

@@ -106,40 +106,36 @@ if ($proceed) {
 if ($proceed) {
     // form
 
-    echo '  <CENTER>
-            <FORM action="payments_budget_delete.php" method="POST">
-            <INPUT type="hidden" name="budget_id" value="'.$budget_id.'">
-            '.csrf__field().'
-            <TABLE class="or_formtable">
-                <TR><TD colspan="2">
-                    <TABLE width="100%" border=0 class="or_panel_title"><TR>
-                            <TD style="background: '.$color['panel_title_background'].'; color: '.$color['panel_title_textcolor'].'" align="center">
-                                '.lang('delete_budget').' "'.$budget['budget_name'].'"
-                            </TD>
-                    </TR></TABLE>
-                </TD></TR>
-                <TR>
-                    <TD colspan=2>'.lang('really_delete_budget?').'<BR><BR>';
-    dump_array($budget);
-    echo '          </TD>
-                </TR>
-                <TR>
-                <TD align=left colspan=2>
-                '.lang('merge_budget_with').'
-                '.payments__budget_selectfield('merge_with','',array($budget_id)).'
-                <BR>
-                <INPUT class="button" type=submit name=reallydelete value="'.lang('yes_delete').'">
-                </TD>
-            </TR>
-            <TR>
-                <TD align=center colspan=2><BR><BR>
-                    <INPUT class="button" type=submit name=betternot value="'.lang('no_sorry').'">
-                </TD>
-            </TR>
-            </TABLE>
-
-            </FORM>
-            </center>';
+    echo '<div class="orsee-panel orsee-form-shell">
+            <div class="orsee-panel-title">'.lang('delete_budget').'</div>
+            <div class="orsee-content">
+                <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('really_delete_budget?').'</div>
+                <div class="field">
+                    <label class="label">'.lang('id').'</label>
+                    <div><span class="orsee-dense-id-tag">'.htmlspecialchars($budget['budget_id']).'</span></div>
+                </div>
+                <div class="field">
+                    <label class="label">'.lang('name').'</label>
+                    <div>'.htmlspecialchars($budget['budget_name']).'</div>
+                </div>
+                <form action="payments_budget_delete.php" method="POST">
+                    <input type="hidden" name="budget_id" value="'.$budget_id.'">
+                    '.csrf__field().'
+                    <div class="field">
+                        <label class="label">'.lang('merge_budget_with').'</label>
+                        <div><span class="select is-primary">'.payments__budget_selectfield('merge_with','',array($budget_id)).'</span></div>
+                    </div>
+                    <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
+                        <div class="orsee-form-row-col">
+                            <button class="button orsee-btn orsee-btn--delete" type="submit" name="reallydelete" value="1"><i class="fa fa-check-square"></i> '.lang('yes_delete').'</button>
+                        </div>
+                        <div class="orsee-form-row-col has-text-right">
+                            <button class="button orsee-btn" type="submit" name="betternot" value="1"><i class="fa fa-undo"></i> '.lang('no_sorry').'</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>';
 
 }
 include ("footer.php");
