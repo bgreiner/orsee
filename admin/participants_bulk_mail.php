@@ -2,17 +2,33 @@
 // part of orsee. see orsee.org
 ob_start();
 $title="send_bulk_mail";
+include("header.php");
 
-include ("header.php");
 if ($proceed) {
     $allow=check_allow('participants_bulk_mail','participants_main.php');
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['send']) && $_REQUEST['send']) $send=true; else $send=false;
-    if (isset($_REQUEST['experiment_id'])) $experiment_id=$_REQUEST['experiment_id']; else $experiment_id='';
-    if (isset($_REQUEST['session_id'])) $session_id=$_REQUEST['session_id']; else $session_id='';
-    if (isset($_REQUEST['focus'])) $focus=$_REQUEST['focus']; else $focus='';
+    if (isset($_REQUEST['send']) && $_REQUEST['send']) {
+        $send=true;
+    } else {
+        $send=false;
+    }
+    if (isset($_REQUEST['experiment_id'])) {
+        $experiment_id=$_REQUEST['experiment_id'];
+    } else {
+        $experiment_id='';
+    }
+    if (isset($_REQUEST['session_id'])) {
+        $session_id=$_REQUEST['session_id'];
+    } else {
+        $session_id='';
+    }
+    if (isset($_REQUEST['focus'])) {
+        $focus=$_REQUEST['focus'];
+    } else {
+        $focus='';
+    }
 
     // load invitation languages
     $inv_langs=lang__get_part_langs();
@@ -23,14 +39,19 @@ if ($proceed) {
     $return_target='admin/';
     if ($experiment_id) {
         $return_target='admin/experiment_participants_show.php?experiment_id='.urlencode($experiment_id);
-        if ($session_id) $return_target.='&session_id='.urlencode($session_id);
-        if ($focus) $return_target.='&focus='.urlencode($focus);
+        if ($session_id) {
+            $return_target.='&session_id='.urlencode($session_id);
+        }
+        if ($focus) {
+            $return_target.='&focus='.urlencode($focus);
+        }
     }
 
     if ($send) {
-        if ((!is_array($plist_ids)) || count($plist_ids)<1) redirect ($return_target);
+        if ((!is_array($plist_ids)) || count($plist_ids)<1) {
+            redirect($return_target);
+        }
     }
-
 }
 
 if ($proceed) {
@@ -48,12 +69,12 @@ if ($proceed) {
         $continue=true;
 
         foreach ($inv_langs as $inv_lang) {
-             if (!$bulk[$inv_lang.'_subject']) {
-                message (lang('subject').': '.lang('missing_language').": ".$inv_lang,'error');
+            if (!$bulk[$inv_lang.'_subject']) {
+                message(lang('subject').': '.lang('missing_language').": ".$inv_lang,'error');
                 $continue=false;
             }
             if (!$bulk[$inv_lang.'_body']) {
-                message (lang('body_of_message').': '.lang('missing_language').": ".$inv_lang,'error');
+                message(lang('body_of_message').': '.lang('missing_language').": ".$inv_lang,'error');
                 $continue=false;
             }
         }
@@ -76,9 +97,9 @@ if ($proceed) {
 
             $done=experimentmail__send_bulk_mail_to_queue($bulk_id,$plist_ids);
 
-            message ($number.' '.lang('xxx_bulk_mails_sent_to_mail_queue'));
+            message($number.' '.lang('xxx_bulk_mails_sent_to_mail_queue'));
             log__admin("bulk_mail","recipients:".$number);
-            redirect ($return_target);
+            redirect($return_target);
         }
     }
 }
@@ -105,8 +126,12 @@ if ($proceed) {
         } else {
             echo '<div>';
         }
-        if (!isset($_REQUEST[$inv_lang.'_subject'])) $_REQUEST[$inv_lang.'_subject']="";
-        if (!isset($_REQUEST[$inv_lang.'_body'])) $_REQUEST[$inv_lang.'_body']="";
+        if (!isset($_REQUEST[$inv_lang.'_subject'])) {
+            $_REQUEST[$inv_lang.'_subject']="";
+        }
+        if (!isset($_REQUEST[$inv_lang.'_body'])) {
+            $_REQUEST[$inv_lang.'_body']="";
+        }
         echo '  <div class="field">
                     <label class="label" for="'.$inv_lang.'_subject">'.lang('subject').':</label>
                     <div class="control">
@@ -129,7 +154,7 @@ if ($proceed) {
             </div>
         </div>
         </FORM>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

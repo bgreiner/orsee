@@ -2,17 +2,20 @@
 // part of orsee. see orsee.org
 ob_start();
 $title="customize_enrolment_confirmation_email";
+include("header.php");
 
-include ("header.php");
 if ($proceed) {
-
-    if ($_REQUEST['experiment_id']) $experiment_id=$_REQUEST['experiment_id'];
-    else redirect ("admin/");
+    if ($_REQUEST['experiment_id']) {
+        $experiment_id=$_REQUEST['experiment_id'];
+    } else {
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
-    if ($settings['enable_enrolment_confirmation_customization']!='y')
-        redirect ('admin/experiment_show.php?experiment_id='.$experiment_id);
+    if ($settings['enable_enrolment_confirmation_customization']!='y') {
+        redirect('admin/experiment_show.php?experiment_id='.$experiment_id);
+    }
 }
 
 if ($proceed) {
@@ -20,17 +23,38 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['id'])) $id=$_REQUEST['id']; else $id="";
+    if (isset($_REQUEST['id'])) {
+        $id=$_REQUEST['id'];
+    } else {
+        $id="";
+    }
 
-    if (isset($_REQUEST['save_preview']) && $_REQUEST['save_preview']) $save_preview=true; else $save_preview=false;
-    if (isset($_REQUEST['show_preview']) && $_REQUEST['show_preview']) $show_preview=true; else $show_preview=false;
-    if (isset($_REQUEST['save']) && $_REQUEST['save']) $save=true; else $save=false;
+    if (isset($_REQUEST['save_preview']) && $_REQUEST['save_preview']) {
+        $save_preview=true;
+    } else {
+        $save_preview=false;
+    }
+    if (isset($_REQUEST['show_preview']) && $_REQUEST['show_preview']) {
+        $show_preview=true;
+    } else {
+        $show_preview=false;
+    }
+    if (isset($_REQUEST['save']) && $_REQUEST['save']) {
+        $save=true;
+    } else {
+        $save=false;
+    }
 
-    if ($save_preview || $save) $action=true; else $action=false;
+    if ($save_preview || $save) {
+        $action=true;
+    } else {
+        $action=false;
+    }
 
     $experiment=orsee_db_load_array("experiments",$experiment_id,"experiment_id");
-    if (!check_allow('experiment_restriction_override'))
+    if (!check_allow('experiment_restriction_override')) {
         check_experiment_allowed($experiment,"admin/experiment_show.php?experiment_id=".$experiment_id);
+    }
 }
 
 if ($proceed) {
@@ -40,7 +64,7 @@ if ($proceed) {
 
     if ($action) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/experiment_customize_enrol_conf.php?experiment_id='.$experiment_id);
+            redirect('admin/experiment_customize_enrol_conf.php?experiment_id='.$experiment_id);
         }
 
         $sitem=$_REQUEST;
@@ -54,32 +78,41 @@ if ($proceed) {
 
         // well: just to be sure: for all other languages, copy the public default lang
         foreach ($installed_langs as $inst_lang) {
-            if (!in_array($inst_lang,$inv_langs)) $sitem[$inst_lang]=$sitem[$settings['public_standard_language']];
+            if (!in_array($inst_lang,$inv_langs)) {
+                $sitem[$inst_lang]=$sitem[$settings['public_standard_language']];
+            }
         }
 
         // is unknown or known?
         $allowed_fields=array('content_type','content_name');
-        foreach ($installed_langs as $inst_lang) $allowed_fields[]=$inst_lang;
+        foreach ($installed_langs as $inst_lang) {
+            $allowed_fields[]=$inst_lang;
+        }
         $form_fields=array_filter_allowed($sitem,$allowed_fields);
 
-        if (!$id) $done=lang__insert_to_lang($form_fields);
-        else $done=orsee_db_save_array($form_fields,"lang",$id,"lang_id");
+        if (!$id) {
+            $done=lang__insert_to_lang($form_fields);
+        } else {
+            $done=orsee_db_save_array($form_fields,"lang",$id,"lang_id");
+        }
 
-        if ($done) message(lang('mail_text_saved'));
-        else message (lang('database_error'),'error');
+        if ($done) {
+            message(lang('mail_text_saved'));
+        } else {
+            message(lang('database_error'),'error');
+        }
 
         log__admin("experiment_customize_enrolment_confirmation","experiment:".$experiment['experiment_name'].", experiment_id:".$experiment['experiment_id']);
 
         if ($save_preview) {
-            redirect ('admin/experiment_customize_enrol_conf.php?experiment_id='.$experiment_id.'&show_preview=true');
+            redirect('admin/experiment_customize_enrol_conf.php?experiment_id='.$experiment_id.'&show_preview=true');
         } else {
-            redirect ('admin/experiment_customize_enrol_conf.php?experiment_id='.$experiment_id);
+            redirect('admin/experiment_customize_enrol_conf.php?experiment_id='.$experiment_id);
         }
     }
 }
 
 if ($proceed) {
-
     $pars=array(':experiment_id'=>$experiment_id);
     $query="SELECT * from ".table('lang')."
             WHERE content_type='experiment_enrolment_conf_mail'
@@ -110,7 +143,11 @@ if ($proceed) {
             $experimentmail['language']=$inv_lang;
             $experimentmail=experimentmail__get_session_reminder_details($experimentmail,$experiment,$session,$lab);
             $experimentmail=experimentmail__get_experiment_registration_details($experimentmail,$experiment,$session,$lab,$inv_lang);
-            if ($experiment['sender_mail']) $sendermail=$experiment['sender_mail']; else $sendermail=$settings['support_mail'];
+            if ($experiment['sender_mail']) {
+                $sendermail=$experiment['sender_mail'];
+            } else {
+                $sendermail=$settings['support_mail'];
+            }
             $email_text=process_mail_template(stripslashes($body),$experimentmail);
 
 
@@ -151,17 +188,17 @@ if ($proceed) {
                     .'</div>
                 </div>
             </div>';
-
     } else {
-
         if (!isset($experiment_mail['lang_id'])) {
             $experiment_mail=array('lang_id'=>'');
-            foreach ($inv_langs as $inv_lang) $experiment_mail[$inv_lang]='';
+            foreach ($inv_langs as $inv_lang) {
+                $experiment_mail[$inv_lang]='';
+            }
         }
 
         // form
 
-         echo '<div class="orsee-panel">
+        echo '<div class="orsee-panel">
                 <div class="orsee-panel-title">
                     <div>'.lang('customize_enrolment_confirmation_email').': '.$experiment['experiment_name'].'</div>
                 </div>
@@ -222,9 +259,8 @@ if ($proceed) {
               <div class="orsee-options-actions">'.button_back('experiment_show.php?experiment_id='.$experiment_id).'</div>
             </div>
             </div>';
-
     }
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

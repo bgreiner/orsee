@@ -1,7 +1,7 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-include ("nonoutputheader.php");
+include("nonoutputheader.php");
 if ($proceed) {
     if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) {
         $experiment_id=$_REQUEST['experiment_id'];
@@ -18,7 +18,7 @@ if ($proceed) {
     }
 
     if (isset($_REQUEST['pstatus'])) {
-        $pstatus=$_REQUEST['pstatus']; 
+        $pstatus=$_REQUEST['pstatus'];
     } else {
         $pstatus='';
     }

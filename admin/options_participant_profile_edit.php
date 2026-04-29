@@ -1,11 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="configure_participant_profile_field";
 $menu__area="options";
 $js_modules=array('flatpickr');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $user_columns=participant__userdefined_columns();
     $system_field_names=array('email','language','subscriptions');
@@ -37,8 +37,12 @@ if ($proceed) {
         $new=false;
         $policy=participant__profile_field_policy_load($field_row,$profile_field_specs);
         $existing_variants=$policy['draft']['variants'];
-        if (isset($policy['changes']['enabled']) && $policy['changes']['enabled']) $baseline_changed_keys[]='enabled';
-        if (isset($policy['changes']['type']) && $policy['changes']['type']) $baseline_changed_keys[]='type';
+        if (isset($policy['changes']['enabled']) && $policy['changes']['enabled']) {
+            $baseline_changed_keys[]='enabled';
+        }
+        if (isset($policy['changes']['type']) && $policy['changes']['type']) {
+            $baseline_changed_keys[]='type';
+        }
         if (isset($policy['changes']['baseline']) && is_array($policy['changes']['baseline'])) {
             $baseline_changed_keys=array_merge($baseline_changed_keys,$policy['changes']['baseline']);
         }
@@ -119,7 +123,9 @@ if ($proceed) {
         if ($convert_target!=='') {
             $legacy_option_values=(isset($draft_baseline['option_values']) && is_array($draft_baseline['option_values']) ? $draft_baseline['option_values'] : array());
             $legacy_option_keys=array();
-            foreach (array_keys($legacy_option_values) as $legacy_option_key) $legacy_option_keys[]=(string)$legacy_option_key;
+            foreach (array_keys($legacy_option_values) as $legacy_option_key) {
+                $legacy_option_keys[]=(string)$legacy_option_key;
+            }
 
             $pars=array(':content_type'=>$field_name);
             $query="SELECT lang_id, content_name
@@ -132,7 +138,9 @@ if ($proceed) {
             }
             $extra_existing=array();
             foreach (array_keys($existing_by_name) as $existing_name) {
-                if (!in_array((string)$existing_name,$legacy_option_keys,true)) $extra_existing[]=(string)$existing_name;
+                if (!in_array((string)$existing_name,$legacy_option_keys,true)) {
+                    $extra_existing[]=(string)$existing_name;
+                }
             }
             if (count($extra_existing)>0) {
                 message('Cannot convert: existing or_lang entries for this content type would be overwritten ('.implode(', ',$extra_existing).').','error');
@@ -201,7 +209,7 @@ if ($proceed) {
 
 if ($proceed) {
     javascript__tooltip_prepare();
-    $field['enabled']=($field['enabled'])?'y':'n';
+    $field['enabled']=($field['enabled']) ? 'y' : 'n';
     $delete_button='';
     if (!in_array($field_name,array('email','language','subscriptions'),true)) {
         $delete_button=button_link(
@@ -259,20 +267,26 @@ if ($proceed) {
             $id_text='#'.$variant_pos;
             $scope_text=implode(', ',$scope_labels);
             $scope_text_html=htmlspecialchars($scope_text,ENT_QUOTES);
-            if ($scope_changed) $scope_text_html='<span class="orsee-track-changed-underline">'.$scope_text_html.'</span>';
+            if ($scope_changed) {
+                $scope_text_html='<span class="orsee-track-changed-underline">'.$scope_text_html.'</span>';
+            }
             $subpool_labels=array();
             foreach ($variant['subpools'] as $subpool_id) {
                 $subpool_id=(int)$subpool_id;
                 $subpool_labels[]=(isset($all_subpools[$subpool_id]) ? $all_subpools[$subpool_id]['subpool_name'] : (string)$subpool_id);
             }
             $subpool_text_html=htmlspecialchars(implode(', ',$subpool_labels),ENT_QUOTES);
-            if ($subpools_changed) $subpool_text_html='<span class="orsee-track-changed-underline">'.$subpool_text_html.'</span>';
+            if ($subpools_changed) {
+                $subpool_text_html='<span class="orsee-track-changed-underline">'.$subpool_text_html.'</span>';
+            }
             $affected_fields=array();
             foreach (array_keys($variant['overrides']) as $override_key) {
                 $affected_fields[]=$profile_field_specs['fields'][$override_key]['label'];
             }
             $affected_fields_html=htmlspecialchars(implode(', ',$affected_fields),ENT_QUOTES);
-            if ($overrides_changed) $affected_fields_html='<span class="orsee-track-changed-underline">'.$affected_fields_html.'</span>';
+            if ($overrides_changed) {
+                $affected_fields_html='<span class="orsee-track-changed-underline">'.$affected_fields_html.'</span>';
+            }
             $edit_button=button_link(
                 'options_participant_profile_variant_edit.php?mysql_column_name='.urlencode($field_name).'&variant_key='.urlencode((string)$variant_key),
                 lang('edit'),
@@ -282,7 +296,9 @@ if ($proceed) {
                 'orsee-btn-compact'
             );
             $id_cell_class='orsee-table-cell';
-            if ($variant_row_changed) $id_cell_class.=' orsee-track-changed-left';
+            if ($variant_row_changed) {
+                $id_cell_class.=' orsee-track-changed-left';
+            }
             $variants_rows.='<div class="orsee-table-row">';
             $variants_rows.='<div class="'.$id_cell_class.'" style="white-space:nowrap;">'.htmlspecialchars($id_text,ENT_QUOTES).'</div>';
             $variants_rows.='<div class="orsee-table-cell">'.$scope_text_html.'</div>';
@@ -310,8 +326,12 @@ if ($proceed) {
         </style>';
         $variants_block.='<div style="display:flex; justify-content:flex-end; margin:0 0 0.55rem;">';
         $variants_block.='<div id="orsee-profile-edit-variants-wrap" style="width:fit-content; margin-inline-start:auto;">';
-        if ($add_variant_button!=='') $variants_block.='<div class="has-text-right">'.$add_variant_button.'</div>';
-        if ($variants_table!=='') $variants_block.='<div style="margin-top:0.42rem;"><div class="orsee-option-row-comment"><strong>'.lang('profile_editor_stored_variants').'</strong></div>'.$variants_table.'</div>';
+        if ($add_variant_button!=='') {
+            $variants_block.='<div class="has-text-right">'.$add_variant_button.'</div>';
+        }
+        if ($variants_table!=='') {
+            $variants_block.='<div style="margin-top:0.42rem;"><div class="orsee-option-row-comment"><strong>'.lang('profile_editor_stored_variants').'</strong></div>'.$variants_table.'</div>';
+        }
         $variants_block.='</div></div>';
     }
 
@@ -449,5 +469,6 @@ if ($proceed) {
             </script>';
     }
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

@@ -1,13 +1,17 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="log_files";
 $menu__area="statistics";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $limit=$settings['stats_logs_results_per_page'];
-    if ($_REQUEST['log']) $log=$_REQUEST['log']; else redirect("admin/statistics.php");
+    if ($_REQUEST['log']) {
+        $log=$_REQUEST['log'];
+    } else {
+        redirect("admin/statistics.php");
+    }
 }
 
 if ($proceed) {
@@ -24,7 +28,7 @@ if ($proceed) {
     echo button_back('statistics_main.php');
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

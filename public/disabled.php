@@ -3,8 +3,9 @@
 ob_start();
 $menu__area="disabled";
 $navigation_disabled=true;
-include ("header.php");
-    if ($proceed) {
+include("header.php");
+
+if ($proceed) {
     echo '<div id="orsee-public-mobile-screen">';
     echo '  <div class="orsee-public-faq-panel">';
     echo '      <div class="orsee-panel">';
@@ -12,7 +13,7 @@ include ("header.php");
     echo '      </div>';
     echo '  </div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

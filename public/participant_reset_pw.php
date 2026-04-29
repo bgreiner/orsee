@@ -3,7 +3,7 @@
 ob_start();
 $menu__area="public_register";
 $title="reset_password";
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     if (isset($_REQUEST['t']) && $_REQUEST['t']) {
@@ -14,12 +14,15 @@ if ($proceed) {
 
 if ($proceed) {
     $reset_email_value='';
-    if (isset($_REQUEST['email'])) $reset_email_value=trim((string)$_REQUEST['email']);
-    elseif (isset($_REQUEST['reset_email'])) $reset_email_value=trim((string)$_REQUEST['reset_email']);
+    if (isset($_REQUEST['email'])) {
+        $reset_email_value=trim((string)$_REQUEST['email']);
+    } elseif (isset($_REQUEST['reset_email'])) {
+        $reset_email_value=trim((string)$_REQUEST['reset_email']);
+    }
 
     if (isset($_SESSION['pw_reset_token']) && $_SESSION['pw_reset_token'] &&
         isset($_REQUEST['password']) && isset($_REQUEST['password2']) &&
-        ( $reset_email_value || $_REQUEST['password'] || $_REQUEST['password2']) ) {
+        ($reset_email_value || $_REQUEST['password'] || $_REQUEST['password2'])) {
         if (!csrf__validate_request_message()) {
             redirect("public/participant_reset_pw.php");
         }
@@ -47,17 +50,17 @@ if ($proceed) {
                 //if token not ok, redirect to main page without comment
                 $continue=false;
                 message(lang('password_reset_token_not_found'),'error');
-                redirect ("public/");
+                redirect("public/");
             } elseif ($participant['pwreset_request_time']+60*60<time()) {
                 //if token validity elapsed, show message and redirect
                 message(lang('password_reset_token_not_valid_anymore'),'warning');
                 $continue=false;
-                redirect ("public/");
+                redirect("public/");
             }
         }
         if ($continue) {
             if (strtolower($participant['email'])!=strtolower($reset_email_value)) {
-            //if email address not ok: save email address to session, show message, redirect
+                //if email address not ok: save email address to session, show message, redirect
                 message(lang('password_reset_provided_email_address_not_correct'),'error');
                 $continue=false;
                 redirect("public/participant_reset_pw.php");
@@ -72,7 +75,7 @@ if ($proceed) {
             }
         }
         if ($continue) {
-        //if all ok, save new password (reset reset_request, token), reset token, password, email address, set OK, redirect
+            //if all ok, save new password (reset reset_request, token), reset token, password, email address, set OK, redirect
             $participant['password_crypted']=unix_crypt($_REQUEST['password']);
             $pars=array(':password'=>$participant['password_crypted'],
                         ':participant_id'=>$participant['participant_id']);
@@ -93,8 +96,11 @@ if ($proceed) {
 if ($proceed) {
     if (isset($_SESSION['pw_reset_token']) && $_SESSION['pw_reset_token']) {
         // show form, captcha
-        if (isset($_SESSION['reset_email_address']) && $_SESSION['reset_email_address']) $email=$_SESSION['reset_email_address'];
-        else $email='';
+        if (isset($_SESSION['reset_email_address']) && $_SESSION['reset_email_address']) {
+            $email=$_SESSION['reset_email_address'];
+        } else {
+            $email='';
+        }
         $participant_password_dir=($settings['force_ltr_participant_login_password']==='y' ? ' dir="ltr"' : '');
 
         echo '<div id="orsee-public-mobile-screen">';
@@ -229,8 +235,8 @@ if ($proceed) {
     echo '</form>';
     echo '</div>';
     echo '</div>';
-
 }
 
 include("footer.php");
+
 ?>

@@ -1,15 +1,21 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
-if (isset($_REQUEST['faq_id'])) $faq_id=$_REQUEST['faq_id']; else $faq_id="";
-
+if (isset($_REQUEST['faq_id'])) {
+    $faq_id=$_REQUEST['faq_id'];
+} else {
+    $faq_id="";
+}
 $title="edit_faq";
 $menu__area="options";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if ($faq_id) $allow=check_allow('faq_edit','faq_main.php');
-    else $allow=check_allow('faq_add','faq_main.php');
+    if ($faq_id) {
+        $allow=check_allow('faq_edit','faq_main.php');
+    } else {
+        $allow=check_allow('faq_add','faq_main.php');
+    }
 }
 
 if ($proceed) {
@@ -39,17 +45,16 @@ if ($proceed) {
 
 if ($proceed) {
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
-
         $rquestion=$_REQUEST['question'];
         $ranswer=$_REQUEST['answer'];
 
         foreach ($languages as $language) {
             if (!$rquestion[$language]) {
-                message (lang('missing_question_in_language').": ".$language,'error');
+                message(lang('missing_question_in_language').": ".$language,'error');
                 $continue=false;
             }
             if (!$ranswer[$language]) {
-                message (lang('missing_answer_in_language').": ".$language,'error');
+                message(lang('missing_answer_in_language').": ".$language,'error');
                 $continue=false;
             }
         }
@@ -68,7 +73,7 @@ if ($proceed) {
             if (!$faq_id) {
                 $new_faq_id=time();
                 $faq['faq_id']=$new_faq_id;
-                
+
                 $done=orsee_db_save_array($faq,"faqs",$faq['faq_id'],"faq_id");
                 $question['content_name']=$new_faq_id;
                 $question['content_type']="faq_question";
@@ -87,14 +92,13 @@ if ($proceed) {
                 log__admin("faq_edit","faq_id:".$faq_id);
             }
 
-            message (lang('changes_saved'));
-            redirect ('admin/faq_edit.php?faq_id='.$question['content_name']);
+            message(lang('changes_saved'));
+            redirect('admin/faq_edit.php?faq_id='.$question['content_name']);
         }
     }
 }
 
 if ($proceed) {
-
     show_message();
     // form
     echo '  <form action="faq_edit.php" method="POST">
@@ -103,7 +107,11 @@ if ($proceed) {
                 <div class="orsee-panel">
                     <div class="orsee-panel-title">
                         <div class="orsee-panel-title-main">';
-    if ($faq_id) echo lang('edit_faq'); else echo lang('add_faq');
+    if ($faq_id) {
+        echo lang('edit_faq');
+    } else {
+        echo lang('add_faq');
+    }
     echo '                  </div>
                     </div>
                     <div class="orsee-form-shell">';
@@ -120,8 +128,12 @@ if ($proceed) {
                         </div>';
 
     foreach ($languages as $language) {
-        if (!isset($question[$language])) $question[$language]="";
-        if (!isset($answer[$language])) $answer[$language]="";
+        if (!isset($question[$language])) {
+            $question[$language]="";
+        }
+        if (!isset($answer[$language])) {
+            $answer[$language]="";
+        }
         $field_dir=(isset($lang_dirs[$language]) && $lang_dirs[$language] ? 'rtl' : 'ltr');
         echo '  <div class="field">
                     <label class="label">'.$language.':</label>
@@ -146,14 +158,18 @@ if ($proceed) {
                                 </div>
                                 <div class="orsee-form-row-col has-text-centered">
                                     <input class="button orsee-btn" name="edit" type="submit" value="';
-    if ($faq_id) echo lang('change'); else echo lang('add');
+    if ($faq_id) {
+        echo lang('change');
+    } else {
+        echo lang('add');
+    }
     echo '                      ">
                                 </div>
                                 <div class="orsee-form-row-col has-text-right">';
 
     if ($faq_id && check_allow('faq_delete')) {
         echo button_link('faq_delete.php?faq_id='.urlencode($faq_id).'&csrf_token='.urlencode(csrf__get_token()),
-                            lang('delete'),'trash-o','','','orsee-btn--delete');
+            lang('delete'),'trash-o','','','orsee-btn--delete');
     }
     echo '                      </div>
                             </div>
@@ -161,7 +177,7 @@ if ($proceed) {
                 </div>
             </form>
             <br>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

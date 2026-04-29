@@ -1,13 +1,17 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="experiment_calendar";
 $title="create_event";
 $js_modules=array('flatpickr');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['event_id']) && $_REQUEST['event_id']) $event_id=$_REQUEST['event_id']; else $event_id="";
+    if (isset($_REQUEST['event_id']) && $_REQUEST['event_id']) {
+        $event_id=$_REQUEST['event_id'];
+    } else {
+        $event_id="";
+    }
     $allow=check_allow('events_edit','calendar_main.php');
 }
 
@@ -22,7 +26,6 @@ if ($proceed) {
 
 if ($proceed) {
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
-
         $_REQUEST['experimenter']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['experimenter']));
 
         $_REQUEST['event_start']=ortime__array_to_sesstime($_REQUEST,'event_start_');
@@ -49,11 +52,11 @@ if ($proceed) {
             $done=orsee_db_save_array($form_fields,"events",$form_fields['event_id'],"event_id");
             if ($done) {
                 log__admin("events_edit","event_id:".$event_id);
-                message (lang('changes_saved'));
-                redirect ('admin/events_edit.php?event_id='.$edit['event_id']);
+                message(lang('changes_saved'));
+                redirect('admin/events_edit.php?event_id='.$edit['event_id']);
             } else {
                 lang('database_error');
-                redirect ('admin/events_edit.php?event_id='.$edit['event_id']);
+                redirect('admin/events_edit.php?event_id='.$edit['event_id']);
             }
         }
     }
@@ -62,15 +65,19 @@ if ($proceed) {
 if ($proceed) {
     if ($event_id && !isset($edit['event_id'])) {
         $edit=orsee_db_load_array("events",$event_id,"event_id");
-        if (!isset($edit['event_id'])) redirect('admin/calendar_main.php');
+        if (!isset($edit['event_id'])) {
+            redirect('admin/calendar_main.php');
+        }
     }
 }
 
 
 if ($proceed) {
-// form
+    // form
 
-    if (isset($_REQUEST['copy']) && $_REQUEST['copy']) $event_id="";
+    if (isset($_REQUEST['copy']) && $_REQUEST['copy']) {
+        $event_id="";
+    }
 
     if (!$event_id) {
         $addit=true;
@@ -121,7 +128,7 @@ if ($proceed) {
     $event_experimenter_data=experiment__load_experimenters();
     $event_selected_experimenters=db_string_to_id_array($edit['experimenter']);
     $event_experimenter_options=array();
-    foreach($event_experimenter_data as $event_experimenter) {
+    foreach ($event_experimenter_data as $event_experimenter) {
         if (in_array($event_experimenter['admin_id'],$event_selected_experimenters) || ($event_experimenter['experimenter_list']=='y' && $event_experimenter['disabled']!='y')) {
             $event_experimenter_options[(string)$event_experimenter['admin_id']]=$event_experimenter['lname'].', '.$event_experimenter['fname'];
         }
@@ -131,7 +138,9 @@ if ($proceed) {
     echo '<form action="events_edit.php" method="POST">
         <input type="hidden" name="event_id" value="'.$edit['event_id'].'">
         '.csrf__field();
-    if (isset($addit) && $addit) echo '<input type="hidden" name="addit" value="true">';
+    if (isset($addit) && $addit) {
+        echo '<input type="hidden" name="addit" value="true">';
+    }
     echo '
         <div class="orsee-panel">
             <div class="orsee-form-shell">';
@@ -178,7 +187,9 @@ if ($proceed) {
                 <div class="field">
                     <label class="label">'.lang('experimenter').':</label>
                     <div class="control orsee-picker-field">';
-    if (!isset($_REQUEST['event_id']) || !$_REQUEST['event_id']) $edit['experimenter']='|'.$expadmindata['admin_id'].'|';
+    if (!isset($_REQUEST['event_id']) || !$_REQUEST['event_id']) {
+        $edit['experimenter']='|'.$expadmindata['admin_id'].'|';
+    }
     echo get_tag_picker('experimenter',$event_experimenter_options,db_string_to_id_array($edit['experimenter']),array('tag_bg_color'=>'--color-selector-tag-bg-experimenters'));
     echo '          </div>
                 </div>
@@ -226,8 +237,7 @@ if ($proceed) {
     echo '      </div>
         </div>
     </form>';
-
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

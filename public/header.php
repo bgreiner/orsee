@@ -1,9 +1,9 @@
 <?php
 // part of orsee. see orsee.org
 $debug__script_started=microtime();
-include ("../config/settings.php");
-include ("../config/system.php");
-include ("../config/requires.php");
+include("../config/settings.php");
+include("../config/system.php");
+include("../config/requires.php");
 
 $proceed=true;
 
@@ -18,8 +18,9 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if ($settings['stop_public_site']=="y" && !isset($expadmindata['adminname']) && !(thisdoc()=="disabled.php"))
+    if ($settings['stop_public_site']=="y" && !isset($expadmindata['adminname']) && !(thisdoc()=="disabled.php")) {
         redirect("public/disabled.php");
+    }
 }
 
 if ($proceed) {
@@ -40,7 +41,7 @@ if ($proceed) {
             // get participant's language
             $participant=orsee_db_load_array("participants",$participant_id,"participant_id");
             $_SESSION['pauthdata']['language']=$participant['language'];
-            unset ($participant);
+            unset($participant);
             $show_logged_in_menu=true;
         }
     }
@@ -48,7 +49,9 @@ if ($proceed) {
 
 if ($proceed) {
     // determine language for page
-    if (!isset($_SESSION['pauthdata']['language']) || !$_SESSION['pauthdata']['language']) $_SESSION['pauthdata']['language']=$settings['public_standard_language'];
+    if (!isset($_SESSION['pauthdata']['language']) || !$_SESSION['pauthdata']['language']) {
+        $_SESSION['pauthdata']['language']=$settings['public_standard_language'];
+    }
     if (isset($_REQUEST['language'])) {
         $langarray=lang__get_public_langs();
         if (in_array($_REQUEST['language'],$langarray)) {
@@ -61,8 +64,8 @@ if ($proceed) {
 
 if ($proceed) {
     if (!in_array(thisdoc(),array('participant_create.php','captcha.php'))) {
-        unset ($_SESSION['subpool_id']);
-        unset ($_SESSION['rules']);
+        unset($_SESSION['subpool_id']);
+        unset($_SESSION['rules']);
     }
 }
 
@@ -80,7 +83,7 @@ if ($proceed) {
             $participant=orsee_db_load_array("participants",$_SESSION['pauthdata']['participant_id'],"participant_id");
             $participant_id=$participant['participant_id'];
         } else {
-            if ($settings['subject_authentication']=='token' ) {
+            if ($settings['subject_authentication']=='token') {
                 // if we work with tokens, check whether we are logged in and load participant data
                 if ($participant_id) {
                     $participant=orsee_db_load_array("participants",$participant_id,"participant_id");
@@ -96,23 +99,23 @@ if ($proceed) {
                     if ($participant['password_crypted']) {
                         redirect("public/participant_login.php");
                     } else {
-                            // prepare password reset: generate token, save token to db and session
-                            $participant['pwreset_token']=create_random_token(get_entropy($participant));
-                            $pars=array(':token'=>$participant['pwreset_token'],
-                                    ':participant_id'=>$participant['participant_id'],
-                                    ':now'=>time());
-                            $query="UPDATE ".table('participants')."
+                        // prepare password reset: generate token, save token to db and session
+                        $participant['pwreset_token']=create_random_token(get_entropy($participant));
+                        $pars=array(':token'=>$participant['pwreset_token'],
+                                ':participant_id'=>$participant['participant_id'],
+                                ':now'=>time());
+                        $query="UPDATE ".table('participants')."
                                     SET pwreset_token = :token,
                                     pwreset_request_time = :now
                                     WHERE participant_id= :participant_id";
-                            $done=or_query($query,$pars);
-                            $_SESSION['pw_reset_token']=$participant['pwreset_token'];
-                            // send to pw rest page
-                            message(lang('please_choose_a_password_for_your_account'));
-                            redirect("public/participant_reset_pw.php");
+                        $done=or_query($query,$pars);
+                        $_SESSION['pw_reset_token']=$participant['pwreset_token'];
+                        // send to pw rest page
+                        message(lang('please_choose_a_password_for_your_account'));
+                        redirect("public/participant_reset_pw.php");
                     }
                 } else {
-                // send to login page if no token is present
+                    // send to login page if no token is present
                     redirect("public/participant_login.php");
                 }
             } else {
@@ -125,7 +128,7 @@ if ($proceed) {
             $statuses=participant_status__get_statuses();
             $statuses_profile=participant_status__get("access_to_profile");
             if (isset($participant) && !in_array($participant['status_id'],$statuses_profile)) {
-                message ($statuses[$participant['status_id']]['error']." ".
+                message($statuses[$participant['status_id']]['error']." ".
                 lang('if_you_have_questions_write_to')." ".support_mail_link(),'error');
                 redirect("public/");
             }
@@ -139,7 +142,9 @@ if ($proceed) {
     $title_lang=(isset($title) && $title!=='' ? lang($title) : '');
     $is_logged_in=((isset($_SESSION['pauthdata']['user_logged_in']) && $_SESSION['pauthdata']['user_logged_in']) || (isset($show_logged_in_menu) && $show_logged_in_menu));
     $menu_item=false;
-    if (!isset($menu_item_id)) $menu_item_id=false;
+    if (!isset($menu_item_id)) {
+        $menu_item_id=false;
+    }
 
     if (thisdoc()==='index.php') {
         // resolve requested richtext page for index.php (fallback: mainpage_welcome)
@@ -223,7 +228,9 @@ if ($proceed) {
             if ($has_public_pagebar_actions) {
                 echo '<span class="orsee-public-pagebar-actions">';
                 foreach ($public_pagebar_actions as $action) {
-                    if (!is_array($action) || !isset($action['href']) || !$action['href']) continue;
+                    if (!is_array($action) || !isset($action['href']) || !$action['href']) {
+                        continue;
+                    }
                     $label_key=(isset($action['label']) ? (string)$action['label'] : '');
                     $label_text=($label_key ? lang($label_key) : '');
                     $icon_class=(isset($action['icon']) ? trim((string)$action['icon']) : '');
@@ -232,7 +239,9 @@ if ($proceed) {
                         $href.=((strpos($href,'?')===false) ? '?' : '&').'p='.urlencode((string)$_REQUEST['p']);
                     }
                     echo '<a class="orsee-public-pagebar-action" href="'.htmlspecialchars($href,ENT_QUOTES,'UTF-8').'">';
-                    if ($icon_class!=='') echo '<i class="fa '.htmlspecialchars($icon_class,ENT_QUOTES,'UTF-8').'" aria-hidden="true"></i> ';
+                    if ($icon_class!=='') {
+                        echo '<i class="fa '.htmlspecialchars($icon_class,ENT_QUOTES,'UTF-8').'" aria-hidden="true"></i> ';
+                    }
                     echo htmlspecialchars($label_text,ENT_QUOTES,'UTF-8');
                     echo '</a>';
                 }
@@ -244,8 +253,12 @@ if ($proceed) {
         $toast_duration_ms=3200;
         if (isset($settings['public_mobile_toast_duration_ms'])) {
             $toast_duration_ms=(int)$settings['public_mobile_toast_duration_ms'];
-            if ($toast_duration_ms<800) $toast_duration_ms=800;
-            if ($toast_duration_ms>12000) $toast_duration_ms=12000;
+            if ($toast_duration_ms<800) {
+                $toast_duration_ms=800;
+            }
+            if ($toast_duration_ms>12000) {
+                $toast_duration_ms=12000;
+            }
         }
         echo '<div id="orsee-public-message-host">';
         show_message();

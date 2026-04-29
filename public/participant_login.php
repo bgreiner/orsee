@@ -1,19 +1,22 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="login";
 $title="profile_login";
 include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['logout']) && $_REQUEST['logout']) message(lang('logout'),'note',null,'toast');
+    if (isset($_REQUEST['logout']) && $_REQUEST['logout']) {
+        message(lang('logout'),'note',null,'toast');
+    }
     if (isset($_REQUEST['pw']) && $_REQUEST['pw']) {
         message(lang('logout'),'note',null,'toast');
-        message (lang('password_changed_log_in_again'));
+        message(lang('password_changed_log_in_again'));
     }
 
-    if (isset($_REQUEST['requested_url']) && $_REQUEST['requested_url'])
+    if (isset($_REQUEST['requested_url']) && $_REQUEST['requested_url']) {
         $_SESSION['requested_url']=$_REQUEST['requested_url'];
+    }
 
     if (isset($_REQUEST['login']) && isset($_REQUEST['email']) && isset($_REQUEST['password'])) {
         if (!csrf__validate_request_message()) {
@@ -25,7 +28,9 @@ if ($proceed) {
                 $url=$_SESSION['requested_url'];
                 unset($_SESSION['requested_url']);
                 redirect($url);
-            } else redirect("public/participant_show.php");
+            } else {
+                redirect("public/participant_show.php");
+            }
         } else {
             redirect("public/participant_login.php");
         }
@@ -56,4 +61,5 @@ if ($proceed) {
     echo '</div>';
 }
 include("footer.php");
+
 ?>

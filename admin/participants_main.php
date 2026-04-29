@@ -1,12 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="participants_main";
 $title="participants";
-include ("header.php");
-if ($proceed) {
+include("header.php");
 
+if ($proceed) {
     // participants summary
 
     echo '<div class="orsee-options-list-panel">';
@@ -22,7 +21,9 @@ if ($proceed) {
     while ($line = pdo_fetch_assoc($result)) {
         $etemp=db_string_to_id_array($line['subscriptions']);
         foreach ($etemp as $et) {
-            if (!isset($part_nums[$et][$line['status_id']])) $part_nums[$et][$line['status_id']]=0;
+            if (!isset($part_nums[$et][$line['status_id']])) {
+                $part_nums[$et][$line['status_id']]=0;
+            }
             $part_nums[$et][$line['status_id']]=$part_nums[$et][$line['status_id']]+$line['num_part'];
         }
     }
@@ -42,13 +43,19 @@ if ($proceed) {
     $first=true;
     foreach ($exptypes as $exptype_id=>$exptype) {
         $row_class='orsee-table-row';
-        if ($first) { $row_class.=' is-alt'; $first=false; }
+        if ($first) {
+            $row_class.=' is-alt';
+            $first=false;
+        }
         echo '<div class="'.$row_class.'">';
         echo '<div class="orsee-table-cell" data-label="">'.$exptype[lang('lang')].'</div>';
         foreach ($pstatuses as $status_id=>$status) {
             echo '<div class="orsee-table-cell" data-label="'.$status['name'].'">';
-            if (isset($part_nums[$exptype_id][$status_id])) echo $part_nums[$exptype_id][$status_id];
-            else echo '0';
+            if (isset($part_nums[$exptype_id][$status_id])) {
+                echo $part_nums[$exptype_id][$status_id];
+            } else {
+                echo '0';
+            }
             echo '</div>';
         }
         echo '</div>';
@@ -60,9 +67,12 @@ if ($proceed) {
 
     echo '<div class="orsee-stat-row">';
     echo '<div class="orsee-stat-label">';
-    if (check_allow('participants_unconfirmed_edit')) echo '<A HREF="participants_unconfirmed.php">'.
-                        lang('registered_but_not_confirmed_xxx').':</A>';
-    else echo lang('registered_but_not_confirmed_xxx');
+    if (check_allow('participants_unconfirmed_edit')) {
+        echo '<A HREF="participants_unconfirmed.php">'.
+                            lang('registered_but_not_confirmed_xxx').':</A>';
+    } else {
+        echo lang('registered_but_not_confirmed_xxx');
+    }
     echo '</div>';
     echo '<div class="orsee-stat-value">'.
             participants__count_participants("status_id='0'").'</div>';
@@ -90,7 +100,7 @@ if ($proceed) {
     }
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

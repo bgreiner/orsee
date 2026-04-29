@@ -1,16 +1,22 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="edit_participant_profile_form_template";
 $js_modules=array('switchy','intltelinput');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['item_name'])) $item_name=$_REQUEST['item_name']; else redirect ("admin/options_profile_template.php");
+    if (isset($_REQUEST['item_name'])) {
+        $item_name=$_REQUEST['item_name'];
+    } else {
+        redirect("admin/options_profile_template.php");
+    }
 }
 if ($proceed) {
-    if (!in_array($item_name,array('profile_form_public','profile_form_admin_part'))) redirect ("admin/options_profile_template.php");
+    if (!in_array($item_name,array('profile_form_public','profile_form_admin_part'))) {
+        redirect("admin/options_profile_template.php");
+    }
 }
 if ($proceed) {
     $allow=check_allow('pform_templates_edit','options_main.php');
@@ -21,9 +27,15 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if (!isset($_REQUEST['subpool_id'])) $subpool_id=1; else $subpool_id=$_REQUEST['subpool_id'];
+    if (!isset($_REQUEST['subpool_id'])) {
+        $subpool_id=1;
+    } else {
+        $subpool_id=$_REQUEST['subpool_id'];
+    }
     $subpool=orsee_db_load_array("subpools",$subpool_id,"subpool_id");
-    if (!$subpool['subpool_id']) $subpool=orsee_db_load_array("subpools",1,"subpool_id");
+    if (!$subpool['subpool_id']) {
+        $subpool=orsee_db_load_array("subpools",1,"subpool_id");
+    }
 }
 
 if ($proceed) {
@@ -31,30 +43,34 @@ if ($proceed) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
         } else {
-        $t['item_details']['current_draft']=$_REQUEST['current_draft'];
-        $t['item_details']=property_array_to_db_string($t['item_details']);
-        $done=orsee_db_save_array($t,"objects",$t['item_id'],"item_id");
-        log__admin("pform_templates_edit","item_name:".$t['item_name']);
-        message (lang('changes_saved'));
-        redirect ('admin/options_profile_template_edit.php?item_name='.$item_name.'&subpool_id='.$subpool_id);
+            $t['item_details']['current_draft']=$_REQUEST['current_draft'];
+            $t['item_details']=property_array_to_db_string($t['item_details']);
+            $done=orsee_db_save_array($t,"objects",$t['item_id'],"item_id");
+            log__admin("pform_templates_edit","item_name:".$t['item_name']);
+            message(lang('changes_saved'));
+            redirect('admin/options_profile_template_edit.php?item_name='.$item_name.'&subpool_id='.$subpool_id);
         }
     } elseif (isset($_REQUEST['activate']) && $_REQUEST['activate']) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
         } else {
-        $t['item_details']['current_template']=$t['item_details']['current_draft'];
-        $t['item_details']=property_array_to_db_string($t['item_details']);
-        $done=orsee_db_save_array($t,"objects",$t['item_id'],"item_id");
-        log__admin("pform_templates_activate","item_name:".$t['item_name']);
-        message (lang('template_draft_activated'));
-        redirect ('admin/options_profile_template_edit.php?item_name='.$item_name.'&subpool_id='.$subpool_id);
+            $t['item_details']['current_template']=$t['item_details']['current_draft'];
+            $t['item_details']=property_array_to_db_string($t['item_details']);
+            $done=orsee_db_save_array($t,"objects",$t['item_id'],"item_id");
+            log__admin("pform_templates_activate","item_name:".$t['item_name']);
+            message(lang('template_draft_activated'));
+            redirect('admin/options_profile_template_edit.php?item_name='.$item_name.'&subpool_id='.$subpool_id);
         }
     }
 }
 
 if ($proceed) {
-    if (!isset($t['item_details']['current_template'])) $t['item_details']['current_template']='';
-    if (!isset($t['item_details']['current_draft'])) $t['item_details']['current_draft']=$t['item_details']['current_template'];
+    if (!isset($t['item_details']['current_template'])) {
+        $t['item_details']['current_template']='';
+    }
+    if (!isset($t['item_details']['current_draft'])) {
+        $t['item_details']['current_draft']=$t['item_details']['current_template'];
+    }
 
     echo '<div class="orsee-panel">
             <div class="orsee-panel-title">
@@ -87,10 +103,12 @@ if ($proceed) {
             </div>';
 
     $edit=array();
-    if (isset($subpool_id)) $edit['subpool_id']=$subpool_id;
+    if (isset($subpool_id)) {
+        $edit['subpool_id']=$subpool_id;
+    }
 
     // form
-            echo '  <form action="options_profile_template_edit.php" method="POST">
+    echo '  <form action="options_profile_template_edit.php" method="POST">
                 <input type="hidden" name="item_name" value="'.$item_name.'">
                 <input type="hidden" name="subpool_id" value="'.$subpool_id.'">
                 '.csrf__field().'
@@ -100,8 +118,11 @@ if ($proceed) {
                         <div class="field">
                             <label class="label">'.lang('currently_active_form_template').'</label>
                             <div class="control">';
-    if ($item_name=='profile_form_public') participant__show_inner_form($edit,array(),'profile_form_public_create','current_template');
-    elseif ($item_name=='profile_form_admin_part') echo participant__get_inner_admin_form($edit,array(),'current_template');
+    if ($item_name=='profile_form_public') {
+        participant__show_inner_form($edit,array(),'profile_form_public_create','current_template');
+    } elseif ($item_name=='profile_form_admin_part') {
+        echo participant__get_inner_admin_form($edit,array(),'current_template');
+    }
     echo '                  </div>
                         </div>
                         </div>
@@ -122,8 +143,11 @@ if ($proceed) {
                         <div class="field">
                             <label class="label">'.lang('current_template_draft').'</label>
                             <div class="control">';
-    if ($item_name=='profile_form_public') participant__show_inner_form($edit,array(),'profile_form_public_create','current_draft');
-    elseif ($item_name=='profile_form_admin_part') echo participant__get_inner_admin_form($edit,array(),'current_draft');
+    if ($item_name=='profile_form_public') {
+        participant__show_inner_form($edit,array(),'profile_form_public_create','current_draft');
+    } elseif ($item_name=='profile_form_admin_part') {
+        echo participant__get_inner_admin_form($edit,array(),'current_draft');
+    }
     echo '                  </div>
                         </div>
                         </div>
@@ -153,7 +177,6 @@ if ($proceed) {
 
     echo '<div class="orsee-options-actions">'.button_back('options_profile_template.php').'</div>';
     echo '</div>';
-
 }
 
 /*
@@ -188,5 +211,6 @@ Note that ORSEE assumes consistency here. That is, if a form_field is only defin
 #is_part_create_form# Only available in the admin section, this evaluates to true when the form is displayed on a participant profile creation page (as opposed to a participant profile edit page), i.e. when you crate a new participant.
 */
 
-include ("footer.php");
+include("footer.php");
+
 ?>

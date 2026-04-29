@@ -1,14 +1,16 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="edit_session";
 $js_modules=array('flatpickr');
-include ("header.php");
-if ($proceed) {
+include("header.php");
 
-    if (isset($_REQUEST['session_id']) && $_REQUEST['session_id']) $session_id=$_REQUEST['session_id'];
-    else $session_id="";
+if ($proceed) {
+    if (isset($_REQUEST['session_id']) && $_REQUEST['session_id']) {
+        $session_id=$_REQUEST['session_id'];
+    } else {
+        $session_id="";
+    }
 
     if ($session_id) {
         $edit=orsee_db_load_array("sessions",$session_id,"session_id");
@@ -18,27 +20,36 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['experiment_id'])) $experiment_id=$_REQUEST['experiment_id']; else $experiment_id=$edit['experiment_id'];
+    if (isset($_REQUEST['experiment_id'])) {
+        $experiment_id=$_REQUEST['experiment_id'];
+    } else {
+        $experiment_id=$edit['experiment_id'];
+    }
     $experiment=orsee_db_load_array("experiments",$experiment_id,"experiment_id");
-    if (!isset($experiment['experiment_id'])) redirect("admin/");
+    if (!isset($experiment['experiment_id'])) {
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
     $allow=check_allow('session_edit','experiment_show.php?experiment_id='.$experiment_id);
 }
 if ($proceed) {
-    if (!check_allow('experiment_restriction_override'))
+    if (!check_allow('experiment_restriction_override')) {
         check_experiment_allowed($experiment_id,"admin/experiment_show.php?experiment_id=".$experiment_id);
+    }
 }
 
 if ($proceed) {
-    if (isset($experiment_id) && $experiment_id)
+    if (isset($experiment_id) && $experiment_id) {
         $allow=check_allow('session_edit','experiment_show.php?experiment_id='.$experiment_id);
+    }
 }
 
 if ($proceed) {
-    if (!check_allow('experiment_restriction_override'))
+    if (!check_allow('experiment_restriction_override')) {
         check_experiment_allowed($_REQUEST['experiment_id'],"admin/experiment_show.php?experiment_id=".$experiment_id);
+    }
 }
 
 
@@ -52,12 +63,13 @@ if ($proceed) {
 
 if ($proceed) {
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
-
-        if ($settings['enable_payment_module']=='y' ) {
-            if (isset($_REQUEST['payment_types']))
+        if ($settings['enable_payment_module']=='y') {
+            if (isset($_REQUEST['payment_types'])) {
                 $_REQUEST['payment_types']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['payment_types']));
-            if (isset($_REQUEST['payment_budgets']))
+            }
+            if (isset($_REQUEST['payment_budgets'])) {
                 $_REQUEST['payment_budgets']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['payment_budgets']));
+            }
         }
 
         $_REQUEST['session_start']=ortime__array_to_sesstime($_REQUEST,'session_start_');
@@ -67,17 +79,22 @@ if ($proceed) {
 
         if ($edit['session_start'] != $_REQUEST['session_start']) {
             $time_changed=true;
-            if ($registered>0) message (lang('session_time_changed'),'warning');
-        } else $time_changed=false;
+            if ($registered>0) {
+                message(lang('session_time_changed'),'warning');
+            }
+        } else {
+            $time_changed=false;
+        }
 
         if (!isset($_REQUEST['addit'])) {
             if ($_REQUEST['registration_end_hours']!=$edit['registration_end_hours'] || $time_changed) {
-                    $_REQUEST['reg_notice_sent']="n";
-                        message (lang('reg_time_extended_but_notice_sent'),'warning');
+                $_REQUEST['reg_notice_sent']="n";
+                message(lang('reg_time_extended_but_notice_sent'),'warning');
             }
-            if ( ($_REQUEST['session_reminder_hours']!=$edit['session_reminder_hours'] || $time_changed) &&
-                    isset($edit['session_reminder_sent']) && $edit['session_reminder_sent']=="y")
-                        message (lang('session_reminder_changed_but_notice_sent'),'warning');
+            if (($_REQUEST['session_reminder_hours']!=$edit['session_reminder_hours'] || $time_changed) &&
+                    isset($edit['session_reminder_sent']) && $edit['session_reminder_sent']=="y") {
+                message(lang('session_reminder_changed_but_notice_sent'),'warning');
+            }
         }
 
         $edit=$_REQUEST;
@@ -98,32 +115,36 @@ if ($proceed) {
 
         if ($done) {
             log__admin("session_edit","session:".session__build_name($form_fields,
-                    $settings['admin_standard_language']).", session_id:".$form_fields['session_id'].", experiment_id:".$form_fields['experiment_id']);
-            message (lang('changes_saved'));
-            redirect ('admin/session_edit.php?session_id='.$form_fields['session_id']);
+                $settings['admin_standard_language']).", session_id:".$form_fields['session_id'].", experiment_id:".$form_fields['experiment_id']);
+            message(lang('changes_saved'));
+            redirect('admin/session_edit.php?session_id='.$form_fields['session_id']);
         } else {
             lang('database_error');
-            redirect ('admin/session_edit.php?session_id='.$form_fields['session_id']);
+            redirect('admin/session_edit.php?session_id='.$form_fields['session_id']);
         }
     }
 }
 
 if ($proceed) {
-// form
+    // form
 
-    if (isset($_REQUEST['copy']) && $_REQUEST['copy']) $session_id="";
+    if (isset($_REQUEST['copy']) && $_REQUEST['copy']) {
+        $session_id="";
+    }
 
     if (!$session_id) {
         $addit=true;
         $button_name=lang('add');
 
         if (isset($_REQUEST['copy']) && $_REQUEST['copy']) {
-            if ($settings['enable_payment_module']=='y' ) {
-                if (isset($_REQUEST['payment_types']))
+            if ($settings['enable_payment_module']=='y') {
+                if (isset($_REQUEST['payment_types'])) {
                     $_REQUEST['payment_types']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['payment_types']));
-                if (isset($_REQUEST['payment_budgets']))
+                }
+                if (isset($_REQUEST['payment_budgets'])) {
                     $_REQUEST['payment_budgets']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['payment_budgets']));
                 }
+            }
             $_REQUEST['session_start']=ortime__array_to_sesstime($_REQUEST,'session_start_');
             $edit=$_REQUEST;
             $edit['session_id']=time();
@@ -169,7 +190,9 @@ if ($proceed) {
             <input type="hidden" name="session_id" value="'.$edit['session_id'].'">
             <input type="hidden" name="experiment_id" value="'.$edit['experiment_id'].'">
             '.csrf__field();
-    if (isset($addit) && $addit) echo '<input type="hidden" name="addit" value="true">';
+    if (isset($addit) && $addit) {
+        echo '<input type="hidden" name="addit" value="true">';
+    }
     echo '  <div class="orsee-panel">
                 <div class="orsee-form-shell">';
 
@@ -231,8 +254,8 @@ if ($proceed) {
                             <label class="label">'.lang('registration_end_hours_before').':</label>
                             <div class="control">';
     helpers__select_numbers_relative("registration_end_hours",$edit['registration_end_hours'],0,
-                    $settings['session_registration_end_hours_max'],2,
-                    $settings['session_registration_end_hours_steps'],$session_time);
+        $settings['session_registration_end_hours_max'],2,
+        $settings['session_registration_end_hours_steps'],$session_time);
     echo '              </div>
                         </div>
                         <div class="orsee-form-row-col">
@@ -242,55 +265,55 @@ if ($proceed) {
         echo $edit['session_reminder_hours'].' ('.lang('session_reminder_already_sent').')';
     } else {
         helpers__select_numbers_relative("session_reminder_hours",$edit['session_reminder_hours'],0,
-                         $settings['session_reminder_hours_max'],2,$settings['session_reminder_hours_steps'],
-                         $session_time);
+            $settings['session_reminder_hours_max'],2,$settings['session_reminder_hours_steps'],
+            $session_time);
     }
     echo '              </div>
                         </div>
                     </div>';
 
-    if ($settings['enable_payment_module']=='y' ) {
-            $payment_types=payments__load_paytypes();
-            $selected_payment_types=db_string_to_id_array($edit['payment_types']);
-            $experiment_payment_types=db_string_to_id_array($experiment['payment_types']);
-            $show_payment_types=($edit['payment_types'] || (is_array($experiment_payment_types) && count($experiment_payment_types)>1));
+    if ($settings['enable_payment_module']=='y') {
+        $payment_types=payments__load_paytypes();
+        $selected_payment_types=db_string_to_id_array($edit['payment_types']);
+        $experiment_payment_types=db_string_to_id_array($experiment['payment_types']);
+        $show_payment_types=($edit['payment_types'] || (is_array($experiment_payment_types) && count($experiment_payment_types)>1));
 
-            $payment_budgets=payments__load_budgets(true);
-            $selected_payment_budgets=db_string_to_id_array($edit['payment_budgets']);
-            $experiment_payment_budgets=db_string_to_id_array($experiment['payment_budgets']);
-            $show_payment_budgets=($edit['payment_budgets'] || (is_array($experiment_payment_budgets) && count($experiment_payment_budgets)>1));
+        $payment_budgets=payments__load_budgets(true);
+        $selected_payment_budgets=db_string_to_id_array($edit['payment_budgets']);
+        $experiment_payment_budgets=db_string_to_id_array($experiment['payment_budgets']);
+        $show_payment_budgets=($edit['payment_budgets'] || (is_array($experiment_payment_budgets) && count($experiment_payment_budgets)>1));
 
-            if ($show_payment_budgets || $show_payment_types) {
-                echo '      <div class="field orsee-form-row-grid orsee-form-row-grid--2">';
+        if ($show_payment_budgets || $show_payment_types) {
+            echo '      <div class="field orsee-form-row-grid orsee-form-row-grid--2">';
 
-                if ($show_payment_budgets) {
-                    $payment_budget_options=array();
-                    foreach ($payment_budgets as $budget_id=>$budget) {
-                        if ($budget['enabled'] || in_array($budget_id,$selected_payment_budgets)) {
-                            $payment_budget_options[(string)$budget_id]=$budget['budget_name'];
-                        }
+            if ($show_payment_budgets) {
+                $payment_budget_options=array();
+                foreach ($payment_budgets as $budget_id=>$budget) {
+                    if ($budget['enabled'] || in_array($budget_id,$selected_payment_budgets)) {
+                        $payment_budget_options[(string)$budget_id]=$budget['budget_name'];
                     }
-                    asort($payment_budget_options);
-                    echo '      <div class="orsee-form-row-col">
+                }
+                asort($payment_budget_options);
+                echo '      <div class="orsee-form-row-col">
                                     <label class="label"><i class="fa fa-credit-card fa-fw"></i>'.lang('possible_budgets').':</label>
                                     <div class="control orsee-picker-field">
                                         '.get_tag_picker('payment_budgets',$payment_budget_options,$selected_payment_budgets,array('tag_bg_color'=>'--color-selector-tag-bg-class')).'
                                     </div>
                                 </div>';
-                }
+            }
 
-                if ($show_payment_types) {
-                    asort($payment_types);
-                    echo '      <div class="orsee-form-row-col">
+            if ($show_payment_types) {
+                asort($payment_types);
+                echo '      <div class="orsee-form-row-col">
                                     <label class="label"><i class="fa fa-money fa-fw"></i>'.lang('possible_payment_types').':</label>
                                     <div class="control orsee-picker-field">
                                         '.get_tag_picker('payment_types',$payment_types,$selected_payment_types,array('tag_bg_color'=>'--color-selector-tag-bg-paymenttypes')).'
                                     </div>
                                 </div>';
-                }
-
-                echo '      </div>';
             }
+
+            echo '      </div>';
+        }
     }
 
     echo '          <div class="field">
@@ -326,7 +349,11 @@ if ($proceed) {
                         <div class="control">'.session__session_status_select('session_status',$edit['session_status']).'</div>
                     </div>';
 
-    if ($session_id) $experiment_id=$edit['experiment_id']; else $experiment_id=$_REQUEST['experiment_id'];
+    if ($session_id) {
+        $experiment_id=$edit['experiment_id'];
+    } else {
+        $experiment_id=$_REQUEST['experiment_id'];
+    }
 
     $show_delete=false;
     if ($session_id) {
@@ -359,7 +386,7 @@ if ($proceed) {
     echo '          </div>
             </div>
         </form>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

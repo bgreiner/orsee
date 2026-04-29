@@ -1,11 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="configure_participant_profile_field";
 $menu__area="options";
 $js_modules=array('flatpickr');
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     $allow=check_allow('pform_config_field_configure','options_participant_profile.php');
@@ -127,30 +126,30 @@ if ($proceed) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
         } else {
-                if ($variant_key!=='' && isset($variants[$variant_key]) && is_array($variants[$variant_key])) {
-                    unset($variants[$variant_key]);
-                    $policy_field=(isset($field_row['mysql_column_name']) ? $field_row : array(
-                        'mysql_column_name'=>$field_name,
-                        'enabled'=>((isset($field['enabled']) && $field['enabled']) ? 1 : 0),
-                        'type'=>$field['type'],
-                        'properties'=>''
-                    ));
-                    if (!isset($policy_field['properties'])) {
-                        $policy_field['properties']='';
-                    }
-                    participant__profile_field_policy_save(
-                        $policy_field,
-                        array(
-                            'enabled'=>$draft_enabled,
-                            'type'=>$draft_type,
-                            'baseline'=>$field,
-                            'variants'=>$variants
-                        ),
-                        $profile_field_specs
-                    );
-                    message(lang('profile_editor_variant_deleted'));
-                    redirect('admin/options_participant_profile_edit.php?mysql_column_name='.urlencode($field_name));
-                } else {
+            if ($variant_key!=='' && isset($variants[$variant_key]) && is_array($variants[$variant_key])) {
+                unset($variants[$variant_key]);
+                $policy_field=(isset($field_row['mysql_column_name']) ? $field_row : array(
+                    'mysql_column_name'=>$field_name,
+                    'enabled'=>((isset($field['enabled']) && $field['enabled']) ? 1 : 0),
+                    'type'=>$field['type'],
+                    'properties'=>''
+                ));
+                if (!isset($policy_field['properties'])) {
+                    $policy_field['properties']='';
+                }
+                participant__profile_field_policy_save(
+                    $policy_field,
+                    array(
+                        'enabled'=>$draft_enabled,
+                        'type'=>$draft_type,
+                        'baseline'=>$field,
+                        'variants'=>$variants
+                    ),
+                    $profile_field_specs
+                );
+                message(lang('profile_editor_variant_deleted'));
+                redirect('admin/options_participant_profile_edit.php?mysql_column_name='.urlencode($field_name));
+            } else {
                 message(lang('profile_editor_variant_not_found'),'error');
             }
         }
@@ -397,5 +396,6 @@ if ($proceed) {
     echo javascript__confirm_modal_script();
 }
 
-include ("footer.php");
+include("footer.php");
+
 ?>

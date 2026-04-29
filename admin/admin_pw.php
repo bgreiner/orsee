@@ -1,36 +1,47 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="change_my_password";
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     if (isset($_REQUEST['submit']) && $_REQUEST['submit']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/admin_pw.php");
+            redirect("admin/admin_pw.php");
         }
 
-        if (isset($_REQUEST['passold'])) $passold=$_REQUEST['passold']; else $passold="";
-        if (isset($_REQUEST['password'])) $password=$_REQUEST['password']; else $password="";
-        if (isset($_REQUEST['password2'])) $password2=$_REQUEST['password2']; else $password2="";
+        if (isset($_REQUEST['passold'])) {
+            $passold=$_REQUEST['passold'];
+        } else {
+            $passold="";
+        }
+        if (isset($_REQUEST['password'])) {
+            $password=$_REQUEST['password'];
+        } else {
+            $password="";
+        }
+        if (isset($_REQUEST['password2'])) {
+            $password2=$_REQUEST['password2'];
+        } else {
+            $password2="";
+        }
 
         // password tests
         $continue=true;
 
         if (!$passold || !$password || !$password2) {
-            message (lang('error_please_fill_in_all_fields'),'error');
+            message(lang('error_please_fill_in_all_fields'),'error');
             $continue=false;
         }
 
         if ($password!=$password2) {
-            message (lang('error_password_repetition_does_not_match'),'error');
+            message(lang('error_password_repetition_does_not_match'),'error');
             $continue=false;
         }
 
         if (!crypt_verify($passold,$expadmindata['password_crypt'])) {
-            message (lang('error_old_password_wrong'),'error');
+            message(lang('error_old_password_wrong'),'error');
             $continue=false;
         }
 
@@ -41,9 +52,8 @@ if ($proceed) {
         if ($settings['admin_password_change_require_different']=='y') {
             if ($passold==$password) {
                 message(lang('error_new_password_must_be_different_from_old_password'),'error');
-            $continue=false;
-        }
-
+                $continue=false;
+            }
         }
 
         if (!preg_match('/'.$settings['admin_password_regexp'].'/',$password)) {
@@ -53,11 +63,11 @@ if ($proceed) {
 
 
         if ($continue==false) {
-            message (lang('error_password_not_changed'),'error');
-            redirect ("admin/admin_pw.php");
+            message(lang('error_password_not_changed'),'error');
+            redirect("admin/admin_pw.php");
         } else {
             admin__set_password($password,$expadmindata['admin_id']);
-            message (lang('password_changed_log_in_again'));
+            message(lang('password_changed_log_in_again'));
             log__admin("admin_password_change",$expadmindata['adminname']);
             log__admin("logout");
             admin__logout();
@@ -116,8 +126,7 @@ if ($proceed) {
                 </div>
             </div>
         </form>';
-
 }
-include ("footer.php");
+include("footer.php");
 
 ?>

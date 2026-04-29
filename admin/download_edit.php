@@ -1,31 +1,41 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="edit_file_properties";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['file']) && $_REQUEST['file']) $upload_id=$_REQUEST['file'];
-    else redirect ("admin/");
+    if (isset($_REQUEST['file']) && $_REQUEST['file']) {
+        $upload_id=$_REQUEST['file'];
+    } else {
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
     $upload=orsee_db_load_array("uploads",$upload_id,"upload_id");
-    if (!isset($upload['upload_id'])) redirect ('admin/download_main.php');
+    if (!isset($upload['upload_id'])) {
+        redirect('admin/download_main.php');
+    }
 }
 
 if ($proceed) {
     if ($upload['experiment_id']>0) {
         $experiment_id=$upload['experiment_id'];
-        if (!check_allow('experiment_restriction_override'))
+        if (!check_allow('experiment_restriction_override')) {
             check_experiment_allowed($experiment_id,"admin/experiment_show.php?experiment_id=".$experiment_id);
-    } else $experiment_id=0;
+        }
+    } else {
+        $experiment_id=0;
+    }
 }
 
 if ($proceed) {
     if ($experiment_id>0) {
         $experiment=orsee_db_load_array("experiments",$experiment_id,"experiment_id");
-        if (!isset($experiment['experiment_id'])) $experiment_id=0;
+        if (!isset($experiment['experiment_id'])) {
+            $experiment_id=0;
+        }
     }
 }
 
@@ -33,7 +43,7 @@ if ($proceed) {
     if ($experiment_id>0) {
         $experimenters=db_string_to_id_array($experiment['experimenter']);
         if (! ((in_array($expadmindata['admin_id'],$experimenters) && check_allow('file_edit_experiment_my'))
-                || check_allow('file_edit_experiment_all')) ) {
+                || check_allow('file_edit_experiment_all'))) {
             redirect('admin/experiment_show.php?experiment_id='.$experiment_id);
         }
     } else {
@@ -43,7 +53,6 @@ if ($proceed) {
 
 
 if ($proceed) {
-
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
@@ -56,7 +65,7 @@ if ($proceed) {
         $continue=true;
         if (!$_REQUEST['upload_name']) {
             $continue=false;
-            message (lang('error_no_upload_file_name'),'error');
+            message(lang('error_no_upload_file_name'),'error');
         }
 
         if ($continue) {
@@ -67,12 +76,15 @@ if ($proceed) {
             $done=orsee_db_save_array($upload,"uploads",$upload['upload_id'],"upload_id");
 
             if ($done) {
-                message (lang('changes_saved'));
+                message(lang('changes_saved'));
                 $target="file: ".$upload_id;
                 $target.= ($experiment_id) ? ", experiment:".$experiment['experiment_name'] : ", general";
                 log__admin("file_upload",$target);
-                if ($experiment_id) redirect ('admin/download_main.php?experiment_id='.urlencode($experiment_id));
-                else redirect ('admin/download_main.php');
+                if ($experiment_id) {
+                    redirect('admin/download_main.php?experiment_id='.urlencode($experiment_id));
+                } else {
+                    redirect('admin/download_main.php');
+                }
                 $proceed=false;
             }
         }
@@ -80,7 +92,6 @@ if ($proceed) {
 }
 
 if ($proceed) {
-
     //form for editing file
 
 
@@ -114,8 +125,11 @@ if ($proceed) {
                     </div>
                     <div class="field orsee-form-row-grid orsee-form-row-grid--2 orsee-form-actions">
                         <div class="orsee-form-row-col has-text-left">';
-    if ($experiment_id) echo button_back('download_main.php?experiment_id='.urlencode($experiment_id),lang('back'));
-    else echo button_back('download_main.php');
+    if ($experiment_id) {
+        echo button_back('download_main.php?experiment_id='.urlencode($experiment_id),lang('back'));
+    } else {
+        echo button_back('download_main.php');
+    }
     echo '              </div>
                         <div class="orsee-form-row-col has-text-right">
                             <input class="button orsee-btn" type="submit" name="edit" value="'.lang('save').'">
@@ -124,7 +138,7 @@ if ($proceed) {
                 </div>
             </div>
         </form>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

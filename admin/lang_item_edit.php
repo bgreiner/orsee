@@ -1,29 +1,44 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
-if (isset($_REQUEST['item'])) $item=$_REQUEST['item']; else $item='';
+if (isset($_REQUEST['item'])) {
+    $item=$_REQUEST['item'];
+} else {
+    $item='';
+}
 $title="options";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['item'])) $item=$_REQUEST['item']; else redirect ("admin/");
+    if (isset($_REQUEST['item'])) {
+        $item=$_REQUEST['item'];
+    } else {
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['id'])) $id=$_REQUEST['id']; else $id="";
+    if (isset($_REQUEST['id'])) {
+        $id=$_REQUEST['id'];
+    } else {
+        $id="";
+    }
     $return_to='';
     if ($item==='public_content' && isset($_REQUEST['return_to']) && trim((string)$_REQUEST['return_to'])!=='') {
         $return_to=trim((string)$_REQUEST['return_to']);
     }
 
     $done=false;
-    $formfields=participantform__load('draft'); $allow_cat=$item;
-    foreach($formfields as $f) {
+    $formfields=participantform__load('draft');
+    $allow_cat=$item;
+    foreach ($formfields as $f) {
         if (preg_match("/(select_lang|radioline_lang|checkboxlist_lang)/",$f['type']) && $item==$f['mysql_column_name']) {
             $done=true;
             $header=participant__field_localized_text($f,'name_lang','name_lang');
-            if (!$header) $header=$f['mysql_column_name'];
+            if (!$header) {
+                $header=$f['mysql_column_name'];
+            }
             $new_id='time';
             $inputform='line';
             $check_allow_content_shortcut=false;
@@ -31,58 +46,87 @@ if ($proceed) {
         }
     }
 
-    if (!$id) $allow=check_allow($allow_cat.'_edit','lang_item_main.php?item='.$item);
-    else $allow=check_allow($allow_cat.'_edit','options_main.php');
+    if (!$id) {
+        $allow=check_allow($allow_cat.'_edit','lang_item_main.php?item='.$item);
+    } else {
+        $allow=check_allow($allow_cat.'_edit','options_main.php');
+    }
 }
 
 $content_shortcut_editable=true;
 if ($proceed && $item==='public_content' && $id) {
-  $content_shortcut_editable=false;
+    $content_shortcut_editable=false;
 }
 
 if ($proceed) {
     if (!$done) {
-
-        switch($item) {
+        switch ($item) {
             case 'experimentclass':
-                if ($id) $header=lang('edit_experiment_class');
-                else $header=lang('add_experiment_class');
+                if ($id) {
+                    $header=lang('edit_experiment_class');
+                } else {
+                    $header=lang('add_experiment_class');
+                }
                 $new_id='time';
                 $check_allow_content_shortcut=false;
                 $inputform='line';
                 break;
             case 'public_content':
-                if ($id) $header=lang('edit_public_content'); else $header=lang('add_public_content');
+                if ($id) {
+                    $header=lang('edit_public_content');
+                } else {
+                    $header=lang('add_public_content');
+                }
                 $new_id='content_shortcut';
                 $inputform='area';
                 $check_allow_content_shortcut=true;
                 break;
             case 'datetime_format':
-                if ($id) $header=lang('edit_datetime_format'); else $header=lang('add_datetime_format');
+                if ($id) {
+                    $header=lang('edit_datetime_format');
+                } else {
+                    $header=lang('add_datetime_format');
+                }
                 $new_id='content_shortcut';
                 $inputform='line';
                 $check_allow_content_shortcut=true;
                 break;
             case 'help':
-                if ($id) $header=lang('edit_help'); else $header=lang('add_help');
+                if ($id) {
+                    $header=lang('edit_help');
+                } else {
+                    $header=lang('add_help');
+                }
                 $new_id='content_shortcut';
                 $inputform='area';
                 $check_allow_content_shortcut=true;
                 break;
             case 'mail':
-                if ($id) $header=lang('edit_default_mail'); else $header=lang('add_default_mail');
+                if ($id) {
+                    $header=lang('edit_default_mail');
+                } else {
+                    $header=lang('add_default_mail');
+                }
                 $new_id='content_shortcut';
                 $inputform='area';
                 $check_allow_content_shortcut=true;
                 break;
             case 'default_text':
-                if ($id) $header=lang('edit_default_text'); else $header=lang('add_default_text');
+                if ($id) {
+                    $header=lang('edit_default_text');
+                } else {
+                    $header=lang('add_default_text');
+                }
                 $new_id='content_shortcut';
                 $inputform='area';
                 $check_allow_content_shortcut=true;
                 break;
             case 'laboratory':
-                if ($id) $header=lang('edit_laboratory'); else $header=lang('create_new_laboratory');
+                if ($id) {
+                    $header=lang('edit_laboratory');
+                } else {
+                    $header=lang('create_new_laboratory');
+                }
                 $new_id='time';
                 $inputform='area';
                 $check_allow_content_shortcut=false;
@@ -90,33 +134,53 @@ if ($proceed) {
                 $extranote_lang_field=lang('first_line_is_lab_name_rest_is_address');
                 break;
             case 'payments_type':
-                if ($id) $header=lang('edit_payment_type'); else $header=lang('add_payment_type');
+                if ($id) {
+                    $header=lang('edit_payment_type');
+                } else {
+                    $header=lang('add_payment_type');
+                }
                 $new_id='time';
                 $inputform='line';
                 $check_allow_content_shortcut=false;
                 break;
             case 'file_upload_category':
-                if ($id) $header=lang('edit_upload_category'); else $header=lang('add_upload_category');
+                if ($id) {
+                    $header=lang('edit_upload_category');
+                } else {
+                    $header=lang('add_upload_category');
+                }
                 $new_id='time';
                 $inputform='line';
                 $check_allow_content_shortcut=false;
                 break;
             case 'events_category':
-                if ($id) $header=lang('edit_event_category'); else $header=lang('add_event_category');
+                if ($id) {
+                    $header=lang('edit_event_category');
+                } else {
+                    $header=lang('add_event_category');
+                }
                 $new_id='time';
                 $inputform='line';
                 $check_allow_content_shortcut=false;
                 break;
             case 'emails_mailbox':
-                if ($id) $header=lang('edit_email_mailbox'); else $header=lang('add_email_mailbox');
+                if ($id) {
+                    $header=lang('edit_email_mailbox');
+                } else {
+                    $header=lang('add_email_mailbox');
+                }
                 $new_id='time';
                 $inputform='line';
                 $check_allow_content_shortcut=false;
                 break;
-            }
         }
+    }
 
-        if ($id) $button_title=lang('change'); else $button_title=lang('add');
+    if ($id) {
+        $button_title=lang('change');
+    } else {
+        $button_title=lang('add');
+    }
 
     // load languages
     $languages=get_languages();
@@ -131,7 +195,6 @@ if ($proceed) {
 
 if ($proceed) {
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
-
         $continue=true;
 
         if ($new_id=='content_shortcut' && $content_shortcut_editable && !$_REQUEST['content_shortcut']) {
@@ -141,7 +204,7 @@ if ($proceed) {
 
         foreach ($languages as $language) {
             if (trim($_REQUEST[$language])=="") {
-                message (lang('missing_language').": ".$language,'error');
+                message(lang('missing_language').": ".$language,'error');
                 $continue=false;
             } else {
                 $_REQUEST[$language]=trim($_REQUEST[$language]);
@@ -152,32 +215,48 @@ if ($proceed) {
             $sitem=$_REQUEST;
             $sitem['content_type']=$item;
 
-            if (!$id) $new=true; else $new=false;
+            if (!$id) {
+                $new=true;
+            } else {
+                $new=false;
+            }
 
-            if ($new && $new_id=="time") $sitem['content_name']=time();
+            if ($new && $new_id=="time") {
+                $sitem['content_name']=time();
+            }
             if ($new_id=="content_shortcut") {
                 if ($content_shortcut_editable) {
                     $sitem['content_name']=trim($_REQUEST['content_shortcut']);
                 } else {
                     $current_item=orsee_db_load_array("lang",$id,"lang_id");
-                    if (is_array($current_item) && isset($current_item['content_name'])) $sitem['content_name']=$current_item['content_name'];
+                    if (is_array($current_item) && isset($current_item['content_name'])) {
+                        $sitem['content_name']=$current_item['content_name'];
+                    }
                 }
             }
 
             $allowed_fields=array('content_type','content_name');
-            foreach ($languages as $language) $allowed_fields[]=$language;
+            foreach ($languages as $language) {
+                $allowed_fields[]=$language;
+            }
             $form_fields=array_filter_allowed($sitem,$allowed_fields);
 
-            if ($new) { $id=lang__insert_to_lang($form_fields); $done=(bool)$id; }
-            else $done=orsee_db_save_array($form_fields,"lang",$id,"lang_id");
+            if ($new) {
+                $id=lang__insert_to_lang($form_fields);
+                $done=(bool)$id;
+            } else {
+                $done=orsee_db_save_array($form_fields,"lang",$id,"lang_id");
+            }
 
-            if (!$new && $new_id=="time") $sitem['content_name']=trim($_REQUEST['content_shortcut']);
+            if (!$new && $new_id=="time") {
+                $sitem['content_name']=trim($_REQUEST['content_shortcut']);
+            }
 
             if ($done) {
                 log__admin($item."_edit","lang_id:".$sitem['content_type'].','.$sitem['content_name']);
-                message (lang('changes_saved'));
+                message(lang('changes_saved'));
                 if ($new) {
-                    redirect ('admin/lang_item_main.php?&item='.$item);
+                    redirect('admin/lang_item_main.php?&item='.$item);
                 } else {
                     $redirect_url='admin/lang_item_edit.php?id='.$id.'&item='.$item;
                     if ($return_to!=='') {
@@ -186,7 +265,7 @@ if ($proceed) {
                     redirect($redirect_url);
                 }
             } else {
-                message (lang('database_error'),'error');
+                message(lang('database_error'),'error');
                 $redirect_url='admin/lang_item_edit.php?id='.$id.'&item='.$item;
                 if ($return_to!=='') {
                     $redirect_url.='&return_to='.urlencode($return_to);
@@ -195,15 +274,20 @@ if ($proceed) {
             }
         } else {
             $titem=$_REQUEST;
-            if ($new_id=="content_shortcut" && $content_shortcut_editable) $titem['content_name']=$_REQUEST['content_shortcut'];
+            if ($new_id=="content_shortcut" && $content_shortcut_editable) {
+                $titem['content_name']=$_REQUEST['content_shortcut'];
+            }
         }
     }
 }
 
 
 if ($proceed) {
-    if ($id) { $titem=orsee_db_load_array("lang",$id,"lang_id"); }
-    else { $titem=array('content_name'=>''); }
+    if ($id) {
+        $titem=orsee_db_load_array("lang",$id,"lang_id");
+    } else {
+        $titem=array('content_name'=>'');
+    }
 
     $header_display=$header;
     if ($item==='public_content' && $id) {
@@ -212,22 +296,35 @@ if ($proceed) {
         $menu_areas=array('public','admin');
         foreach ($menu_areas as $menu_area_name) {
             $menu_config=html__menu_load_config($menu_area_name);
-            if (!is_array($menu_config) || !isset($menu_config['items']) || !is_array($menu_config['items'])) continue;
+            if (!is_array($menu_config) || !isset($menu_config['items']) || !is_array($menu_config['items'])) {
+                continue;
+            }
             foreach ($menu_config['items'] as $menu_item) {
-                if (!is_array($menu_item) || !isset($menu_item['content_name'])) continue;
-                if ($current_content_name==='' || trim((string)$menu_item['content_name'])!==$current_content_name) continue;
+                if (!is_array($menu_item) || !isset($menu_item['content_name'])) {
+                    continue;
+                }
+                if ($current_content_name==='' || trim((string)$menu_item['content_name'])!==$current_content_name) {
+                    continue;
+                }
                 $menu_label=html__menu_text_from_lang_map((isset($menu_item['menu_term_lang']) ? $menu_item['menu_term_lang'] : array()),'');
                 if ($menu_label==='') {
-                    if (isset($menu_item['id']) && trim((string)$menu_item['id'])!=='') $menu_label=(string)$menu_item['id'];
-                    elseif (isset($titem['content_name']) && trim((string)$titem['content_name'])!=='') $menu_label=(string)$titem['content_name'];
-                    else $menu_label=(string)$id;
+                    if (isset($menu_item['id']) && trim((string)$menu_item['id'])!=='') {
+                        $menu_label=(string)$menu_item['id'];
+                    } elseif (isset($titem['content_name']) && trim((string)$titem['content_name'])!=='') {
+                        $menu_label=(string)$titem['content_name'];
+                    } else {
+                        $menu_label=(string)$id;
+                    }
                 }
                 break 2;
             }
         }
         if ($menu_label==='') {
-            if (isset($titem['content_name']) && trim((string)$titem['content_name'])!=='') $menu_label=(string)$titem['content_name'];
-            else $menu_label=(string)$id;
+            if (isset($titem['content_name']) && trim((string)$titem['content_name'])!=='') {
+                $menu_label=(string)$titem['content_name'];
+            } else {
+                $menu_label=(string)$id;
+            }
         }
         $header_display=$header.': '.htmlspecialchars($menu_label);
     }
@@ -257,7 +354,9 @@ if ($proceed) {
                 }
             }
         } else {
-            if (!$id) echo lang('id');
+            if (!$id) {
+                echo lang('id');
+            }
         }
         echo '              </label>
                         <div class="control">';
@@ -314,7 +413,9 @@ if ($proceed) {
 
     $lang_dirs=lang__is_rtl_all_langs();
     foreach ($languages as $language) {
-        if (!isset($titem[$language])) $titem[$language]="";
+        if (!isset($titem[$language])) {
+            $titem[$language]="";
+        }
         $field_dir=(isset($lang_dirs[$language]) && $lang_dirs[$language] ? 'rtl' : 'ltr');
         echo '      <div class="field">
                         <label class="label">'.$language.':';
@@ -349,7 +450,7 @@ if ($proceed) {
             </div>
         </form>
         <br>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

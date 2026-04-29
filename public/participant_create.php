@@ -4,7 +4,7 @@ ob_start();
 $menu__area="public_register";
 $title="registration_form";
 $js_modules=array('flatpickr','switchy','intltelinput');
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     $subpools=subpools__get_subpools();
@@ -88,22 +88,31 @@ if ($proceed) {
 
         if ($continue) {
             if (!isset($_REQUEST['captcha']) || !isset($_SESSION['captcha_string']) || $_REQUEST['captcha']!=$_SESSION['captcha_string']) {
-                if (!isset($_REQUEST['subscriptions']) || !is_array($_REQUEST['subscriptions'])) $_REQUEST['subscriptions']=array();
+                if (!isset($_REQUEST['subscriptions']) || !is_array($_REQUEST['subscriptions'])) {
+                    $_REQUEST['subscriptions']=array();
+                }
                 $_REQUEST['subscriptions']=id_array_to_db_string($_REQUEST['subscriptions']);
                 $formfields=participantform__load();
                 foreach ($formfields as $f) {
-                    if (!isset($f['type']) || $f['type']!=='date') continue;
+                    if (!isset($f['type']) || $f['type']!=='date') {
+                        continue;
+                    }
                     $field_name=$f['mysql_column_name'];
                     $date_mode=(isset($f['date_mode']) ? $f['date_mode'] : 'ymd');
-                    if (!in_array($date_mode,array('ymd','ym','y'))) $date_mode='ymd';
+                    if (!in_array($date_mode,array('ymd','ym','y'))) {
+                        $date_mode='ymd';
+                    }
                     $date_ymd=ortime__date_parts_to_ymd(
                         (isset($_REQUEST[$field_name.'_y']) ? $_REQUEST[$field_name.'_y'] : ''),
                         (isset($_REQUEST[$field_name.'_m']) ? $_REQUEST[$field_name.'_m'] : ''),
                         (isset($_REQUEST[$field_name.'_d']) ? $_REQUEST[$field_name.'_d'] : ''),
                         $date_mode
                     );
-                    if ($date_ymd) $_REQUEST[$field_name]=$date_ymd;
-                    else $_REQUEST[$field_name]='';
+                    if ($date_ymd) {
+                        $_REQUEST[$field_name]=$date_ymd;
+                    } else {
+                        $_REQUEST[$field_name]='';
+                    }
                 }
                 $continue=false;
                 message(lang('error_wrong_captcha'),'error');
@@ -112,7 +121,9 @@ if ($proceed) {
 
         if ($continue) {
             foreach ($_REQUEST as $k=>$v) {
-                if (!is_array($v)) $_REQUEST[$k]=trim($v);
+                if (!is_array($v)) {
+                    $_REQUEST[$k]=trim($v);
+                }
             }
             $_REQUEST['subpool_id']=$selected_subpool;
             $check_result=participantform__check_fields($_REQUEST,'profile_form_public_create');
@@ -120,18 +131,20 @@ if ($proceed) {
             $form_input=$check_result['sanitized'];
             $allowed_fields=$check_result['allowed_fields'];
             $error_count=count($errors__dataform);
-            if ($error_count>0) $continue=false;
+            if ($error_count>0) {
+                $continue=false;
+            }
 
             $response=participantform__check_unique($form_input,"create");
             if (isset($response['disable_form']) && $response['disable_form']) {
                 $continue=false;
                 $proceed=false;
-                unset ($_SESSION['pauthdata']['pw_provided']);
-                unset ($_SESSION['pauthdata']['submitted_checked_pw']);
+                unset($_SESSION['pauthdata']['pw_provided']);
+                unset($_SESSION['pauthdata']['submitted_checked_pw']);
                 if ($settings['subject_authentication']=='token') {
-                    redirect ("public/");
+                    redirect("public/");
                 } else {
-                    redirect ("public/participant_login.php");
+                    redirect("public/participant_login.php");
                 }
             } elseif ($response['problem']) {
                 $continue=false;
@@ -155,9 +168,9 @@ if ($proceed) {
 
         if ($continue) {
             $participant=$form_input;
-            unset ($_SESSION['pauthdata']['pw_provided']);
-            unset ($_SESSION['pauthdata']['submitted_checked_pw']);
-            unset ($_SESSION['captcha_string']);
+            unset($_SESSION['pauthdata']['pw_provided']);
+            unset($_SESSION['pauthdata']['submitted_checked_pw']);
+            unset($_SESSION['captcha_string']);
             $new_id=participant__create_participant_id($participant);
             $participant['participant_id']=$new_id['participant_id'];
             $participant['participant_id_crypt']=$new_id['participant_id_crypt'];
@@ -169,7 +182,9 @@ if ($proceed) {
             $participant['last_profile_update']=$participant['creation_time'];
             $participant['status_id']=0;
             $participant['subpool_id']=$selected_subpool;
-            if (!isset($participant['language']) || !$participant['language']) $participant['language']=$settings['public_standard_language'];
+            if (!isset($participant['language']) || !$participant['language']) {
+                $participant['language']=$settings['public_standard_language'];
+            }
             $save_allowed_fields=array_values(array_unique(array_merge(
                 $allowed_fields,
                 array('language','participant_id','participant_id_crypt','password_crypted','confirmation_token','creation_time','last_profile_update','status_id','subpool_id')
@@ -181,7 +196,7 @@ if ($proceed) {
                 $proceed=false;
                 $done=experimentmail__confirmation_mail($participant);
                 message(lang('successfully_registered'));
-                redirect ("public/");
+                redirect("public/");
             } else {
                 message(lang('database_error'),'error');
             }
@@ -200,13 +215,19 @@ if ($proceed) {
 
         $render_subpool=$selected_subpool;
         if (!$render_subpool) {
-            if (count($all_pool_ids)>0) $render_subpool=(int)$all_pool_ids[0];
-            else $render_subpool=1;
+            if (count($all_pool_ids)>0) {
+                $render_subpool=(int)$all_pool_ids[0];
+            } else {
+                $render_subpool=1;
+            }
         }
         $render_input=array();
         if (isset($_REQUEST['add']) && $_REQUEST['add']) {
-            if (isset($form_input) && is_array($form_input)) $render_input=$form_input;
-            else $render_input=$_REQUEST;
+            if (isset($form_input) && is_array($form_input)) {
+                $render_input=$form_input;
+            } else {
+                $render_input=$_REQUEST;
+            }
         }
         $render_input['subpool_id']=$render_subpool;
 
@@ -415,4 +436,5 @@ if ($proceed) {
 }
 
 include("footer.php");
+
 ?>

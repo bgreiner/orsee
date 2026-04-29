@@ -13,8 +13,8 @@ if ($settings['support_mail']) {
     echo '.</p><br><br><br></div>';
 }
 
-    debug_output();
+debug_output();
 
-    html__show_style_footer('public');
-    html__footer();
+html__show_style_footer('public');
+html__footer();
 ?>

@@ -37,7 +37,8 @@ function admin__check_login($username,$password) {
     $admin=orsee_query($query,$pars);
 
     $continue=true;
-    $not_allowed=false; $locked=false;
+    $not_allowed=false;
+    $locked=false;
     if ($continue) {
         if (!isset($admin['admin_id'])) {
             $continue=false;
@@ -78,22 +79,26 @@ function admin__check_login($username,$password) {
     }
 
     if ($continue) {
-        session_regenerate_id(true); 
+        session_regenerate_id(true);
         $_SESSION['expadmindata']=$expadmindata;
         $done=admin__track_successful_login($admin);
         return true;
     } else {
         //if ($locked) message(lang('error_locked_out'));
-        if ($not_allowed) message(lang('error_not_allowed_to_login'),'error');
+        if ($not_allowed) {
+            message(lang('error_not_allowed_to_login'),'error');
+        }
         return false;
     }
 }
 
 function admin__check_has_lockout($admin) {
     global $settings;
-    if (isset($settings['lockout_period_minutes_after_failed_logins']) && $settings['lockout_period_minutes_after_failed_logins']>0)
+    if (isset($settings['lockout_period_minutes_after_failed_logins']) && $settings['lockout_period_minutes_after_failed_logins']>0) {
         $lockout_minutes=$settings['lockout_period_minutes_after_failed_logins'];
-    else $lockout_minutes=20;
+    } else {
+        $lockout_minutes=20;
+    }
     if ($admin['locked'] && ($admin['last_login_attempt'] + ($lockout_minutes*60)) < time()) {
         // unlock
         $admin['failed_login_attempts']=0;
@@ -105,12 +110,16 @@ function admin__check_has_lockout($admin) {
 
 function admin__track_unsuccessful_login($admin) {
     global $settings;
-    if (isset($settings['max_number_of_failed_logins_before_lockout']) && $settings['max_number_of_failed_logins_before_lockout']>0)
+    if (isset($settings['max_number_of_failed_logins_before_lockout']) && $settings['max_number_of_failed_logins_before_lockout']>0) {
         $limit=$settings['max_number_of_failed_logins_before_lockout'];
-    else $limit=3;
-    if (isset($settings['lockout_period_minutes_after_failed_logins']) && $settings['lockout_period_minutes_after_failed_logins']>0)
-    $lockout_minutes=$settings['lockout_period_minutes_after_failed_logins'];
-    else $lockout_minutes=20;
+    } else {
+        $limit=3;
+    }
+    if (isset($settings['lockout_period_minutes_after_failed_logins']) && $settings['lockout_period_minutes_after_failed_logins']>0) {
+        $lockout_minutes=$settings['lockout_period_minutes_after_failed_logins'];
+    } else {
+        $lockout_minutes=20;
+    }
 
     $last_login_attempt=time();
     $failed_login_attempts=$admin['failed_login_attempts']+1;
@@ -154,16 +163,19 @@ function admin__load_admin_rights($admin_type) {
     $admin_type=orsee_db_load_array("admin_types",$admin_type,"type_name");
     $trights=explode(",",$admin_type['rights']);
     $rights=array();
-    foreach ($trights as $right) $rights[$right]=true;
+    foreach ($trights as $right) {
+        $rights[$right]=true;
+    }
     return $rights;
 }
 
 function check_allow($right,$redirect="") {
     global $expadmindata, $lang, $proceed;
-    if (isset($expadmindata['rights'][$right]) && $expadmindata['rights'][$right]) return true;
-    else {
+    if (isset($expadmindata['rights'][$right]) && $expadmindata['rights'][$right]) {
+        return true;
+    } else {
         if ($redirect) {
-            message (lang('error_not_authorized_to_access_this_function'),'error');
+            message(lang('error_not_authorized_to_access_this_function'),'error');
             redirect("admin/".$redirect);
             $proceed=false;
         }
@@ -204,12 +216,16 @@ function admin__select_admin_type($fieldname,$selected="",$return_var="type_name
             $preloaded_admintypes[$line['type_name']]=$line;
         }
     }
-    if (!isset($preloaded_admintypes[$selected])) $selected=$settings['default_admin_type'];
+    if (!isset($preloaded_admintypes[$selected])) {
+        $selected=$settings['default_admin_type'];
+    }
     $out.='<span class="select is-primary select-compact"><select name="'.$fieldname.'">';
     foreach ($preloaded_admintypes as $line) {
-        if(!in_array($line['type_id'],$hide)) {
+        if (!in_array($line['type_id'],$hide)) {
             $out.='<OPTION value="'.$line[$return_var].'"';
-            if ($line[$return_var]==$selected || $line['type_name']==$selected) $out.=' SELECTED';
+            if ($line[$return_var]==$selected || $line['type_name']==$selected) {
+                $out.=' SELECTED';
+            }
             $out.='>'.$line['type_name'].'</OPTION>';
         }
     }
@@ -236,7 +252,9 @@ function admin__admin_type_select_field($postvarname,$selected,$multi=true,$mpop
     // selected - array of pre-selected class ids
     global $lang;
     $out="";
-    if (!is_array($mpoptions)) $mpoptions=array();
+    if (!is_array($mpoptions)) {
+        $mpoptions=array();
+    }
     $admin_types=admin__load_admin_types();
     $mylist=array();
     foreach ($admin_types as $k=>$line) {
@@ -246,11 +264,16 @@ function admin__admin_type_select_field($postvarname,$selected,$multi=true,$mpop
         $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
     } else {
         $out.= '<SELECT name="'.$postvarname.'">
-                <OPTION value=""'; if (!$selected) $out.= ' SELECTED'; $out.= '>-</OPTION>
+                <OPTION value=""';
+        if (!$selected) {
+            $out.= ' SELECTED';
+        } $out.= '>-</OPTION>
                 ';
         foreach ($mylist as $k=>$v) {
             $out.= '<OPTION value="'.$k.'"';
-                if ($selected==$k) $out.= ' SELECTED'; $out.= '>'.$v.'</OPTION>
+            if ($selected==$k) {
+                $out.= ' SELECTED';
+            } $out.= '>'.$v.'</OPTION>
                 ';
         }
         $out.= '</SELECT>
@@ -262,7 +285,7 @@ function admin__admin_type_select_field($postvarname,$selected,$multi=true,$mpop
 function admin__update_admin_rights_if_not_exists($specs) {
     global $system__admin_rights;
     $done=false;
-    
+
     // is the right defined? If not: ignore.
     $defined_rights=array();
     foreach ($system__admin_rights as $right) {
@@ -272,7 +295,8 @@ function admin__update_admin_rights_if_not_exists($specs) {
 
     if (in_array($specs['right_name'],$defined_rights)) {
         // does the right already exist in >0 admin profiles? If yes: ignore.
-        $exists=false; $trights=array();
+        $exists=false;
+        $trights=array();
         $query="SELECT * FROM ".table('admin_types')." ORDER BY type_name";
         $result=or_query($query);
         while ($type=pdo_fetch_assoc($result)) {
@@ -281,7 +305,7 @@ function admin__update_admin_rights_if_not_exists($specs) {
                 $exists=true;
             }
         }
-        
+
         if ($exists) {
             log__admin('Automatic database upgrade: User privilege "'.$specs['right_name'].'" already exists in at least one admin profile. Not upgraded.');
         } else {

@@ -1,54 +1,74 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="delete_language";
 include("header.php");
+
 if ($proceed) {
     $allow=check_allow('lang_lang_delete','lang_main.php');
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['elang']) && $_REQUEST['elang']) $tlang=$_REQUEST['elang'];
-    else $tlang="";
+    if (isset($_REQUEST['elang']) && $_REQUEST['elang']) {
+        $tlang=$_REQUEST['elang'];
+    } else {
+        $tlang="";
+    }
 
-    if (isset($_REQUEST['nlang']) && $_REQUEST['nlang']) $slang=$_REQUEST['nlang'];
-    else $slang="";
+    if (isset($_REQUEST['nlang']) && $_REQUEST['nlang']) {
+        $slang=$_REQUEST['nlang'];
+    } else {
+        $slang="";
+    }
 
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-    else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
 
-    if (isset($_REQUEST['delete']) && $_REQUEST['delete']) $delete=true;
-    else $delete=false;
+    if (isset($_REQUEST['delete']) && $_REQUEST['delete']) {
+        $delete=true;
+    } else {
+        $delete=false;
+    }
 
     $languages=get_languages();
     $lang_names=lang__get_language_names();
 
     if ($delete || $reallydelete) {
         if (($delete || $reallydelete) && !csrf__validate_request_message()) {
-            redirect ("admin/lang_lang_delete.php");
+            redirect("admin/lang_lang_delete.php");
         }
 
-        if (!$tlang || !in_array($tlang,$languages)) redirect ("admin/lang_main.php");
-
-        if ($proceed) {
-            if (!$slang || !in_array($slang,$languages)) redirect ("admin/lang_main.php");
+        if (!$tlang || !in_array($tlang,$languages)) {
+            redirect("admin/lang_main.php");
         }
 
         if ($proceed) {
-            if ($tlang==$slang) {
-                message (lang('language_to_be_deleted_cannot_be_language_to_substitute'),'warning');
-                redirect ('admin/lang_lang_delete.php?elang='.$tlang.'&nlang='.$slang);
+            if (!$slang || !in_array($slang,$languages)) {
+                redirect("admin/lang_main.php");
             }
         }
 
         if ($proceed) {
-            if ($tlang==lang('lang')) redirect ("admin/lang_main.php");
+            if ($tlang==$slang) {
+                message(lang('language_to_be_deleted_cannot_be_language_to_substitute'),'warning');
+                redirect('admin/lang_lang_delete.php?elang='.$tlang.'&nlang='.$slang);
+            }
         }
 
         if ($proceed) {
-            if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) redirect ('admin/lang_main.php');
+            if ($tlang==lang('lang')) {
+                redirect("admin/lang_main.php");
+            }
+        }
+
+        if ($proceed) {
+            if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
+                redirect('admin/lang_main.php');
+            }
         }
 
         if ($proceed && $reallydelete) {
@@ -67,9 +87,9 @@ if ($proceed) {
             $done=or_query($query);
 
             // bye, bye
-            message (lang('language_deleted').': '.$tlang);
+            message(lang('language_deleted').': '.$tlang);
             log__admin("language_delete","language:".$tlang);
-            redirect ('admin/lang_main.php');
+            redirect('admin/lang_main.php');
         }
 
         if ($proceed) {
@@ -98,10 +118,8 @@ if ($proceed) {
                     </div>
                 </div>';
         }
-
     } else {
-
-    // delete form
+        // delete form
 
         echo '<div class="orsee-panel orsee-form-shell">
                 <div class="orsee-panel-title">'.lang('delete_language').'</div>
@@ -115,7 +133,9 @@ if ($proceed) {
         foreach ($languages as $language) {
             if ($language!=lang('lang')) {
                 echo '<OPTION value="'.$language.'"';
-                if ($language==$tlang) echo ' SELECTED';
+                if ($language==$tlang) {
+                    echo ' SELECTED';
+                }
                 echo '>'.$lang_names[$language].' ('.$language.')</OPTION>';
             }
         }
@@ -126,7 +146,9 @@ if ($proceed) {
         echo '<select name="nlang">';
         foreach ($languages as $language) {
             echo '<OPTION value="'.$language.'"';
-            if ($language==$slang) echo ' SELECTED';
+            if ($language==$slang) {
+                echo ' SELECTED';
+            }
             echo '>'.$lang_names[$language].' ('.$language.')</OPTION>';
         }
         echo '</select></span></div></div>
@@ -137,7 +159,7 @@ if ($proceed) {
                 </div>
                 </div>';
     }
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

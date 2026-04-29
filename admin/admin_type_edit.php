@@ -1,27 +1,32 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="edit_admin_type";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-
     $allow=check_allow('admin_type_edit','admin_type_show.php');
-
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['type_id']) && $_REQUEST['type_id']) $type_id=$_REQUEST['type_id']; else $type_id="";
+    if (isset($_REQUEST['type_id']) && $_REQUEST['type_id']) {
+        $type_id=$_REQUEST['type_id'];
+    } else {
+        $type_id="";
+    }
 
     $rights=array();
-    if ($type_id) $type=orsee_db_load_array("admin_types",$type_id,"type_id");
-    else    $type=array();
+    if ($type_id) {
+        $type=orsee_db_load_array("admin_types",$type_id,"type_id");
+    } else {
+        $type=array();
+    }
 
 
     if (isset($_REQUEST['save']) && $_REQUEST['save']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/admin_type_edit.php?type_id=".$type_id);
+            redirect("admin/admin_type_edit.php?type_id=".$type_id);
         }
 
         $continue=true;
@@ -29,17 +34,21 @@ if ($proceed) {
         $type=$_REQUEST;
 
         if (!$type_id && !$type['type_name']) {
-            message (lang('error_admintype_name_required'),'error');
+            message(lang('error_admintype_name_required'),'error');
             $continue=false;
         }
 
         if (isset($type['right_list'])) {
             $trights=array();
             foreach ($type['right_list'] as $key=>$value) {
-                if ($value) $trights[]=$key;
+                if ($value) {
+                    $trights[]=$key;
+                }
             }
             $type['rights']=implode(",",$trights);
-        } else $type['rights']="";
+        } else {
+            $type['rights']="";
+        }
 
 
         if ($continue) {
@@ -58,8 +67,8 @@ if ($proceed) {
             }
 
             if ($done) {
-                message (lang('changes_saved'));
-                redirect ("admin/admin_type_edit.php?type_id=".$type_id);
+                message(lang('changes_saved'));
+                redirect("admin/admin_type_edit.php?type_id=".$type_id);
                 $proceed=false;
             } else {
                 message(lang('database_error'),'error');
@@ -70,14 +79,16 @@ if ($proceed) {
 
 
 if ($proceed) {
-
     $rights=array();
     if (isset($type['rights']) && $type['rights']) {
         $trights=explode(",",$type['rights']);
-        foreach ($trights as $right) $rights[$right]=true;
+        foreach ($trights as $right) {
+            $rights[$right]=true;
+        }
     }
 
-    $errors=array(); $required=array();
+    $errors=array();
+    $required=array();
     // perform precondition checks
     foreach ($system__admin_rights as $systemright) {
         $line=explode(":",$systemright);
@@ -97,7 +108,9 @@ if ($proceed) {
     }
 
     show_message();
-    if (!isset($type['type_name'])) $type['type_name']="";
+    if (!isset($type['type_name'])) {
+        $type['type_name']="";
+    }
     if ($type_id) {
         $save_button='<button type="submit" class="button orsee-btn" name="save" value="1"><i class="fa fa-save"></i> '.lang('save').'</button>';
     } else {
@@ -132,13 +145,18 @@ if ($proceed) {
     echo '<div class="orsee-table-cell">'.lang('precondition_rights').'</div>';
     echo '</div>';
 
-    $shade=true; $lastclass="";
+    $shade=true;
+    $lastclass="";
 
     foreach ($system__admin_rights as $right) {
         $line=explode(":",$right);
         $tclass=str_replace(strstr($line[0],"_"),"",$line[0]);
-        if (!isset($line[1])) $line[1]="";
-        if (!isset($line[2])) $line[2]="";
+        if (!isset($line[1])) {
+            $line[1]="";
+        }
+        if (!isset($line[2])) {
+            $line[2]="";
+        }
         if ($tclass!=$lastclass) {
             if ($lastclass!=="") {
                 echo '<div class="orsee-table-row orsee-table-row-spacer">';
@@ -152,27 +170,43 @@ if ($proceed) {
             $shade=true;
         }
         $row_class='orsee-table-row';
-        if ($shade) $row_class.=' is-alt';
+        if ($shade) {
+            $row_class.=' is-alt';
+        }
         echo '<div class="'.$row_class.'">';
         echo '<div class="orsee-table-cell" data-label="">';
         echo '<INPUT type="checkbox" name="right_list['.$line[0].']" value="'.$line[0].'"';
-        if (isset($rights[$line[0]]) && $rights[$line[0]]) echo ' CHECKED';
+        if (isset($rights[$line[0]]) && $rights[$line[0]]) {
+            echo ' CHECKED';
+        }
         echo '>';
         echo '</div>';
 
         $bgcolor_auth="";
-        if (in_array($line[0],$required)) $bgcolor_auth='background: var(--color-admin-type-required-by-error); border-radius: 0.4rem; padding: 0 0.3rem;';
-        if (in_array($line[0],$errors)) $bgcolor_auth='background: var(--color-admin-type-error-missing-required); border-radius: 0.4rem; padding: 0 0.3rem;';
+        if (in_array($line[0],$required)) {
+            $bgcolor_auth='background: var(--color-admin-type-required-by-error); border-radius: 0.4rem; padding: 0 0.3rem;';
+        }
+        if (in_array($line[0],$errors)) {
+            $bgcolor_auth='background: var(--color-admin-type-error-missing-required); border-radius: 0.4rem; padding: 0 0.3rem;';
+        }
         echo '<div class="orsee-table-cell" data-label="'.lang('authorization').'" style="'.$bgcolor_auth.'">'.$line[0].'</div>';
 
         echo '<div class="orsee-table-cell" data-label="'.lang('description').'">'.$line[1].'</div>';
 
         $bgcolor_pre="";
-        if (in_array($line[0],$required)) $bgcolor_pre='background: var(--color-admin-type-error-missing-required); border-radius: 0.4rem; padding: 0 0.3rem;';
-        if (in_array($line[0],$errors)) $bgcolor_pre='background: var(--color-admin-type-required-by-error); border-radius: 0.4rem; padding: 0 0.3rem;';
+        if (in_array($line[0],$required)) {
+            $bgcolor_pre='background: var(--color-admin-type-error-missing-required); border-radius: 0.4rem; padding: 0 0.3rem;';
+        }
+        if (in_array($line[0],$errors)) {
+            $bgcolor_pre='background: var(--color-admin-type-required-by-error); border-radius: 0.4rem; padding: 0 0.3rem;';
+        }
         echo '<div class="orsee-table-cell" data-label="'.lang('precondition_rights').'" style="'.$bgcolor_pre.'">'.$line[2].'</div>';
         echo '</div>';
-        if ($shade) $shade=false; else $shade=true;
+        if ($shade) {
+            $shade=false;
+        } else {
+            $shade=true;
+        }
     }
     echo '</div>';
     echo '</div>';
@@ -194,8 +228,7 @@ if ($proceed) {
     echo '</div>';
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
 
 ?>

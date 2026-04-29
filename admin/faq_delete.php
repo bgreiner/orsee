@@ -1,21 +1,28 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="delete_faq";
 $menu__area="options";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
+    if (isset($_REQUEST['faq_id'])) {
+        $faq_id=$_REQUEST['faq_id'];
+    } else {
+        $faq_id="";
+    }
 
-    if (isset($_REQUEST['faq_id'])) $faq_id=$_REQUEST['faq_id']; else $faq_id="";
-
-    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot'])
-                redirect ('admin/faq_edit.php?faq_id='.$faq_id);
+    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
+        redirect('admin/faq_edit.php?faq_id='.$faq_id);
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-    else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
 
     $allow=check_allow('faq_delete','faq_edit.php?faq_id='.$faq_id);
 }
@@ -29,7 +36,7 @@ if ($proceed) {
 
     if ($reallydelete) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/faq_delete.php?faq_id='.$faq_id);
+            redirect('admin/faq_delete.php?faq_id='.$faq_id);
         }
 
         $pars=array(':faq_id'=>$faq_id);
@@ -47,15 +54,14 @@ if ($proceed) {
                 WHERE faq_id= :faq_id";
         $result=or_query($query,$pars);
 
-        message (lang('faq_deleted'));
+        message(lang('faq_deleted'));
         log__admin("faq_delete","faq_id:".$faq_id);
-        redirect ('admin/faq_main.php');
+        redirect('admin/faq_main.php');
     }
 }
 
 if ($proceed) {
-
-     // form
+    // form
 
     echo '<div class="orsee-panel orsee-form-shell">
             <div class="orsee-panel-title">'.lang('delete_faq').'</div>
@@ -83,7 +89,7 @@ if ($proceed) {
                 </form>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

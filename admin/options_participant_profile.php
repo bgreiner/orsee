@@ -1,18 +1,16 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="participant_profile_fields";
 $js_modules=array('listtool');
 $menu__area="options";
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     $allow=check_allow('pform_config_field_configure','options_main.php');
 }
 
 if ($proceed) {
-
     $user_columns=participant__userdefined_columns();
     $profile_field_specs=participant__profile_field_editor_specs();
     $public_scope_contexts=$profile_field_specs['fields']['scope_contexts']['default'];
@@ -45,7 +43,8 @@ if ($proceed) {
         }
     }
     $query="SELECT * FROM ".table('profile_fields');
-    $result=or_query($query); $redundant=array();
+    $result=or_query($query);
+    $redundant=array();
     while ($line=pdo_fetch_assoc($result)) {
         $policy=participant__profile_field_policy_load($line,$profile_field_specs);
         $draft_enabled=($policy['draft']['enabled']==='n' ? 0 : 1);
@@ -208,40 +207,72 @@ if ($proceed) {
                 $existing_blocks_by_key=array();
                 $max_block_id=0;
                 foreach ($draft_layout['blocks'] as $block_index=>$block) {
-                    if (!is_array($block) || !isset($block['type'])) continue;
+                    if (!is_array($block) || !isset($block['type'])) {
+                        continue;
+                    }
                     if ($block['type']==='text') {
                         if (isset($block['block_id']) && preg_match('/^b([0-9]+)$/',trim((string)$block['block_id']),$matches)) {
-                            if ((int)$matches[1]>$max_block_id) $max_block_id=(int)$matches[1];
+                            if ((int)$matches[1]>$max_block_id) {
+                                $max_block_id=(int)$matches[1];
+                            }
                         }
                     } elseif ($block['type']==='section') {
                         if (isset($block['block_id']) && preg_match('/^b([0-9]+)$/',trim((string)$block['block_id']),$matches)) {
-                            if ((int)$matches[1]>$max_block_id) $max_block_id=(int)$matches[1];
+                            if ((int)$matches[1]>$max_block_id) {
+                                $max_block_id=(int)$matches[1];
+                            }
                         }
                     }
                 }
                 foreach ($draft_layout['blocks'] as $block_index=>$block) {
-                    if (!is_array($block) || !isset($block['type'])) continue;
+                    if (!is_array($block) || !isset($block['type'])) {
+                        continue;
+                    }
                     if ($block['type']==='text') {
                         $saved_block=array('type'=>'text','text'=>'');
-                        if (!isset($block['block_id']) || trim((string)$block['block_id'])==='') continue;
+                        if (!isset($block['block_id']) || trim((string)$block['block_id'])==='') {
+                            continue;
+                        }
                         $key_block_id=trim((string)$block['block_id']);
                         $saved_block['block_id']=$key_block_id;
-                        if (isset($block['text'])) $saved_block['text']=(string)$block['text'];
-                        if (isset($block['text_lang']) && is_array($block['text_lang'])) $saved_block['text_lang']=$block['text_lang'];
-                        if (isset($block['short_name'])) $saved_block['short_name']=(string)$block['short_name'];
-                        if (isset($block['scope_contexts']) && is_array($block['scope_contexts'])) $saved_block['scope_contexts']=$block['scope_contexts'];
-                        if (isset($block['restrict_to_subpools']) && is_array($block['restrict_to_subpools'])) $saved_block['restrict_to_subpools']=$block['restrict_to_subpools'];
+                        if (isset($block['text'])) {
+                            $saved_block['text']=(string)$block['text'];
+                        }
+                        if (isset($block['text_lang']) && is_array($block['text_lang'])) {
+                            $saved_block['text_lang']=$block['text_lang'];
+                        }
+                        if (isset($block['short_name'])) {
+                            $saved_block['short_name']=(string)$block['short_name'];
+                        }
+                        if (isset($block['scope_contexts']) && is_array($block['scope_contexts'])) {
+                            $saved_block['scope_contexts']=$block['scope_contexts'];
+                        }
+                        if (isset($block['restrict_to_subpools']) && is_array($block['restrict_to_subpools'])) {
+                            $saved_block['restrict_to_subpools']=$block['restrict_to_subpools'];
+                        }
                         $existing_blocks_by_key['text__'.$key_block_id]=$saved_block;
                     } elseif ($block['type']==='section') {
                         $saved_block=array('type'=>'section','text'=>'');
-                        if (!isset($block['block_id']) || trim((string)$block['block_id'])==='') continue;
+                        if (!isset($block['block_id']) || trim((string)$block['block_id'])==='') {
+                            continue;
+                        }
                         $key_block_id=trim((string)$block['block_id']);
                         $saved_block['block_id']=$key_block_id;
-                        if (isset($block['text'])) $saved_block['text']=(string)$block['text'];
-                        if (isset($block['text_lang']) && is_array($block['text_lang'])) $saved_block['text_lang']=$block['text_lang'];
-                        if (isset($block['short_name'])) $saved_block['short_name']=(string)$block['short_name'];
-                        if (isset($block['scope_contexts']) && is_array($block['scope_contexts'])) $saved_block['scope_contexts']=$block['scope_contexts'];
-                        if (isset($block['restrict_to_subpools']) && is_array($block['restrict_to_subpools'])) $saved_block['restrict_to_subpools']=$block['restrict_to_subpools'];
+                        if (isset($block['text'])) {
+                            $saved_block['text']=(string)$block['text'];
+                        }
+                        if (isset($block['text_lang']) && is_array($block['text_lang'])) {
+                            $saved_block['text_lang']=$block['text_lang'];
+                        }
+                        if (isset($block['short_name'])) {
+                            $saved_block['short_name']=(string)$block['short_name'];
+                        }
+                        if (isset($block['scope_contexts']) && is_array($block['scope_contexts'])) {
+                            $saved_block['scope_contexts']=$block['scope_contexts'];
+                        }
+                        if (isset($block['restrict_to_subpools']) && is_array($block['restrict_to_subpools'])) {
+                            $saved_block['restrict_to_subpools']=$block['restrict_to_subpools'];
+                        }
                         $existing_blocks_by_key['section__'.$key_block_id]=$saved_block;
                     }
                 }
@@ -253,18 +284,28 @@ if ($proceed) {
                         $item_key=(string)$item_key;
                         if (substr($item_key,0,7)==='field__') {
                             $field_name=substr($item_key,7);
-                            if (isset($layout_fields[$field_name])) $new_blocks[]=$layout_fields[$field_name]['default_block'];
+                            if (isset($layout_fields[$field_name])) {
+                                $new_blocks[]=$layout_fields[$field_name]['default_block'];
+                            }
                         } elseif (substr($item_key,0,6)==='text__') {
-                            if (isset($existing_blocks_by_key[$item_key])) $new_blocks[]=$existing_blocks_by_key[$item_key];
-                            else $new_blocks[]=array('type'=>'text','text'=>'','block_id'=>'b'.(++$max_block_id));
+                            if (isset($existing_blocks_by_key[$item_key])) {
+                                $new_blocks[]=$existing_blocks_by_key[$item_key];
+                            } else {
+                                $new_blocks[]=array('type'=>'text','text'=>'','block_id'=>'b'.(++$max_block_id));
+                            }
                         } elseif (substr($item_key,0,9)==='section__') {
-                            if (isset($existing_blocks_by_key[$item_key])) $new_blocks[]=$existing_blocks_by_key[$item_key];
-                            else $new_blocks[]=array('type'=>'section','text'=>'','block_id'=>'b'.(++$max_block_id));
+                            if (isset($existing_blocks_by_key[$item_key])) {
+                                $new_blocks[]=$existing_blocks_by_key[$item_key];
+                            } else {
+                                $new_blocks[]=array('type'=>'section','text'=>'','block_id'=>'b'.(++$max_block_id));
+                            }
                         }
                         if ($form_action==='go_edit' && $requested_edit_kind==='block' && $requested_edit_group===$group_name && $requested_edit_key===$item_key) {
                             $target_item_name=$layout_def['item_name'];
                             $target_pos=count($new_blocks)-1;
-                            if (isset($new_blocks[$target_pos]['block_id'])) $target_block_id=(string)$new_blocks[$target_pos]['block_id'];
+                            if (isset($new_blocks[$target_pos]['block_id'])) {
+                                $target_block_id=(string)$new_blocks[$target_pos]['block_id'];
+                            }
                         }
                     }
                 }
@@ -301,7 +342,10 @@ if ($proceed) {
 
 if ($proceed) {
     if (isset($_REQUEST['delete_redundant']) && $_REQUEST['delete_redundant']) {
-        $pars=array(); foreach ($redundant as $r) $pars[]=array(':mysql_column_name'=>$r);
+        $pars=array();
+        foreach ($redundant as $r) {
+            $pars[]=array(':mysql_column_name'=>$r);
+        }
         $query="DELETE FROM ".table('profile_fields')." WHERE mysql_column_name = :mysql_column_name";
         $done=or_query($query,$pars);
         message(lang('redundant_configurations_deleted'));
@@ -336,8 +380,12 @@ if ($proceed) {
     foreach ($layout_list_defs as $group_name=>$layout_def) {
         $draft_layout=participant__load_profile_layout($layout_def['item_name'],'draft');
         $current_layout=participant__load_profile_layout($layout_def['item_name'],'current');
-        if (!isset($draft_layout['blocks']) || !is_array($draft_layout['blocks'])) $draft_layout['blocks']=array();
-        if (!isset($current_layout['blocks']) || !is_array($current_layout['blocks'])) $current_layout['blocks']=array();
+        if (!isset($draft_layout['blocks']) || !is_array($draft_layout['blocks'])) {
+            $draft_layout['blocks']=array();
+        }
+        if (!isset($current_layout['blocks']) || !is_array($current_layout['blocks'])) {
+            $current_layout['blocks']=array();
+        }
         $layout_changed_keys=participant__profile_layout_changed_keys($draft_layout['blocks'],$current_layout['blocks']);
 
         // possible rows: field blocks from policy + repeatable text/section templates
@@ -353,23 +401,34 @@ if ($proceed) {
             $normalized_properties=participant__profile_field_properties_normalize($field_data['properties'],$profile_field_specs);
             $field_title=participant__field_localized_text($normalized_properties,'name_lang','name_lang');
             if ($field_title==='') {
-                if ($is_system && isset($system_field_labels[$field_name])) $field_title=$system_field_labels[$field_name];
-                else $field_title=$field_name;
+                if ($is_system && isset($system_field_labels[$field_name])) {
+                    $field_title=$system_field_labels[$field_name];
+                } else {
+                    $field_title=$field_name;
+                }
             }
             $display_type=$field_data['type'];
-            if ($display_type==='boolean') $display_type='yes/no';
+            if ($display_type==='boolean') {
+                $display_type='yes/no';
+            }
             $field_changes=(isset($field_data['changes']) && is_array($field_data['changes']) ? $field_data['changes'] : array());
             $row_changed=(count($field_changes)>0 || isset($layout_changed_keys['field__'.$field_name]));
             $type_changed=(isset($field_changes['type']) && $field_changes['type']);
             $field_name_cell_class='orsee-listcell orsee-listcell-nowrap';
-            if ($row_changed) $field_name_cell_class.=' orsee-track-changed-left';
+            if ($row_changed) {
+                $field_name_cell_class.=' orsee-track-changed-left';
+            }
             $display_type_html=htmlspecialchars($display_type,ENT_QUOTES);
-            if ($type_changed) $display_type_html='<span class="orsee-track-changed-underline">'.$display_type_html.'</span>';
+            if ($type_changed) {
+                $display_type_html='<span class="orsee-track-changed-underline">'.$display_type_html.'</span>';
+            }
             $selected_subpool_labels=array();
             $selected_subpool_ids=array_map('intval',$normalized_properties['restrict_to_subpools']);
             if (count($selected_subpool_ids)>0) {
                 foreach ($selected_subpool_ids as $selected_subpool_id) {
-                    if (isset($all_subpools[$selected_subpool_id])) $selected_subpool_labels[]=$all_subpools[$selected_subpool_id]['subpool_name'];
+                    if (isset($all_subpools[$selected_subpool_id])) {
+                        $selected_subpool_labels[]=$all_subpools[$selected_subpool_id]['subpool_name'];
+                    }
                 }
             }
             $all_subpools_selected=(count($selected_subpool_ids)===0 || count($selected_subpool_ids)===count($all_subpools));
@@ -378,12 +437,16 @@ if ($proceed) {
             if ($group_name==='public') {
                 $selected_scope_keys=array();
                 foreach ($public_scope_contexts as $scope_context) {
-                    if (in_array($scope_context,$normalized_properties['scope_contexts'],true)) $selected_scope_keys[]=$scope_context;
+                    if (in_array($scope_context,$normalized_properties['scope_contexts'],true)) {
+                        $selected_scope_keys[]=$scope_context;
+                    }
                 }
                 $all_public_scopes_selected=(count($selected_scope_keys)===count($public_scope_contexts));
                 $selected_scope_labels=array();
                 foreach ($selected_scope_keys as $scope_context) {
-                    if (isset($scope_options[$scope_context])) $selected_scope_labels[]=$scope_options[$scope_context];
+                    if (isset($scope_options[$scope_context])) {
+                        $selected_scope_labels[]=$scope_options[$scope_context];
+                    }
                 }
                 $applies_to_scopes=lang('profile_editor_scopes').': '.htmlspecialchars(implode(', ',$selected_scope_labels),ENT_QUOTES);
 
@@ -398,12 +461,17 @@ if ($proceed) {
                     $applies_to_lines[]=$applies_to_scopes;
                 }
             } else {
-                if ($all_subpools_selected) $applies_to_lines[]=lang('profile_editor_everywhere');
-                else $applies_to_lines[]=$applies_to_subpools;
+                if ($all_subpools_selected) {
+                    $applies_to_lines[]=lang('profile_editor_everywhere');
+                } else {
+                    $applies_to_lines[]=$applies_to_subpools;
+                }
             }
             if (count($field_data['variants'])>0) {
                 $variants_suffix=lang('profile_editor_plus_variants');
-                if (isset($field_changes['variants'])) $variants_suffix='<span class="orsee-track-changed-underline">'.$variants_suffix.'</span>';
+                if (isset($field_changes['variants'])) {
+                    $variants_suffix='<span class="orsee-track-changed-underline">'.$variants_suffix.'</span>';
+                }
                 $applies_to_lines[]=$variants_suffix;
             }
             $applies_to_html='<span class="orsee-font-compact">'.implode('<br>',$applies_to_lines).'</span>';
@@ -422,7 +490,9 @@ if ($proceed) {
         // current draft layout defines which rows are already on-list and in which order
         $saved_cols=array();
         foreach ($draft_layout['blocks'] as $block_index=>$block) {
-            if (!is_array($block) || !isset($block['type'])) continue;
+            if (!is_array($block) || !isset($block['type'])) {
+                continue;
+            }
 
             // field blocks are tracked by stable field key: field__<mysql_column_name>
             if ($block['type']==='field' && isset($block['field']) && isset($poss_cols['field__'.$block['field']])) {
@@ -436,10 +506,14 @@ if ($proceed) {
                 if ($block_short_name!=='') {
                     $block_label.=': '.$block_short_name;
                 }
-                if (!isset($block['block_id']) || trim((string)$block['block_id'])==='') continue;
+                if (!isset($block['block_id']) || trim((string)$block['block_id'])==='') {
+                    continue;
+                }
                 $block_key=$block['type'].'__'.trim((string)$block['block_id']);
                 $block_type_cell_class='orsee-listcell orsee-listcell-nowrap';
-                if (isset($layout_changed_keys[$block_key])) $block_type_cell_class.=' orsee-track-changed-left';
+                if (isset($layout_changed_keys[$block_key])) {
+                    $block_type_cell_class.=' orsee-track-changed-left';
+                }
                 $block_selected_subpool_labels=array();
                 $block_selected_subpool_ids=array();
                 if (isset($block['restrict_to_subpools']) && is_array($block['restrict_to_subpools'])) {
@@ -447,7 +521,9 @@ if ($proceed) {
                 }
                 if (count($block_selected_subpool_ids)>0) {
                     foreach ($block_selected_subpool_ids as $block_selected_subpool_id) {
-                        if (isset($all_subpools[$block_selected_subpool_id])) $block_selected_subpool_labels[]=$all_subpools[$block_selected_subpool_id]['subpool_name'];
+                        if (isset($all_subpools[$block_selected_subpool_id])) {
+                            $block_selected_subpool_labels[]=$all_subpools[$block_selected_subpool_id]['subpool_name'];
+                        }
                     }
                 }
                 $block_all_subpools_selected=(count($block_selected_subpool_ids)===0 || count($block_selected_subpool_ids)===count($all_subpools));
@@ -457,7 +533,9 @@ if ($proceed) {
                     $block_selected_scope_keys=array();
                     if (isset($block['scope_contexts']) && is_array($block['scope_contexts'])) {
                         foreach ($public_scope_contexts as $scope_context) {
-                            if (in_array($scope_context,$block['scope_contexts'],true)) $block_selected_scope_keys[]=$scope_context;
+                            if (in_array($scope_context,$block['scope_contexts'],true)) {
+                                $block_selected_scope_keys[]=$scope_context;
+                            }
                         }
                     } else {
                         $block_selected_scope_keys=$public_scope_contexts;
@@ -465,7 +543,9 @@ if ($proceed) {
                     $block_all_public_scopes_selected=(count($block_selected_scope_keys)===count($public_scope_contexts));
                     $block_selected_scope_labels=array();
                     foreach ($block_selected_scope_keys as $scope_context) {
-                        if (isset($scope_options[$scope_context])) $block_selected_scope_labels[]=$scope_options[$scope_context];
+                        if (isset($scope_options[$scope_context])) {
+                            $block_selected_scope_labels[]=$scope_options[$scope_context];
+                        }
                     }
                     $block_applies_to_scopes=lang('profile_editor_scopes').': '.htmlspecialchars(implode(', ',$block_selected_scope_labels),ENT_QUOTES);
                     if ($block_all_subpools_selected && $block_all_public_scopes_selected) {
@@ -479,8 +559,11 @@ if ($proceed) {
                         $block_applies_to_lines[]=$block_applies_to_scopes;
                     }
                 } else {
-                    if ($block_all_subpools_selected) $block_applies_to_lines[]=lang('profile_editor_everywhere');
-                    else $block_applies_to_lines[]=$block_applies_to_subpools;
+                    if ($block_all_subpools_selected) {
+                        $block_applies_to_lines[]=lang('profile_editor_everywhere');
+                    } else {
+                        $block_applies_to_lines[]=$block_applies_to_subpools;
+                    }
                 }
                 $block_applies_to_html='<span class="orsee-font-compact">'.implode('<br>',$block_applies_to_lines).'</span>';
                 $edit_button='<button type="submit" name="go_edit" value="block__'.$group_name.'__'.htmlspecialchars($block_key,ENT_QUOTES).'" class="button orsee-btn orsee-btn-compact"><i class="fa fa-pencil-square-o" style="padding: 0 0.3em 0 0"></i>'.lang('edit').'</button>';
@@ -566,32 +649,52 @@ if ($proceed) {
             $normalized_properties=participant__profile_field_properties_normalize($field_data['properties'],$profile_field_specs);
             $label=participant__field_localized_text($normalized_properties,'name_lang','name_lang');
             if ($label==='') {
-                if ($is_system && isset($system_field_labels[$field_name])) $label=$system_field_labels[$field_name];
-                else $label=$field_name;
+                if ($is_system && isset($system_field_labels[$field_name])) {
+                    $label=$system_field_labels[$field_name];
+                } else {
+                    $label=$field_name;
+                }
             }
             $display_type=$field_data['type'];
-            if ($display_type==='boolean') $display_type='yes/no';
+            if ($display_type==='boolean') {
+                $display_type='yes/no';
+            }
         } else {
-            if ($is_system && isset($system_field_labels[$field_name])) $label=$system_field_labels[$field_name];
-            else $label=$field_name;
+            if ($is_system && isset($system_field_labels[$field_name])) {
+                $label=$system_field_labels[$field_name];
+            } else {
+                $label=$field_name;
+            }
             $display_type=(isset($field_data['type']) && trim((string)$field_data['type'])!=='' ? $field_data['type'] : '-');
-            if ($display_type==='boolean') $display_type='yes/no';
+            if ($display_type==='boolean') {
+                $display_type='yes/no';
+            }
         }
         $field_changes=(isset($field_data['changes']) && is_array($field_data['changes']) ? $field_data['changes'] : array());
         $row_changed=($is_configured && count($field_changes)>0);
         $type_changed=($is_configured && isset($field_changes['type']) && $field_changes['type']);
         $display_type_html=htmlspecialchars($display_type,ENT_QUOTES);
-        if ($type_changed) $display_type_html='<span class="orsee-track-changed-underline">'.$display_type_html.'</span>';
-        if ($is_configured) $action=button_link('options_participant_profile_edit.php?mysql_column_name='.$field_name,lang('edit'),'pencil-square-o');
-        else $action=button_link('options_participant_profile_edit.php?mysql_column_name='.$field_name,lang('configure'),'cogs');
+        if ($type_changed) {
+            $display_type_html='<span class="orsee-track-changed-underline">'.$display_type_html.'</span>';
+        }
+        if ($is_configured) {
+            $action=button_link('options_participant_profile_edit.php?mysql_column_name='.$field_name,lang('edit'),'pencil-square-o');
+        } else {
+            $action=button_link('options_participant_profile_edit.php?mysql_column_name='.$field_name,lang('configure'),'cogs');
+        }
 
         $reason=lang('profile_editor_reason_no_scope');
-        if (isset($group_item['reason']) && $group_item['reason']==='disabled') $reason=lang('profile_editor_reason_disabled');
-        elseif (isset($group_item['reason']) && $group_item['reason']==='new_unconfigured') $reason=lang('profile_editor_reason_new_unconfigured');
+        if (isset($group_item['reason']) && $group_item['reason']==='disabled') {
+            $reason=lang('profile_editor_reason_disabled');
+        } elseif (isset($group_item['reason']) && $group_item['reason']==='new_unconfigured') {
+            $reason=lang('profile_editor_reason_new_unconfigured');
+        }
 
         $row_class='orsee-table-row';
         $field_cell_class='orsee-table-cell';
-        if ($row_changed) $field_cell_class.=' orsee-track-changed-left';
+        if ($row_changed) {
+            $field_cell_class.=' orsee-track-changed-left';
+        }
         echo '<div class="'.$row_class.'">';
         echo '<div class="'.$field_cell_class.'" data-label="'.lang('profile_editor_col_db_field').'">'.$field_name.'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('name').'">'.$label.'</div>';
@@ -626,7 +729,7 @@ if ($proceed) {
                 );
             });
         </script>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

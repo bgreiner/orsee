@@ -1,15 +1,21 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
-if (isset($_REQUEST['subpool_id'])) $subpool_id=$_REQUEST['subpool_id']; else $subpool_id="";
-
+if (isset($_REQUEST['subpool_id'])) {
+    $subpool_id=$_REQUEST['subpool_id'];
+} else {
+    $subpool_id="";
+}
 $menu__area="options";
 $title="data_for_subpool";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if ($subpool_id) $allow=check_allow('subjectpool_edit','subpool_main.php');
-    else $allow=check_allow('subjectpool_add','subpool_main.php');
+    if ($subpool_id) {
+        $allow=check_allow('subjectpool_edit','subpool_main.php');
+    } else {
+        $allow=check_allow('subjectpool_add','subpool_main.php');
+    }
 }
 
 if ($proceed) {
@@ -19,8 +25,9 @@ if ($proceed) {
 
     if ($subpool_id) {
         $subpool=orsee_db_load_array("subpools",$subpool_id,"subpool_id");
-        if (!isset($subpool['subpool_id'])) redirect ("admin/subpool_main.php");
-        else {
+        if (!isset($subpool['subpool_id'])) {
+            redirect("admin/subpool_main.php");
+        } else {
             $exptype_ids=db_string_to_id_array($subpool['experiment_types']);
             $subpool['exptypes']=array();
             foreach ($exptype_ids as $exptype_id) {
@@ -41,17 +48,19 @@ if ($proceed) {
 
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/subpool_edit.php?subpool_id=".$subpool_id);
+            redirect("admin/subpool_edit.php?subpool_id=".$subpool_id);
         }
 
         if (!$_REQUEST['subpool_name']) {
-            message (lang('name_for_subpool_required'),'error');
+            message(lang('name_for_subpool_required'),'error');
             $continue=false;
         }
 
         $exptype_ids=array();
         foreach ($exptypes as $exptype_id=>$exptype) {
-            if (isset($_REQUEST['exptypes'][$exptype_id]) && $_REQUEST['exptypes'][$exptype_id]) $exptype_ids[]=$exptype_id;
+            if (isset($_REQUEST['exptypes'][$exptype_id]) && $_REQUEST['exptypes'][$exptype_id]) {
+                $exptype_ids[]=$exptype_id;
+            }
         }
         if (count($exptype_ids)==0) {
             message(lang('at_minimum_one_exptype_mapping_required'),'error');
@@ -62,7 +71,7 @@ if ($proceed) {
         if (!$subpool_id || $subpool_id > 1) {
             foreach ($languages as $language) {
                 if (!(isset($selfdesc[$language]) && $selfdesc[$language])) {
-                    message (lang('missing_language').': '.$language,'error');
+                    message(lang('missing_language').': '.$language,'error');
                     $continue=false;
                 }
             }
@@ -70,7 +79,9 @@ if ($proceed) {
 
         if ($subpool_id==1) {
             $_REQUEST['show_at_registration_page']='n';
-            foreach ($languages as $language) $selfdesc[$language]='';
+            foreach ($languages as $language) {
+                $selfdesc[$language]='';
+            }
         }
 
         if ($continue) {
@@ -93,18 +104,23 @@ if ($proceed) {
 
             $subpool=$_REQUEST;
             $subpool['experiment_types']=id_array_to_db_string($exptype_ids);
-            foreach ($languages as $language) $lsub[$language]=$selfdesc[$language];
+            foreach ($languages as $language) {
+                $lsub[$language]=$selfdesc[$language];
+            }
             $form_fields=array_filter_allowed($subpool,array(
                     'subpool_id','subpool_name','subpool_description',
                     'experiment_types','show_at_registration_page'));
             $form_fields['subpool_id']=$subpool_id;
             $done=orsee_db_save_array($form_fields,"subpools",$subpool_id,"subpool_id");
-            if ($new) $lsub['lang_id']=lang__insert_to_lang($lsub);
-            else $done=orsee_db_save_array($lsub,"lang",$lsub['lang_id'],"lang_id");
+            if ($new) {
+                $lsub['lang_id']=lang__insert_to_lang($lsub);
+            } else {
+                $done=orsee_db_save_array($lsub,"lang",$lsub['lang_id'],"lang_id");
+            }
 
-            message (lang('changes_saved'));
+            message(lang('changes_saved'));
             log__admin("subjectpool_edit","subjectpool:".$subpool['subpool_name']."\nsubpool_id:".$subpool['subpool_id']);
-            redirect ("admin/subpool_edit.php?subpool_id=".$subpool_id);
+            redirect("admin/subpool_edit.php?subpool_id=".$subpool_id);
         } else {
             $subpool=$_REQUEST;
             $subpool['exptypes']=array();
@@ -154,10 +170,14 @@ if ($proceed) {
                 <label class="label">'.lang('show_at_registration_page?').'</label>
                 <div class="control">
                     <label class="radio"><input type="radio" name="show_at_registration_page" value="y"';
-        if ($subpool['show_at_registration_page']=="y") echo ' CHECKED';
+        if ($subpool['show_at_registration_page']=="y") {
+            echo ' CHECKED';
+        }
         echo '>'.lang('yes').'</label>&nbsp;&nbsp;
                     <label class="radio"><input type="radio" name="show_at_registration_page" value="n"';
-        if ($subpool['show_at_registration_page']!="y") echo ' CHECKED';
+        if ($subpool['show_at_registration_page']!="y") {
+            echo ' CHECKED';
+        }
         echo '>'.lang('no').'</label>
                 </div>
             </div>';
@@ -165,7 +185,9 @@ if ($proceed) {
                 <label class="label">'.lang('registration_page_options').'</label>
             </div>';
         foreach ($languages as $language) {
-            if (!isset($selfdesc[$language])) $selfdesc[$language]='';
+            if (!isset($selfdesc[$language])) {
+                $selfdesc[$language]='';
+            }
             echo '  <div class="field">
                         <label class="label">'.$language.':</label>
                         <div class="control">
@@ -180,21 +202,25 @@ if ($proceed) {
                     </div>
                     <div class="orsee-form-row-col has-text-centered">
                         <input class="button orsee-btn" name="edit" type="submit" value="';
-    if (!$subpool_id) echo lang('add'); else echo lang('change');
+    if (!$subpool_id) {
+        echo lang('add');
+    } else {
+        echo lang('change');
+    }
     echo '          ">
                     </div>
                     <div class="orsee-form-row-col has-text-right">';
 
     if ($subpool_id && $subpool_id>1 && check_allow('subjectpool_delete')) {
         echo button_link('subpool_delete.php?subpool_id='.urlencode($subpool_id),
-                            lang('delete'),'trash-o','','','orsee-btn--delete');
+            lang('delete'),'trash-o','','','orsee-btn--delete');
     }
 
     echo '          </div>
                 </div>
             </div>
         </form><br>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

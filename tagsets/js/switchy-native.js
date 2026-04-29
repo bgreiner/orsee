@@ -2,12 +2,7 @@
     "use strict";
 
     function htmlEscape(value) {
-        return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
+        return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
 
     function buildLabel(value, text, iconClass, iconBefore, labelClass) {
@@ -214,13 +209,13 @@
             return 0;
         }
         step = width / (this.count - 1);
-        offsetX = this.isRtl ? (rect.right - clientX) : (clientX - rect.left);
+        offsetX = this.isRtl ? rect.right - clientX : clientX - rect.left;
         return Math.max(0, Math.min(this.count - 1, Math.round(offsetX / step)));
     };
 
     SwitchyNative.prototype.indexFromSliderLeft = function () {
         var maxLeft = Math.max(0, this.bar.clientWidth - this.slider.offsetWidth);
-        var center = this.slider.offsetLeft + (this.slider.offsetWidth / 2);
+        var center = this.slider.offsetLeft + this.slider.offsetWidth / 2;
         var normalized = maxLeft > 0 ? center / maxLeft : 0;
         if (this.isRtl) {
             normalized = 1 - normalized;
@@ -242,7 +237,7 @@
                 left -= edgeInset;
                 left = Math.min(maxLeft, left + 1);
             }
-        } else if (index === (this.count - 1) && left > 1) {
+        } else if (index === this.count - 1 && left > 1) {
             left -= 2;
         }
         return left;

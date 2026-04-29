@@ -1,23 +1,33 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="participant_profile_fields";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['item_name'])) $item_name=$_REQUEST['item_name']; else redirect ("admin/options_main.php");
+    if (isset($_REQUEST['item_name'])) {
+        $item_name=$_REQUEST['item_name'];
+    } else {
+        redirect("admin/options_main.php");
+    }
 }
 if ($proceed) {
-    if (!in_array($item_name,array('profile_form_public','profile_form_admin_part'))) redirect ("admin/options_main.php");
+    if (!in_array($item_name,array('profile_form_public','profile_form_admin_part'))) {
+        redirect("admin/options_main.php");
+    }
 }
 if ($proceed) {
     $allow=check_allow('pform_templates_edit','options_main.php');
 }
 if ($proceed) {
-    if (!isset($_REQUEST['block_id'])) redirect("admin/options_participant_profile.php");
+    if (!isset($_REQUEST['block_id'])) {
+        redirect("admin/options_participant_profile.php");
+    }
     $block_id=trim((string)$_REQUEST['block_id']);
-    if ($block_id==='') redirect("admin/options_participant_profile.php");
+    if ($block_id==='') {
+        redirect("admin/options_participant_profile.php");
+    }
 }
 
 if ($proceed) {
@@ -35,18 +45,26 @@ if ($proceed) {
     $scope_tooltip=trim((string)$profile_field_specs['fields']['scope_contexts']['tooltip']);
     $restrict_subpools_tooltip=trim((string)$profile_field_specs['fields']['restrict_to_subpools']['tooltip']);
     $draft_layout=participant__load_profile_layout($item_name,'draft');
-    if (!isset($draft_layout['blocks']) || !is_array($draft_layout['blocks'])) $draft_layout['blocks']=array();
+    if (!isset($draft_layout['blocks']) || !is_array($draft_layout['blocks'])) {
+        $draft_layout['blocks']=array();
+    }
     $block_index=-1;
     foreach ($draft_layout['blocks'] as $idx=>$draft_block) {
-        if (!is_array($draft_block) || !isset($draft_block['type']) || !in_array($draft_block['type'],array('text','section'))) continue;
-        if (!isset($draft_block['block_id']) || trim((string)$draft_block['block_id'])==='') continue;
+        if (!is_array($draft_block) || !isset($draft_block['type']) || !in_array($draft_block['type'],array('text','section'))) {
+            continue;
+        }
+        if (!isset($draft_block['block_id']) || trim((string)$draft_block['block_id'])==='') {
+            continue;
+        }
         $current_block_id=trim((string)$draft_block['block_id']);
         if ($current_block_id===$block_id) {
             $block_index=(int)$idx;
             break;
         }
     }
-    if ($block_index<0) redirect("admin/options_participant_profile.php");
+    if ($block_index<0) {
+        redirect("admin/options_participant_profile.php");
+    }
     $block=$draft_layout['blocks'][$block_index];
     if (!isset($block['type']) || !in_array($block['type'],array('text','section'))) {
         redirect("admin/options_participant_profile.php");
@@ -120,7 +138,9 @@ if ($proceed) {
 if ($proceed) {
     javascript__tooltip_prepare();
     $layout_name='profile_form_admin';
-    if ($item_name==='profile_form_public') $layout_name='profile_form_public';
+    if ($item_name==='profile_form_public') {
+        $layout_name='profile_form_public';
+    }
     $block_type_label=($block['type']==='section' ? lang('profile_block_section') : lang('profile_block_text'));
     $block_header=$block_type_label;
     if (isset($block['short_name']) && trim((string)$block['short_name'])!=='') {
@@ -179,5 +199,6 @@ if ($proceed) {
     echo '</div>';
 }
 
-include ("footer.php");
+include("footer.php");
+
 ?>

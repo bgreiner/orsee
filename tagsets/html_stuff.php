@@ -4,12 +4,18 @@
 function include_js($name,$inc_css=true,$use_min=true) {
     // include a JS module from tagsets/js, with optional matching CSS and minified naming
     if ($use_min) {
-        if ($name) $name.='.';
+        if ($name) {
+            $name.='.';
+        }
         $name=$name.'min.';
     } else {
-        if ($name) $name.='.';
+        if ($name) {
+            $name.='.';
+        }
     }
-    if ($inc_css) echo '<link rel="stylesheet" type="text/css" href="../tagsets/js/'.$name.'css" />'."\n";
+    if ($inc_css) {
+        echo '<link rel="stylesheet" type="text/css" href="../tagsets/js/'.$name.'css" />'."\n";
+    }
     echo '<script src="../tagsets/js/'.$name.'js"></script>'."\n";
 }
 
@@ -39,7 +45,7 @@ function html__header() {
     global $include_coloris;
     $orsee_dir=(lang__is_rtl() ? 'rtl' : 'ltr');
 
-echo '<HTML dir="'.$orsee_dir.'">
+    echo '<HTML dir="'.$orsee_dir.'">
 <HEAD>
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -54,7 +60,7 @@ echo '<HTML dir="'.$orsee_dir.'">
     if (is_file($style_css_file)) {
         echo '<link rel="stylesheet" type="text/css" href="../style/'.$settings['style'].'/orsee.css">'."\n";
     }
-echo '
+    echo '
 <link rel="stylesheet" href="../tagsets/fonts/fontawesome/icons.fa.css">
 ';
 
@@ -69,23 +75,23 @@ echo '
         if (in_array('listtool',$js_modules)) {
             include_js('listtool-native',false,false);
         }
-    if (in_array('switchy',$js_modules)) {
-        include_js('switchy-native',false,false);
+        if (in_array('switchy',$js_modules)) {
+            include_js('switchy-native',false,false);
+        }
+        if (in_array('queryform',$js_modules)) {
+            include_js('queryform-native',true,false);
+        }
+        if (in_array('flatpickr',$js_modules)) {
+            include_flatpickr();
+        }
+        if (in_array('intltelinput',$js_modules)) {
+            echo '<link rel="stylesheet" type="text/css" href="../tagsets/js/intlTelInput/intlTelInput.css" />'."\n";
+            echo '<script src="../tagsets/js/intlTelInput/intlTelInput.min.js"></script>'."\n";
+        }
     }
-    if (in_array('queryform',$js_modules)) {
-        include_js('queryform-native',true,false);
+    if (isset($include_coloris) && $include_coloris) {
+        include_coloris();
     }
-    if (in_array('flatpickr',$js_modules)) {
-        include_flatpickr();
-    }
-    if (in_array('intltelinput',$js_modules)) {
-        echo '<link rel="stylesheet" type="text/css" href="../tagsets/js/intlTelInput/intlTelInput.css" />'."\n";
-        echo '<script src="../tagsets/js/intlTelInput/intlTelInput.min.js"></script>'."\n";
-    }
-}
-if (isset($include_coloris) && $include_coloris) {
-    include_coloris();
-}
 
     echo '<style type="text/css">';
     echo ':root{'."\n";
@@ -148,23 +154,21 @@ if (isset($include_coloris) && $include_coloris) {
 </style>';
     }
 
-echo '
+    echo '
 </HEAD>
 <body dir="'.$orsee_dir.'"';
-echo ' TOPMARGIN=0 LEFTMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0';
-echo '>
+    echo ' TOPMARGIN=0 LEFTMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0';
+    echo '>
 ';
-
 }
 
 
 function html__footer() {
     // render shared HTML closing tags
 
-echo '
+    echo '
 </BODY>
 </HTML>';
-
 }
 
 function html__show_style_header($area='public',$title="") {
@@ -190,7 +194,9 @@ function html__show_style_header($area='public',$title="") {
 
     $menu_mode=html__menu_mode_for_area($area);
     $menu_orientation='vertical';
-    if ($menu_mode!='vertical') $menu_orientation='horizontal';
+    if ($menu_mode!='vertical') {
+        $menu_orientation='horizontal';
+    }
 
     // prepare menu
     $menu_html='';
@@ -199,9 +205,12 @@ function html__show_style_header($area='public',$title="") {
             $logged_in=true;
             $menu=html__get_admin_menu();
         } else {
-            if((isset($_SESSION['pauthdata']['user_logged_in']) && $_SESSION['pauthdata']['user_logged_in'])
-                || $show_logged_in_menu) $logged_in=true;
-            else $logged_in=false;
+            if ((isset($_SESSION['pauthdata']['user_logged_in']) && $_SESSION['pauthdata']['user_logged_in'])
+                || $show_logged_in_menu) {
+                $logged_in=true;
+            } else {
+                $logged_in=false;
+            }
             $menu=html__get_public_menu();
         }
         $menu_extra_vertical='';
@@ -222,8 +231,8 @@ function html__show_style_header($area='public',$title="") {
     $pattern="/lang\[([^\]]+)\]/i";
     $replacement = "\$lang['$1']";
     $tpl=preg_replace_callback($pattern,
-    'template_replace_callbackB',
-    $tpl);
+        'template_replace_callbackB',
+        $tpl);
 
     $root_open='<div class="orsee orsee-area-'.$area.' orsee-orientation-'.$menu_orientation.'" data-menu-mode="'.$menu_mode.'">';
     $overlay_host='
@@ -303,11 +312,11 @@ function html__show_style_footer($area='public') {
     $tpl=file_get_contents($tpl_file);
 
     // fill in language terms if any
-        $pattern="/lang\[([^\]]+)\]/i";
-        $replacement = "\$lang['$1']";
+    $pattern="/lang\[([^\]]+)\]/i";
+    $replacement = "\$lang['$1']";
     $tpl=preg_replace_callback($pattern,
-    'template_replace_callbackB',
-    $tpl);
+        'template_replace_callbackB',
+        $tpl);
 
     echo $tpl;
     echo '</div></main></div></div>';
@@ -335,14 +344,20 @@ function html__menu_mode_for_area($area='public') {
 function html__menu_text_from_lang_map($text_lang,$fallback='') {
     // resolve localized text from language map with deterministic fallback order
     global $settings;
-    if (!is_array($text_lang) || count($text_lang)===0) return (string)$fallback;
+    if (!is_array($text_lang) || count($text_lang)===0) {
+        return (string)$fallback;
+    }
     $language=lang('lang');
-    if (isset($text_lang[$language]) && trim((string)$text_lang[$language])!=='') return (string)$text_lang[$language];
+    if (isset($text_lang[$language]) && trim((string)$text_lang[$language])!=='') {
+        return (string)$text_lang[$language];
+    }
     if (isset($settings['public_standard_language']) && isset($text_lang[$settings['public_standard_language']]) && trim((string)$text_lang[$settings['public_standard_language']])!=='') {
         return (string)$text_lang[$settings['public_standard_language']];
     }
     foreach ($text_lang as $value) {
-        if (trim((string)$value)!=='') return (string)$value;
+        if (trim((string)$value)!=='') {
+            return (string)$value;
+        }
     }
     return (string)$fallback;
 }
@@ -351,160 +366,160 @@ function html__menu_default_admin_items() {
     // return legacy admin menu defaults used to initialize menu config
     global $settings;
     $menu=array();
-$menu[]=                    array(
-                            'menu_area'=>'admin_mainpage',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'mainpage',
-                            'page_title_lang_item'=>'welcome',
-                            'link'=>'/admin/',
-                            'icon'=>'home',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'experiments',
-                            'entrytype'=>'head',
-                            'lang_item'=>'experiments',
-                            'link'=>'',
-                            'icon'=>'cogs',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'experiments_main',
-                            'entrytype'=>'link',
-                            'lang_item'=>'overview',
-                            'page_title_lang_item'=>'experiments',
-                            'link'=>'/admin/experiment_main.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'experiments_my',
-                            'entrytype'=>'link',
-                            'lang_item'=>'my_experiments',
-                            'link'=>'/admin/experiment_my.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'experiments_new',
-                            'entrytype'=>'link',
-                            'lang_item'=>'create_new',
-                            'page_title_lang_item'=>'edit_experiment',
-                            'link'=>'/admin/experiment_edit.php?addit=true',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'experiments_old',
-                            'entrytype'=>'link',
-                            'lang_item'=>'menu_completed_experiments',
-                            'page_title_lang_item'=>'finished_experiments',
-                            'link'=>'/admin/experiment_old.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'participants',
-                            'entrytype'=>'head',
-                            'lang_item'=>'participants',
-                            'link'=>'',
-                            'icon'=>'users',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'participants_main',
-                            'entrytype'=>'link',
-                            'lang_item'=>'overview',
-                            'page_title_lang_item'=>'participants',
-                            'link'=>'/admin/participants_main.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'participants_create',
-                            'entrytype'=>'link',
-                            'lang_item'=>'create_new',
-                            'page_title_lang_item'=>'edit_participant',
-                            'link'=>'/admin/participants_edit.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=                    array(
-                            'menu_area'=>'experiment_calendar',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'calendar',
-                            'link'=>'/admin/calendar_main.php',
-                            'icon'=>'calendar',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-if ($settings['enable_email_module']=='y') {
-$menu[]=                    array(
-                            'menu_area'=>'emails',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'emails',
-                            'link'=>'/admin/emails_main.php',
-                            'icon'=>'envelope-o',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-}
-$menu[]=
-                    array(
-                            'menu_area'=>'files',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'files',
-                            'link'=>'/admin/download_main.php',
-                            'icon'=>'download',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'options',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'options',
-                            'link'=>'/admin/options_main.php',
-                            'icon'=>'gavel',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=
-                    array(
-                            'menu_area'=>'statistics',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'statistics',
-                            'link'=>'/admin/statistics_main.php',
-                            'icon'=>'bar-chart-o',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=                    array(
-                            'menu_area'=>'logout',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'logout',
-                            'link'=>'/admin/admin_logout.php',
-                            'icon'=>'sign-out',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
+    $menu[]=                    array(
+                                'menu_area'=>'admin_mainpage',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'mainpage',
+                                'page_title_lang_item'=>'welcome',
+                                'link'=>'/admin/',
+                                'icon'=>'home',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'experiments',
+                                'entrytype'=>'head',
+                                'lang_item'=>'experiments',
+                                'link'=>'',
+                                'icon'=>'cogs',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'experiments_main',
+                                'entrytype'=>'link',
+                                'lang_item'=>'overview',
+                                'page_title_lang_item'=>'experiments',
+                                'link'=>'/admin/experiment_main.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'experiments_my',
+                                'entrytype'=>'link',
+                                'lang_item'=>'my_experiments',
+                                'link'=>'/admin/experiment_my.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'experiments_new',
+                                'entrytype'=>'link',
+                                'lang_item'=>'create_new',
+                                'page_title_lang_item'=>'edit_experiment',
+                                'link'=>'/admin/experiment_edit.php?addit=true',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'experiments_old',
+                                'entrytype'=>'link',
+                                'lang_item'=>'menu_completed_experiments',
+                                'page_title_lang_item'=>'finished_experiments',
+                                'link'=>'/admin/experiment_old.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'participants',
+                                'entrytype'=>'head',
+                                'lang_item'=>'participants',
+                                'link'=>'',
+                                'icon'=>'users',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'participants_main',
+                                'entrytype'=>'link',
+                                'lang_item'=>'overview',
+                                'page_title_lang_item'=>'participants',
+                                'link'=>'/admin/participants_main.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'participants_create',
+                                'entrytype'=>'link',
+                                'lang_item'=>'create_new',
+                                'page_title_lang_item'=>'edit_participant',
+                                'link'=>'/admin/participants_edit.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=                    array(
+                                'menu_area'=>'experiment_calendar',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'calendar',
+                                'link'=>'/admin/calendar_main.php',
+                                'icon'=>'calendar',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    if ($settings['enable_email_module']=='y') {
+        $menu[]=                    array(
+                                    'menu_area'=>'emails',
+                                    'entrytype'=>'headlink',
+                                    'lang_item'=>'emails',
+                                    'link'=>'/admin/emails_main.php',
+                                    'icon'=>'envelope-o',
+                                    'show_if_not_logged_in'=>0,
+                                    'show_if_logged_in'=>1
+                                    );
+    }
+    $menu[]=
+                        array(
+                                'menu_area'=>'files',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'files',
+                                'link'=>'/admin/download_main.php',
+                                'icon'=>'download',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'options',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'options',
+                                'link'=>'/admin/options_main.php',
+                                'icon'=>'gavel',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=
+                        array(
+                                'menu_area'=>'statistics',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'statistics',
+                                'link'=>'/admin/statistics_main.php',
+                                'icon'=>'bar-chart-o',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=                    array(
+                                'menu_area'=>'logout',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'logout',
+                                'link'=>'/admin/admin_logout.php',
+                                'icon'=>'sign-out',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
     return $menu;
 }
 
@@ -531,18 +546,18 @@ function html__menu_default_public_items() {
                             'show_if_not_logged_in'=>1,
                             'show_if_logged_in'=>0
                             );
-if ($settings['subject_authentication']!='token') {
-    $menu[]=        array(
-                            'menu_area'=>'login',
-                            'entrytype'=>'link',
-                            'lang_item'=>'login',
-                            'page_title_lang_item'=>'profile_login',
-                            'link'=>'/public/participant_login.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>1,
-                            'show_if_logged_in'=>0
-                            );
-}
+    if ($settings['subject_authentication']!='token') {
+        $menu[]=        array(
+                                'menu_area'=>'login',
+                                'entrytype'=>'link',
+                                'lang_item'=>'login',
+                                'page_title_lang_item'=>'profile_login',
+                                'link'=>'/public/participant_login.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>1,
+                                'show_if_logged_in'=>0
+                                );
+    }
 
     $menu[]=        array(
                             'menu_area'=>'my_data',
@@ -564,17 +579,17 @@ if ($settings['subject_authentication']!='token') {
                             'show_if_not_logged_in'=>0,
                             'show_if_logged_in'=>1
                             );
-if ($settings['subject_authentication']!='token') {
-    $menu[]=        array(
-                            'menu_area'=>'logout',
-                            'entrytype'=>'link',
-                            'lang_item'=>'logout',
-                            'link'=>'/public/participant_logout.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>0,
-                            'show_if_logged_in'=>1
-                            );
-}
+    if ($settings['subject_authentication']!='token') {
+        $menu[]=        array(
+                                'menu_area'=>'logout',
+                                'entrytype'=>'link',
+                                'lang_item'=>'logout',
+                                'link'=>'/public/participant_logout.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>0,
+                                'show_if_logged_in'=>1
+                                );
+    }
     $menu[]=            array(
                             'menu_area'=>'calendar',
                             'entrytype'=>'headlink',
@@ -585,62 +600,64 @@ if ($settings['subject_authentication']!='token') {
                             'show_if_not_logged_in'=>1,
                             'show_if_logged_in'=>1
                             );
-$menu[]=            array(
-                            'menu_area'=>'rules',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'rules',
-                            'link'=>'/public/rules.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>1,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=            array(
-                            'menu_area'=>'privacy_policy',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'privacy_policy',
-                            'link'=>'/public/privacy.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>1,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=            array(
-                            'menu_area'=>'faqs',
-                            'entrytype'=>'headlink',
-                            'lang_item'=>'faqs',
-                            'page_title_lang_item'=>'faq_long',
-                            'link'=>'/public/faq.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>1,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=            array(
-                            'entrytype'=>'space'
-                            );
-$menu[]=            array(
-                            'menu_area'=>'impressum',
-                            'entrytype'=>'link',
-                            'lang_item'=>'impressum',
-                            'page_title_lang_item'=>'legal_notice',
-                            'link'=>'/public/impressum.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>1,
-                            'show_if_logged_in'=>1
-                            );
-$menu[]=            array(
-                            'menu_area'=>'contact',
-                            'entrytype'=>'link',
-                            'lang_item'=>'contact',
-                            'link'=>'/public/contact.php',
-                            'icon'=>'',
-                            'show_if_not_logged_in'=>1,
-                            'show_if_logged_in'=>1
-                            );
+    $menu[]=            array(
+                                'menu_area'=>'rules',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'rules',
+                                'link'=>'/public/rules.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>1,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=            array(
+                                'menu_area'=>'privacy_policy',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'privacy_policy',
+                                'link'=>'/public/privacy.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>1,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=            array(
+                                'menu_area'=>'faqs',
+                                'entrytype'=>'headlink',
+                                'lang_item'=>'faqs',
+                                'page_title_lang_item'=>'faq_long',
+                                'link'=>'/public/faq.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>1,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=            array(
+                                'entrytype'=>'space'
+                                );
+    $menu[]=            array(
+                                'menu_area'=>'impressum',
+                                'entrytype'=>'link',
+                                'lang_item'=>'impressum',
+                                'page_title_lang_item'=>'legal_notice',
+                                'link'=>'/public/impressum.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>1,
+                                'show_if_logged_in'=>1
+                                );
+    $menu[]=            array(
+                                'menu_area'=>'contact',
+                                'entrytype'=>'link',
+                                'lang_item'=>'contact',
+                                'link'=>'/public/contact.php',
+                                'icon'=>'',
+                                'show_if_not_logged_in'=>1,
+                                'show_if_logged_in'=>1
+                                );
     return $menu;
 }
 
 function html__menu_default_items($area='public') {
     // dispatch area-specific default menu set
-    if ($area==='admin') return html__menu_default_admin_items();
+    if ($area==='admin') {
+        return html__menu_default_admin_items();
+    }
     return html__menu_default_public_items();
 }
 
@@ -650,7 +667,9 @@ function html__menu_defaults_to_config($area='public',$resolve_lang_terms=true) 
 
     $defaults=html__menu_default_items($area);
     $languages=array();
-    if ($resolve_lang_terms) $languages=get_languages();
+    if ($resolve_lang_terms) {
+        $languages=get_languages();
+    }
     $items=array();
     $idx=0;
     foreach ($defaults as $default) {
@@ -701,12 +720,24 @@ function html__menu_defaults_to_config($area='public',$resolve_lang_terms=true) 
 
         $hidden='n';
         if ($area==='public') {
-            if ($menu_area==='calendar' && $settings['show_public_calendar']!=='y') $hidden='y';
-            if ($menu_area==='rules' && $settings['show_public_rules_page']!=='y') $hidden='y';
-            if ($menu_area==='privacy_policy' && $settings['show_public_privacy_policy']!=='y') $hidden='y';
-            if ($menu_area==='faqs' && $settings['show_public_faqs']!=='y') $hidden='y';
-            if ($menu_area==='impressum' && $settings['show_public_legal_notice']!=='y') $hidden='y';
-            if ($menu_area==='contact' && $settings['show_public_contact']!=='y') $hidden='y';
+            if ($menu_area==='calendar' && $settings['show_public_calendar']!=='y') {
+                $hidden='y';
+            }
+            if ($menu_area==='rules' && $settings['show_public_rules_page']!=='y') {
+                $hidden='y';
+            }
+            if ($menu_area==='privacy_policy' && $settings['show_public_privacy_policy']!=='y') {
+                $hidden='y';
+            }
+            if ($menu_area==='faqs' && $settings['show_public_faqs']!=='y') {
+                $hidden='y';
+            }
+            if ($menu_area==='impressum' && $settings['show_public_legal_notice']!=='y') {
+                $hidden='y';
+            }
+            if ($menu_area==='contact' && $settings['show_public_contact']!=='y') {
+                $hidden='y';
+            }
         }
 
         $fixed='y';
@@ -723,10 +754,16 @@ function html__menu_defaults_to_config($area='public',$resolve_lang_terms=true) 
                 $fixed='n';
                 $removable='y';
             }
-            if ($menu_area==='mainpage_welcome') $can_be_secondary='n';
-            if (in_array($menu_area,array('mainpage_welcome','public_register','login','my_data','my_registrations','logout'),true)) $can_hide='n';
+            if ($menu_area==='mainpage_welcome') {
+                $can_be_secondary='n';
+            }
+            if (in_array($menu_area,array('mainpage_welcome','public_register','login','my_data','my_registrations','logout'),true)) {
+                $can_hide='n';
+            }
         } else {
-            if ($fixed==='y') $can_hide='n';
+            if ($fixed==='y') {
+                $can_hide='n';
+            }
         }
 
         $link_value='';
@@ -873,7 +910,9 @@ function html__menu_load_config($area='public') {
 
     // ensure all fixed default items exist in the loaded config
     foreach ($default_items as $id=>$default_item) {
-        if (!isset($default_item['fixed']) || $default_item['fixed']!=='y') continue;
+        if (!isset($default_item['fixed']) || $default_item['fixed']!=='y') {
+            continue;
+        }
         if (!isset($existing_ids[$id])) {
             $items_by_id[$id]=$default_item;
             $existing_ids[$id]=true;
@@ -885,16 +924,26 @@ function html__menu_load_config($area='public') {
     $config['items']=$items_by_id;
     $config['public_content_to_id']=array();
     foreach ($config['items'] as $id=>$item) {
-        if (!is_array($item)) continue;
-        if (!(isset($item['richtext']) && $item['richtext']==='y')) continue;
-        if (!isset($item['content_name'])) continue;
+        if (!is_array($item)) {
+            continue;
+        }
+        if (!(isset($item['richtext']) && $item['richtext']==='y')) {
+            continue;
+        }
+        if (!isset($item['content_name'])) {
+            continue;
+        }
         $content_name=trim((string)$item['content_name']);
-        if ($content_name==='') continue;
+        if ($content_name==='') {
+            continue;
+        }
         $config['public_content_to_id'][$content_name]=(string)$id;
     }
 
     // persist normalized config if it was repaired and cache runtime result
-    if ($changed) html__menu_save_config($area,$config);
+    if ($changed) {
+        html__menu_save_config($area,$config);
+    }
     if (!isset($GLOBALS['menu_config_runtime_cache']) || !is_array($GLOBALS['menu_config_runtime_cache'])) {
         $GLOBALS['menu_config_runtime_cache']=array();
     }
@@ -904,34 +953,52 @@ function html__menu_load_config($area='public') {
 
 function html__menu_save_config($area='public',$config=array()) {
     // persist menu_config to or_objects in DB-safe shape (list items, no runtime maps)
-    if (!is_array($config)) return false;
-    if (!isset($config['items']) || !is_array($config['items'])) $config['items']=array();
+    if (!is_array($config)) {
+        return false;
+    }
+    if (!isset($config['items']) || !is_array($config['items'])) {
+        $config['items']=array();
+    }
     $items_to_save=array();
     foreach ($config['items'] as $item) {
-        if (!is_array($item)) continue;
+        if (!is_array($item)) {
+            continue;
+        }
         $items_to_save[]=$item;
     }
     $config['items']=$items_to_save;
-    if (isset($config['public_content_to_id'])) unset($config['public_content_to_id']);
+    if (isset($config['public_content_to_id'])) {
+        unset($config['public_content_to_id']);
+    }
     return options__save_json_object('menu_config',$area,$config,1,-1);
 }
 
 function html__menu_item_visible($item,$logged_in,$area='public') {
     // evaluate menu item visibility for current context (auth state, module flags, admin type)
     global $settings, $expadmindata;
-    if (!is_array($item)) return false;
-    if (isset($item['hidden']) && $item['hidden']==='y') return false;
+    if (!is_array($item)) {
+        return false;
+    }
+    if (isset($item['hidden']) && $item['hidden']==='y') {
+        return false;
+    }
     if ($logged_in) {
-        if (isset($item['show_if_logged_in']) && !(int)$item['show_if_logged_in']) return false;
+        if (isset($item['show_if_logged_in']) && !(int)$item['show_if_logged_in']) {
+            return false;
+        }
     } else {
-        if (isset($item['show_if_not_logged_in']) && !(int)$item['show_if_not_logged_in']) return false;
+        if (isset($item['show_if_not_logged_in']) && !(int)$item['show_if_not_logged_in']) {
+            return false;
+        }
     }
     $menu_area=(isset($item['menu_area']) ? (string)$item['menu_area'] : '');
     if ($menu_area==='emails' && (!isset($settings['enable_email_module']) || $settings['enable_email_module']!=='y')) {
         return false;
     }
     if ($area==='public' && $settings['subject_authentication']==='token') {
-        if (in_array($menu_area,array('login','logout'),true)) return false;
+        if (in_array($menu_area,array('login','logout'),true)) {
+            return false;
+        }
     }
     if ($area==='admin') {
         $menu_area=(isset($item['menu_area']) ? (string)$item['menu_area'] : '');
@@ -950,8 +1017,12 @@ function html__menu_build_runtime_items($area='public',$logged_in=false) {
     $config=html__menu_load_config($area);
     $runtime=array();
     foreach ($config['items'] as $item) {
-        if (!is_array($item)) continue;
-        if (!html__menu_item_visible($item,$logged_in,$area)) continue;
+        if (!is_array($item)) {
+            continue;
+        }
+        if (!html__menu_item_visible($item,$logged_in,$area)) {
+            continue;
+        }
 
         $entrytype=(isset($item['entrytype']) ? (string)$item['entrytype'] : 'link');
         $menu_label=html__menu_text_from_lang_map((isset($item['menu_term_lang']) ? $item['menu_term_lang'] : array()),'');
@@ -961,9 +1032,9 @@ function html__menu_build_runtime_items($area='public',$logged_in=false) {
         if (isset($item['richtext']) && $item['richtext']==='y' && $content_name!=='') {
             if ($area==='public' && $content_name==='mainpage_welcome') {
                 $link='/public/';
-            } else if ($area==='admin' && $content_name==='admin_mainpage') {
+            } elseif ($area==='admin' && $content_name==='admin_mainpage') {
                 $link='/admin/';
-            } else if ($area==='public') {
+            } elseif ($area==='public') {
                 $link='/public/index.php?page='.urlencode($content_name);
             } else {
                 $link='/admin/index.php?page='.urlencode($content_name);
@@ -987,7 +1058,9 @@ function html__menu_build_runtime_items($area='public',$logged_in=false) {
 
 function html__menu_can_access_item($area='public',$item=false,$logged_in=false) {
     // access gate wrapper mirroring visibility rules
-    if (!is_array($item)) return false;
+    if (!is_array($item)) {
+        return false;
+    }
     return html__menu_item_visible($item,$logged_in,$area);
 }
 
@@ -999,8 +1072,12 @@ function html__get_admin_menu() {
 function html__get_public_menu() {
     // return public runtime menu based on current participant login state
     $logged_in=false;
-    if(isset($_SESSION['pauthdata']['user_logged_in']) && $_SESSION['pauthdata']['user_logged_in']) $logged_in=true;
-    if (isset($GLOBALS['show_logged_in_menu']) && $GLOBALS['show_logged_in_menu']) $logged_in=true;
+    if (isset($_SESSION['pauthdata']['user_logged_in']) && $_SESSION['pauthdata']['user_logged_in']) {
+        $logged_in=true;
+    }
+    if (isset($GLOBALS['show_logged_in_menu']) && $GLOBALS['show_logged_in_menu']) {
+        $logged_in=true;
+    }
     return html__menu_build_runtime_items('public',$logged_in);
 }
 
@@ -1012,7 +1089,9 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
     $addp="";
     $ignore_p=array('participant_create.php','participant_confirm.php','participant_forgot.php');
     if (in_array($settings['subject_authentication'],array('token','migration'))) {
-        if (isset($_REQUEST['p']) && !(in_array(thisdoc(),$ignore_p))) $addp="?p=".urlencode($_REQUEST['p']);
+        if (isset($_REQUEST['p']) && !(in_array(thisdoc(),$ignore_p))) {
+            $addp="?p=".urlencode($_REQUEST['p']);
+        }
     }
 
     // normalize menu entries into generic section/item model before rendering
@@ -1031,15 +1110,24 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
 
         if ($continue && $entrytype!='space') {
             $continue=false;
-            if (isset($item['show_if_not_logged_in']) && $item['show_if_not_logged_in'] && !$logged_in) $continue=true;
-            if (isset($item['show_if_logged_in']) && $item['show_if_logged_in'] && $logged_in) $continue=true;
+            if (isset($item['show_if_not_logged_in']) && $item['show_if_not_logged_in'] && !$logged_in) {
+                $continue=true;
+            }
+            if (isset($item['show_if_logged_in']) && $item['show_if_logged_in'] && $logged_in) {
+                $continue=true;
+            }
         }
-        if (!$continue) continue;
+        if (!$continue) {
+            continue;
+        }
 
         $link='';
         if (isset($item['link']) && $item['link']) {
-            if (substr($item['link'],0,1)=='/') $link=$settings__root_url.$item['link'].$addp;
-            else $link=$item['link'];
+            if (substr($item['link'],0,1)=='/') {
+                $link=$settings__root_url.$item['link'].$addp;
+            } else {
+                $link=$item['link'];
+            }
         }
         $external_target_attr='';
         if (isset($item['custom_external']) && $item['custom_external']==='y' && $link!=='') {
@@ -1047,15 +1135,24 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
         }
 
         $label='';
-        if (isset($item['menu_label']) && trim((string)$item['menu_label'])!=='') $label=(string)$item['menu_label'];
-        elseif (isset($item['lang_item']) && $item['lang_item']) $label=lang($item['lang_item']);
+        if (isset($item['menu_label']) && trim((string)$item['menu_label'])!=='') {
+            $label=(string)$item['menu_label'];
+        } elseif (isset($item['lang_item']) && $item['lang_item']) {
+            $label=lang($item['lang_item']);
+        }
 
         $icon_html='';
-        if (isset($item['icon']) && $item['icon']) $icon_html=micon($item['icon']);
+        if (isset($item['icon']) && $item['icon']) {
+            $icon_html=micon($item['icon']);
+        }
 
         $classes=array();
-        if ($menu_area && isset($menu__area) && strcasecmp((string)$menu_area,(string)$menu__area)===0) $classes[]='is-active';
-        if ($menu_area=='logout') $classes[]='is-logout';
+        if ($menu_area && isset($menu__area) && strcasecmp((string)$menu_area,(string)$menu__area)===0) {
+            $classes[]='is-active';
+        }
+        if ($menu_area=='logout') {
+            $classes[]='is-logout';
+        }
         $class_attr=(count($classes)>0 ? ' '.implode(' ',$classes) : '');
 
         if ($menu_area=='current_user_data_box') {
@@ -1130,7 +1227,9 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
                 $list.='<div class="'.$classes.'">'.$item['content'].'</div>';
             }
         }
-        if ($menu_extra_html) $list.=$menu_extra_html;
+        if ($menu_extra_html) {
+            $list.=$menu_extra_html;
+        }
         $list.='</div>';
         return $list;
     }
@@ -1142,13 +1241,21 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
     foreach ($final_menu as $item) {
         if ($item['type']=='section') {
             $idx=(isset($item['section_index']) ? (int)$item['section_index'] : -1);
-            if ($idx>=0) $sections[$idx]=$item;
-            if (isset($item['is_active']) && $item['is_active']) $active_section_index=$idx;
+            if ($idx>=0) {
+                $sections[$idx]=$item;
+            }
+            if (isset($item['is_active']) && $item['is_active']) {
+                $active_section_index=$idx;
+            }
         } else {
             $idx=(isset($item['section_index']) ? (int)$item['section_index'] : -1);
-            if (!isset($items_by_section[$idx])) $items_by_section[$idx]=array();
+            if (!isset($items_by_section[$idx])) {
+                $items_by_section[$idx]=array();
+            }
             $items_by_section[$idx][]=$item;
-            if (isset($item['is_active']) && $item['is_active']) $active_section_index=$idx;
+            if (isset($item['is_active']) && $item['is_active']) {
+                $active_section_index=$idx;
+            }
         }
     }
     ksort($sections);
@@ -1164,11 +1271,17 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
         foreach ($sections as $idx=>$item) {
             $sec_id='s'.(string)$idx;
             $col_class='orsee-nav-static-col';
-            if ($idx==$active_section_index) $col_class.=' is-active';
+            if ($idx==$active_section_index) {
+                $col_class.=' is-active';
+            }
             $list.='<div class="'.$col_class.'" data-orsee-sub="'.$sec_id.'">';
             $tab_class='orsee-nav__section';
-            if ($idx==$active_section_index) $tab_class.=' is-active';
-            if (isset($item['class']) && $item['class']) $tab_class.=$item['class'];
+            if ($idx==$active_section_index) {
+                $tab_class.=' is-active';
+            }
+            if (isset($item['class']) && $item['class']) {
+                $tab_class.=$item['class'];
+            }
             $section_content=(isset($item['content']) ? trim(strip_tags((string)$item['content'])) : '');
             if ($section_content!=='') {
                 if ($item['tag']=='a') {
@@ -1185,7 +1298,9 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
             $sub_items=(isset($items_by_section[$idx]) ? $items_by_section[$idx] : array());
             foreach ($sub_items as $sub_item) {
                 $item_class='orsee-nav__item';
-                if (isset($sub_item['class']) && $sub_item['class']) $item_class.=$sub_item['class'];
+                if (isset($sub_item['class']) && $sub_item['class']) {
+                    $item_class.=$sub_item['class'];
+                }
                 if ($sub_item['tag']=='a') {
                     $href=(isset($sub_item['href']) && $sub_item['href'] ? $sub_item['href'] : '#');
                     $extra_attr=(isset($sub_item['extra_attr']) ? (string)$sub_item['extra_attr'] : '');
@@ -1199,7 +1314,9 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
         }
         $list.='</div>';
         $list.='</div>';
-        if ($menu_extra_html) $list.='<div class="orsee-nav-userbox">'.$menu_extra_html.'</div>';
+        if ($menu_extra_html) {
+            $list.='<div class="orsee-nav-userbox">'.$menu_extra_html.'</div>';
+        }
         $list.='</div>';
         return $list;
     }
@@ -1209,8 +1326,12 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
     $list.='<div class="orsee-nav orsee-nav-tabs">';
     foreach ($sections as $idx=>$item) {
         $tab_class='orsee-nav__section';
-        if ($idx==$active_section_index) $tab_class.=' is-active';
-        if (isset($item['class']) && $item['class']) $tab_class.=$item['class'];
+        if ($idx==$active_section_index) {
+            $tab_class.=' is-active';
+        }
+        if (isset($item['class']) && $item['class']) {
+            $tab_class.=$item['class'];
+        }
         $sec_id='s'.(string)$idx;
         if ($item['tag']=='a') {
             $href=(isset($item['href']) && $item['href'] ? $item['href'] : '#');
@@ -1225,12 +1346,16 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
     foreach ($sections as $idx=>$section_item) {
         $sec_id='s'.(string)$idx;
         $group_class='orsee-nav-subgroup';
-        if ($idx==$active_section_index) $group_class.=' is-active';
+        if ($idx==$active_section_index) {
+            $group_class.=' is-active';
+        }
         $list.='<div class="'.$group_class.'" data-orsee-sub="'.$sec_id.'">';
         $sub_items=(isset($items_by_section[$idx]) ? $items_by_section[$idx] : array());
         foreach ($sub_items as $item) {
             $item_class='orsee-nav__item';
-            if (isset($item['class']) && $item['class']) $item_class.=$item['class'];
+            if (isset($item['class']) && $item['class']) {
+                $item_class.=$item['class'];
+            }
             if ($item['tag']=='a') {
                 $href=(isset($item['href']) && $item['href'] ? $item['href'] : '#');
                 $extra_attr=(isset($item['extra_attr']) ? (string)$item['extra_attr'] : '');
@@ -1242,7 +1367,9 @@ function html__build_menu($menu,$logged_in,$orientation="vertical",$menu_mode='v
         $list.='</div>';
     }
     $list.='</div></div>';
-    if ($menu_extra_html) $list.='<div class="orsee-nav-userbox">'.$menu_extra_html.'</div>';
+    if ($menu_extra_html) {
+        $list.='<div class="orsee-nav-userbox">'.$menu_extra_html.'</div>';
+    }
     $list.='</div>';
     $list.='<script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -1317,36 +1444,46 @@ function get_style_array() {
     // $path=$settings__root_to_server.$settings__root_directory."/style";
     $path=__DIR__."/../style";
 
-    $dir_arr = array () ;
+    $dir_arr = array() ;
     $handle=opendir($path);
     while ($file = readdir($handle)) {
-            if ($file != "." && $file != ".." && is_dir($path."/".$file)) {
-                $dir_arr[] = $file ;
-                }
+        if ($file != "." && $file != ".." && is_dir($path."/".$file)) {
+            $dir_arr[] = $file ;
         }
+    }
     return $dir_arr ;
 }
 
 function button_link($link,$text,$icon="",$button_style="",$aextra="",$class_extra="") {
     // build generic action link in button style
     $out='<A HREF="'.$link.'" class="button orsee-btn';
-    if ($class_extra) $out.=' '.$class_extra;
+    if ($class_extra) {
+        $out.=' '.$class_extra;
+    }
     $out.='"';
     if ($button_style) {
         $out.=' style="';
-        if ($button_style) $out.=$button_style;
+        if ($button_style) {
+            $out.=$button_style;
+        }
         $out.='"';
     }
-    if ($aextra) $out.=' '.$aextra;
+    if ($aextra) {
+        $out.=' '.$aextra;
+    }
     $out.='>';
-    if ($icon) $out.='<i class="fa fa-'.$icon.'" style="padding: 0 0.3em 0 0"></i>';
+    if ($icon) {
+        $out.='<i class="fa fa-'.$icon.'" style="padding: 0 0.3em 0 0"></i>';
+    }
     $out.=$text.'</A>';
     return $out;
 }
 
 function button_back($link,$text='',$button_style='',$aextra='',$class_extra='') {
     // build back action link with RTL-aware arrow icon
-    if ($text==='') $text=lang('back');
+    if ($text==='') {
+        $text=lang('back');
+    }
     return button_link($link,$text,(lang__is_rtl() ? 'arrow-right' : 'arrow-left'),$button_style,$aextra,$class_extra);
 }
 

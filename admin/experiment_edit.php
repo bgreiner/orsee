@@ -1,20 +1,20 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="experiments_new";
 $title="edit_experiment";
 $js_modules=array('flatpickr');
-include ("header.php");
-if ($proceed) {
+include("header.php");
 
+if ($proceed) {
     if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) {
         $allow=check_allow('experiment_edit','experiment_show.php?experiment_id='.$_REQUEST['experiment_id']);
         if ($proceed) {
             $edit=orsee_db_load_array("experiments",$_REQUEST['experiment_id'],"experiment_id");
             $edit['experiment_show_type']=$edit['experiment_type'].','.$edit['experiment_ext_type'];
-            if (!check_allow('experiment_restriction_override'))
+            if (!check_allow('experiment_restriction_override')) {
                 check_experiment_allowed($edit,"admin/experiment_show.php?experiment_id=".$edit['experiment_id']);
+            }
         }
     } else {
         $allow=check_allow('experiment_edit','experiment_main.php');
@@ -26,7 +26,7 @@ if ($proceed) {
 
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/experiment_edit.php?experiment_id=".$_REQUEST['experiment_id']);
+            redirect("admin/experiment_edit.php?experiment_id=".$_REQUEST['experiment_id']);
         }
         $_REQUEST['experiment_class']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['experiment_class']));
         $_REQUEST['experimenter']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['experimenter']));
@@ -41,11 +41,13 @@ if ($proceed) {
             }
         }
 
-        if ($settings['enable_payment_module']=='y' ) {
-            if (isset($_REQUEST['payment_types']))
+        if ($settings['enable_payment_module']=='y') {
+            if (isset($_REQUEST['payment_types'])) {
                 $_REQUEST['payment_types']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['payment_types']));
-            if (isset($_REQUEST['payment_budgets']))
+            }
+            if (isset($_REQUEST['payment_budgets'])) {
                 $_REQUEST['payment_budgets']=id_array_to_db_string(multipicker_json_to_array($_REQUEST['payment_budgets']));
+            }
         }
 
         if (!$_REQUEST['experiment_public_name']) {
@@ -55,7 +57,7 @@ if ($proceed) {
 
         if (!$_REQUEST['experiment_name']) {
             message(lang('error_you_have_to_give_internal_name'),'error');
-                $continue=false;
+            $continue=false;
         }
 
         if ($settings['enable_editing_of_experiment_sender_email']=='y' && check_allow('experiment_change_sender_address')) {
@@ -63,7 +65,9 @@ if ($proceed) {
                 message(lang('error_no_valid_sender_mail'),'error');
                 $continue=false;
             }
-        } else unset($_REQUEST['sender_mail']);
+        } else {
+            unset($_REQUEST['sender_mail']);
+        }
 
         if (!$_REQUEST['experimenter']) {
             message(lang('error_at_least_one_experimenter_required'),'error');
@@ -77,14 +81,21 @@ if ($proceed) {
 
 
         if ($continue) {
+            if (!isset($_REQUEST['experiment_finished']) ||!$_REQUEST['experiment_finished']) {
+                $_REQUEST['experiment_finished']="n";
+            }
 
-            if (!isset($_REQUEST['experiment_finished']) ||!$_REQUEST['experiment_finished']) $_REQUEST['experiment_finished']="n";
+            if (!isset($_REQUEST['hide_in_stats']) ||!$_REQUEST['hide_in_stats']) {
+                $_REQUEST['hide_in_stats']="n";
+            }
 
-            if (!isset($_REQUEST['hide_in_stats']) ||!$_REQUEST['hide_in_stats']) $_REQUEST['hide_in_stats']="n";
+            if (!isset($_REQUEST['hide_in_cal']) ||!$_REQUEST['hide_in_cal']) {
+                $_REQUEST['hide_in_cal']="n";
+            }
 
-            if (!isset($_REQUEST['hide_in_cal']) ||!$_REQUEST['hide_in_cal']) $_REQUEST['hide_in_cal']="n";
-
-            if (!isset($_REQUEST['access_restricted']) ||!$_REQUEST['access_restricted']) $_REQUEST['access_restricted']='n';
+            if (!isset($_REQUEST['access_restricted']) ||!$_REQUEST['access_restricted']) {
+                $_REQUEST['access_restricted']='n';
+            }
 
 
 
@@ -118,26 +129,22 @@ if ($proceed) {
             $form_fields=array_filter_allowed($edit,$save_allowed_fields);
 
             $done=orsee_db_save_array($form_fields,"experiments",
-                    $form_fields['experiment_id'],"experiment_id");
+                $form_fields['experiment_id'],"experiment_id");
 
             if ($done) {
-                message (lang('changes_saved'));
-                redirect ("admin/experiment_edit.php?experiment_id=".$edit['experiment_id']);
+                message(lang('changes_saved'));
+                redirect("admin/experiment_edit.php?experiment_id=".$edit['experiment_id']);
             } else {
-                message (lang('database_error'),'error');
-                redirect ("admin/experiment_edit.php?experiment_id=".$edit['experiment_id']);
+                message(lang('database_error'),'error');
+                redirect("admin/experiment_edit.php?experiment_id=".$edit['experiment_id']);
             }
-
         }
 
         $edit=$_REQUEST;
-
     }
-
 }
 
 if ($proceed) {
-
     // form
 
     // initialize if empty
@@ -150,9 +157,11 @@ if ($proceed) {
                 'ethics_by','ethics_number','ethics_exempt','ethics_expire_date',
                 'payment_types','payment_budgets');
         foreach ($formvarnames as $fvn) {
-            if (!isset($edit[$fvn])) $edit[$fvn]="";
+            if (!isset($edit[$fvn])) {
+                $edit[$fvn]="";
+            }
         }
-    $edit['access_restricted']=$settings['default_experiment_restriction'];
+        $edit['access_restricted']=$settings['default_experiment_restriction'];
     }
     show_message();
 
@@ -161,8 +170,12 @@ if ($proceed) {
     }
 
     if (!isset($_REQUEST['experiment_id']) || !$_REQUEST['experiment_id']) {
-        if (!$edit['experimenter']) $edit['experimenter']='|'.$expadmindata['admin_id'].'|';
-        if (!$edit['experimenter_mail']) $edit['experimenter_mail']='|'.$expadmindata['admin_id'].'|';
+        if (!$edit['experimenter']) {
+            $edit['experimenter']='|'.$expadmindata['admin_id'].'|';
+        }
+        if (!$edit['experimenter_mail']) {
+            $edit['experimenter_mail']='|'.$expadmindata['admin_id'].'|';
+        }
     }
 
     $experiment_class_options=experiment__load_experimentclassnames();
@@ -171,7 +184,7 @@ if ($proceed) {
     $experimenter_options=array();
     $selected_experimenters=db_string_to_id_array($edit['experimenter']);
     $selected_experimenters_mail=db_string_to_id_array($edit['experimenter_mail']);
-    foreach($experimenter_data as $e) {
+    foreach ($experimenter_data as $e) {
         if (in_array($e['admin_id'],$selected_experimenters) || in_array($e['admin_id'],$selected_experimenters_mail) || ($e['experimenter_list']=='y' && $e['disabled']!='y')) {
             $experimenter_options[(string)$e['admin_id']]=$e['lname'].', '.$e['fname'];
         }
@@ -233,7 +246,9 @@ if ($proceed) {
             $value=$inttype.','.$exttype['exptype_id'];
             $show=$lang[$inttype].' ("'.$exttype[lang('lang')].'")';
             echo '<option value="'.$value.'"';
-            if ($value==$edit['experiment_show_type']) echo ' selected';
+            if ($value==$edit['experiment_show_type']) {
+                echo ' selected';
+            }
             echo '>'.$show.'</option>';
         }
     }
@@ -261,7 +276,9 @@ if ($proceed) {
                         <div class="control">
                             <label class="checkbox orsee-checkline">
                                 <input name="access_restricted" type="checkbox" value="y"';
-        if ($edit['access_restricted']=="y") echo ' checked';
+        if ($edit['access_restricted']=="y") {
+            echo ' checked';
+        }
         echo '              >
                                 <span>'.lang('experiment_access_restricted').'</span>
                             </label>
@@ -301,10 +318,14 @@ if ($proceed) {
                         </div>
                         <div class="control orsee-ethics-choice-row">
                             <label class="radio"><input name="ethics_exempt" type="radio" value="y"';
-        if ($edit['ethics_exempt']=='y') echo ' checked';
+        if ($edit['ethics_exempt']=='y') {
+            echo ' checked';
+        }
         echo '                  > '.lang('ethics_exempt_or').'</label>
                             <label class="radio"><input name="ethics_exempt" type="radio" value="n"';
-        if ($edit['ethics_exempt']!='y') echo ' checked';
+        if ($edit['ethics_exempt']!='y') {
+            echo ' checked';
+        }
         echo '                  > '.lang('ethics_expires_on').'</label>
                             <span class="orsee-ethics-date">'.formhelpers__pick_date('ethics_expire_date',$edit['ethics_expire_date'],0,0,false,true).'</span>
                         </div>
@@ -350,7 +371,9 @@ if ($proceed) {
                         <div class="control">
                             <label class="checkbox orsee-checkline">
                                 <input name="experiment_finished" type="checkbox" value="y"';
-    if ($edit['experiment_finished']=="y") echo ' checked';
+    if ($edit['experiment_finished']=="y") {
+        echo ' checked';
+    }
     echo '                      >
                                 <span>'.lang('experiment_finished?').'</span>
                             </label>
@@ -361,7 +384,9 @@ if ($proceed) {
                         <div class="control">
                             <label class="checkbox orsee-checkline">
                                 <input name="hide_in_stats" type="checkbox" value="y"';
-    if ($edit['hide_in_stats']=="y") echo ' checked';
+    if ($edit['hide_in_stats']=="y") {
+        echo ' checked';
+    }
     echo '                      >
                                 <span>'.lang('hide_in_stats?').'</span>
                             </label>
@@ -372,7 +397,9 @@ if ($proceed) {
                         <div class="control">
                             <label class="checkbox orsee-checkline">
                                 <input name="hide_in_cal" type="checkbox" value="y"';
-    if ($edit['hide_in_cal']=="y") echo ' checked';
+    if ($edit['hide_in_cal']=="y") {
+        echo ' checked';
+    }
     echo '                      >
                                 <span>'.lang('hide_in_cal?').'</span>
                             </label>
@@ -392,8 +419,11 @@ if ($proceed) {
     echo '          <div class="field is-grouped is-justify-content-center orsee-form-actions">
                         <div class="control">
                             <input name="edit" type="submit" class="button orsee-btn" value="';
-    if (!isset($_REQUEST['experiment_id']) || !$_REQUEST['experiment_id']) echo lang('add');
-    else echo lang('change');
+    if (!isset($_REQUEST['experiment_id']) || !$_REQUEST['experiment_id']) {
+        echo lang('add');
+    } else {
+        echo lang('change');
+    }
     echo '                  ">
                         </div>
                     </div>';
@@ -413,7 +443,7 @@ if ($proceed) {
     echo '          </div>
             </div>
         </form><br>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

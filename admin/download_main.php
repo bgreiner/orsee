@@ -1,27 +1,30 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="files";
 $title="files";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     echo '<div class="orsee-options-list-panel">';
     show_message();
 
     if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) {
         $experiment_id=$_REQUEST['experiment_id'];
-        if (!check_allow('experiment_restriction_override'))
+        if (!check_allow('experiment_restriction_override')) {
             check_experiment_allowed($experiment_id,"admin/experiment_show.php?experiment_id=".$experiment_id);
+        }
         if ($proceed) {
             $exp=orsee_db_load_array("experiments",$experiment_id,"experiment_id");
-            if (!isset($exp['experiment_id'])) redirect('admin/download_main.php');
+            if (!isset($exp['experiment_id'])) {
+                redirect('admin/download_main.php');
+            }
         }
         if ($proceed) {
             $experimenters=db_string_to_id_array($exp['experimenter']);
             if (! ((in_array($expadmindata['admin_id'],$experimenters) && check_allow('file_view_experiment_my'))
-                    || check_allow('file_view_experiment_all')) ) {
-                    redirect('admin/download_main.php');
+                    || check_allow('file_view_experiment_all'))) {
+                redirect('admin/download_main.php');
             }
         }
 
@@ -81,10 +84,9 @@ if ($proceed) {
                 echo '</div>';
             }
         }
-
     }
     echo '</div>';
 }
-include ("footer.php");
+include("footer.php");
 
 ?>

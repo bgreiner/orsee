@@ -1,13 +1,17 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="options";
 $js_modules=array('listtool');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['list'])) $list=$_REQUEST['list']; else $list="";
+    if (isset($_REQUEST['list'])) {
+        $list=$_REQUEST['list'];
+    } else {
+        $list="";
+    }
 }
 
 if ($proceed) {
@@ -15,7 +19,9 @@ if ($proceed) {
                 'result_table_assign','result_table_search_duplicates',
                 'experiment_assigned_list','session_participants_list','session_participants_list_pdf',
                 'email_participant_guesses_list','result_table_search_unconfirmed','anonymize_profile_list');
-    if (!in_array($list,$result_lists)) redirect ('admin/options_main.php');
+    if (!in_array($list,$result_lists)) {
+        redirect('admin/options_main.php');
+    }
 }
 
 if ($proceed) {
@@ -71,7 +77,9 @@ if ($proceed) {
         $list_add_options=array('field_value'=>lang('anonymized_dummy_value'));
         $button_text=lang('save');
     }
-    if (!isset($cols)) redirect ('admin/options_main.php');
+    if (!isset($cols)) {
+        redirect('admin/options_main.php');
+    }
 }
 
 if ($proceed && $allow_check) {
@@ -88,7 +96,7 @@ if ($proceed) {
 
 if ($proceed) {
     if (isset($_REQUEST['save_order']) && $_REQUEST['save_order']) {
-        if(isset($_REQUEST['item_order']) && is_array($_REQUEST['item_order']) && count($_REQUEST['item_order'])>0) {
+        if (isset($_REQUEST['item_order']) && is_array($_REQUEST['item_order']) && count($_REQUEST['item_order'])>0) {
             $details=array();
             if (isset($_REQUEST['sortby']) && $_REQUEST['sortby']) {
                 $details[trim($_REQUEST['sortby'])]['default_sortby']=1;
@@ -101,7 +109,7 @@ if ($proceed) {
             if (isset($_REQUEST['hide_admin_types']) && $_REQUEST['hide_admin_types'] && is_array($_REQUEST['hide_admin_types'])) {
                 $admin_types=admin__load_admin_types();
                 foreach ($_REQUEST['hide_admin_types'] as $field=>$field_value) {
-                    $type_array=explode(",",$field_value); 
+                    $type_array=explode(",",$field_value);
                     $ftype_array=array();
                     foreach ($type_array as $k=>$v) {
                         $v=trim($v);
@@ -145,14 +153,14 @@ if ($proceed) {
         $rows[$line['item_name']]=$line;
     }
 
-    if (isset($list_add_options) && is_array($list_add_options) && count($list_add_options)>0)  {
+    if (isset($list_add_options) && is_array($list_add_options) && count($list_add_options)>0) {
         $listrows=options__ordered_lists_get_current($cols,$rows,$list_add_options);
         $headers='<div class="orsee-listcell"></div>';
         foreach ($list_add_options as $name=>$display_name) {
             if ($name=='hide_for_admin_types') {
                 $admin_types=admin__load_admin_types();
                 $admin_types_arr=array();
-                foreach($admin_types as $k=>$line) {
+                foreach ($admin_types as $k=>$line) {
                     $admin_types_arr[]=$k;
                 }
                 $admin_types_list=implode(", ",$admin_types_arr);
@@ -185,7 +193,7 @@ if ($proceed) {
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

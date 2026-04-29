@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="experiment_types";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('experimenttype_edit','options_main.php');
 }
@@ -54,7 +54,7 @@ if ($proceed) {
     echo '</div>';
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

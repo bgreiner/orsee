@@ -1,17 +1,20 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="options";
 $menu__area="options";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('pform_saved_queries_view','options_main.php');
 }
 if ($proceed) {
     $query_types=array('participants_search_active','participants_search_all');
-    if (isset($_REQUEST['type']) && $_REQUEST['type'] && in_array($_REQUEST['type'],$query_types)) $type=$_REQUEST['type'];
-    else redirect('admin/options_main.php');
+    if (isset($_REQUEST['type']) && $_REQUEST['type'] && in_array($_REQUEST['type'],$query_types)) {
+        $type=$_REQUEST['type'];
+    } else {
+        redirect('admin/options_main.php');
+    }
 }
 
 if ($proceed) {
@@ -26,13 +29,16 @@ if ($proceed) {
     if (isset($_REQUEST['deletesel']) && $_REQUEST['deletesel'] && check_allow('pform_saved_queries_delete')) {
         $dids=array();
         if (isset($_REQUEST['del']) && is_array($_REQUEST['del'])) {
-            foreach($_REQUEST['del'] as $k=>$v) {
-                if ($v=='y') $dids[]=$k;
+            foreach ($_REQUEST['del'] as $k=>$v) {
+                if ($v=='y') {
+                    $dids[]=$k;
+                }
             }
         }
         if (count($dids)>0) {
-            $i=0; $parnames=array();
-            foreach($dids as $id) {
+            $i=0;
+            $parnames=array();
+            foreach ($dids as $id) {
                 $i++;
                 $tparname=':query_id'.$i;
                 $parnames[]=$tparname;
@@ -44,18 +50,19 @@ if ($proceed) {
                     AND query_id IN (".implode(",",$parnames).") ";
             $done=or_query($query,$pars);
             $number=pdo_num_rows($done);
-            message ($number.' '.lang('xxx_queries_deleted'));
-            if ($number>0) log__admin("query_delete","Type: ".$type.", Count: ".$number);
-            redirect ("admin/options_saved_queries.php?type=".$type);
+            message($number.' '.lang('xxx_queries_deleted'));
+            if ($number>0) {
+                log__admin("query_delete","Type: ".$type.", Count: ".$number);
+            }
+            redirect("admin/options_saved_queries.php?type=".$type);
         } else {
             message(lang('error__query_delete_no_queries_selected'),'warning');
-            redirect ("admin/options_saved_queries.php?type=".$type);
+            redirect("admin/options_saved_queries.php?type=".$type);
         }
     }
 }
 
 if ($proceed) {
-
     $pars=array();
     $pars[':query_type']=$type;
     $query="SELECT * FROM ".table('queries')."
@@ -99,8 +106,13 @@ if ($proceed) {
     }
     echo '</div>';
 
-    $shade=false; $ids=array();
-    if ($type=='participants_search_active') $active=true; else $active=false;
+    $shade=false;
+    $ids=array();
+    if ($type=='participants_search_active') {
+        $active=true;
+    } else {
+        $active=false;
+    }
     while ($line=pdo_fetch_assoc($result)) {
         $posted_query=json_decode($line['json_query'],true);
         $pseudo_query_array=query__get_pseudo_query_array($posted_query['query']);
@@ -131,7 +143,7 @@ if ($proceed) {
     }
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

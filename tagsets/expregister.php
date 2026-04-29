@@ -12,8 +12,9 @@ function expregister__get_invitations($participant_id) {
             AND ".table('sessions').".session_status = 'live'
             AND ".table('participate_at').".session_id=0
             AND ".table('participate_at').".pstatus_id=0 ";
-    if ($settings['enable_enrolment_only_on_invite']=='y')
+    if ($settings['enable_enrolment_only_on_invite']=='y') {
         $query.= " AND ".table('participate_at').".invited=1 ";
+    }
     $query.="AND ".table('experiments').".experiment_type='laboratory'
             ORDER BY ".table('experiments').".experiment_id, session_start";
     $result=or_query($query,$pars);
@@ -25,7 +26,7 @@ function expregister__get_invitations($participant_id) {
         $varray['registration_unixtime']=sessions__get_registration_end($varray);
         $varray['session_full']=sessions__session_full("",$varray);
         $now=time();
-        if( $now < $varray['session_unixtime']) {
+        if ($now < $varray['session_unixtime']) {
             $varray['session_name']=session__build_name($varray);
             $experiment_id=$varray['experiment_id'];
             if (!isset($invited_by_experiment[$experiment_id])) {
@@ -39,14 +40,18 @@ function expregister__get_invitations($participant_id) {
             $invited_by_experiment[$experiment_id]['sessions'][]=$varray;
         }
     }
-    uasort($invited_by_experiment, function($a,$b) {
-        if ($a['first_session_unixtime']==$b['first_session_unixtime']) return 0;
+    uasort($invited_by_experiment, function ($a,$b) {
+        if ($a['first_session_unixtime']==$b['first_session_unixtime']) {
+            return 0;
+        }
         return ($a['first_session_unixtime'] < $b['first_session_unixtime']) ? -1 : 1;
     });
     foreach ($invited_by_experiment as $experiment_id=>$expgroup) {
-        usort($expgroup['sessions'], function($a,$b) {
+        usort($expgroup['sessions'], function ($a,$b) {
             if ($a['session_unixtime']==$b['session_unixtime']) {
-                if ($a['session_id']==$b['session_id']) return 0;
+                if ($a['session_id']==$b['session_id']) {
+                    return 0;
+                }
                 return ($a['session_id'] < $b['session_id']) ? -1 : 1;
             }
             return ($a['session_unixtime'] < $b['session_unixtime']) ? -1 : 1;
@@ -93,10 +98,14 @@ function expregister__list_invited_for($participant,$invited=null,$labs=null) {
     foreach ($invited as $s) {
         $is_expired=($s['registration_unixtime'] < $now);
         $is_full=(bool)$s['session_full'];
-        if (($is_expired && !$show_expired) || ($is_full && !$show_full)) continue;
+        if (($is_expired && !$show_expired) || ($is_full && !$show_full)) {
+            continue;
+        }
 
         if (!$group_open || $group_experiment_id!=$s['experiment_id']) {
-            if ($group_open) echo '</div>';
+            if ($group_open) {
+                echo '</div>';
+            }
             echo '<div class="orsee-public-session-group">
                     <div class="orsee-public-session-group-title">'.lang('experiment').': '.htmlspecialchars((string)$s['experiment_public_name'],ENT_QUOTES,'UTF-8').'</div>';
             if (or_setting('allow_public_experiment_note') && isset($s['public_experiment_note']) && trim($s['public_experiment_note'])) {
@@ -110,8 +119,11 @@ function expregister__list_invited_for($participant,$invited=null,$labs=null) {
                 <div class="orsee-public-session-row-cell">
                     <div class="orsee-public-session-row-title">'.$s['session_name'].'</div>
                     <div class="orsee-public-session-row-sub">';
-        if (isset($preloaded_laboratories[$s['laboratory_id']])) echo $preloaded_laboratories[$s['laboratory_id']]['lab_name'];
-        else echo lang('unknown_laboratory');
+        if (isset($preloaded_laboratories[$s['laboratory_id']])) {
+            echo $preloaded_laboratories[$s['laboratory_id']]['lab_name'];
+        } else {
+            echo lang('unknown_laboratory');
+        }
         echo '      </div>
                 </div>
                 <div class="orsee-public-session-row-cell">
@@ -123,7 +135,9 @@ function expregister__list_invited_for($participant,$invited=null,$labs=null) {
                 <div class="orsee-public-session-row-action">';
         if ((!$s['session_full']) && ($s['registration_unixtime'] >= $now)) {
             echo '<form action="participant_show.php" method="POST">';
-            if ($token_string) echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+            if ($token_string) {
+                echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+            }
             echo '  <input type="hidden" name="s" value="'.$s['session_id'].'">
                     <input type="hidden" name="register" value="true">
                     <input type="hidden" name="reallyregister" value="true">
@@ -142,7 +156,9 @@ function expregister__list_invited_for($participant,$invited=null,$labs=null) {
         $labs[$s['laboratory_id']]=$s['laboratory_id'];
         $shown_sessions++;
     }
-    if ($group_open) echo '</div>';
+    if ($group_open) {
+        echo '</div>';
+    }
     if ($shown_sessions==0) {
         orsee_callout(lang('no_current_invitations'),'note','');
     }
@@ -161,7 +177,9 @@ function expregister__list_invited_for_mobile($invited,$labs) {
     foreach ($invited as $s) {
         $is_expired=($s['registration_unixtime'] < $now);
         $is_full=(bool)$s['session_full'];
-        if (($is_expired && !$show_expired) || ($is_full && !$show_full)) continue;
+        if (($is_expired && !$show_expired) || ($is_full && !$show_full)) {
+            continue;
+        }
 
         $exp_name=htmlspecialchars((string)$s['experiment_public_name'],ENT_QUOTES,'UTF-8');
         $sess_name=(string)$s['session_name'];
@@ -171,7 +189,9 @@ function expregister__list_invited_for_mobile($invited,$labs) {
         $can_register=(!$s['session_full']) && ($s['registration_unixtime'] >= $now);
 
         if (!$group_open || $group_experiment_id!=$s['experiment_id']) {
-            if ($group_open) echo '</div>';
+            if ($group_open) {
+                echo '</div>';
+            }
             echo '<div class="orsee-public-session-group">
                     <div class="orsee-public-session-group-title">'.lang('experiment').': '.$exp_name.'</div>';
             if (or_setting('allow_public_experiment_note') && isset($s['public_experiment_note']) && trim($s['public_experiment_note'])) {
@@ -215,14 +235,19 @@ function expregister__list_invited_for_mobile($invited,$labs) {
     }
 
     if (count($invited_labs)>0) {
-        if (count($invited_labs)>1) $lab_addresses_title=lang('laboratory_addresses');
-        else $lab_addresses_title=lang('laboratory_address');
+        if (count($invited_labs)>1) {
+            $lab_addresses_title=lang('laboratory_addresses');
+        } else {
+            $lab_addresses_title=lang('laboratory_address');
+        }
         echo '<div class="orsee-public-detail-card mt-3">
                 <div class="orsee-public-detail-row">
                     <div class="orsee-public-detail-label">'.$lab_addresses_title.'</div>
                 </div>';
         foreach ($invited_labs as $lab_id) {
-            if (!isset($labs[$lab_id])) continue;
+            if (!isset($labs[$lab_id])) {
+                continue;
+            }
             echo '<div class="orsee-public-detail-row">
                     <div class="orsee-public-detail-label">'.htmlspecialchars((string)$labs[$lab_id]['lab_name'],ENT_QUOTES,'UTF-8').'</div>
                     <div>'.nl2br(htmlspecialchars((string)$labs[$lab_id]['lab_address'],ENT_QUOTES,'UTF-8')).'</div>
@@ -251,7 +276,7 @@ function expregister__get_registrations($participant_id) {
     while ($varray = pdo_fetch_assoc($result)) {
         $varray['session_unixtime']=ortime__sesstime_to_unixtime($varray['session_start']);
         $now=time();
-        if( $now < $varray['session_unixtime']) {
+        if ($now < $varray['session_unixtime']) {
             $varray['session_name']=session__build_name($varray);
             $registered[]=$varray;
         }
@@ -288,15 +313,22 @@ function expregister__list_registered_for($participant,$reg_session_id="",$regis
             $session_note=trim($s['public_session_note']);
         }
         $row_class='orsee-public-session-row-desktop orsee-public-enrolment-row-desktop';
-        if ($allow_subject_cancellation) $row_class.=' has-cancel-actions';
-        if ($session_note) $row_class.=' has-session-note';
+        if ($allow_subject_cancellation) {
+            $row_class.=' has-cancel-actions';
+        }
+        if ($session_note) {
+            $row_class.=' has-session-note';
+        }
 
         echo '<div class="'.$row_class.'">
                 <div class="orsee-public-session-row-cell">
                     <div class="orsee-public-session-row-title"><strong>'.$s['session_name'].'</strong></div>
                     <div class="orsee-public-session-row-sub">';
-        if (isset($preloaded_laboratories[$s['laboratory_id']])) echo $preloaded_laboratories[$s['laboratory_id']]['lab_name'];
-        else echo lang('unknown_laboratory');
+        if (isset($preloaded_laboratories[$s['laboratory_id']])) {
+            echo $preloaded_laboratories[$s['laboratory_id']]['lab_name'];
+        } else {
+            echo lang('unknown_laboratory');
+        }
         echo '      </div>';
         if ($session_note) {
             echo '<div class="orsee-public-enrolment-row-session-note orsee-note-preline">'.lang('note').': '.htmlspecialchars((string)$session_note,ENT_QUOTES,'UTF-8').'</div>';
@@ -313,7 +345,9 @@ function expregister__list_registered_for($participant,$reg_session_id="",$regis
             $s['cancellation_deadline']=sessions__get_cancellation_deadline($s);
             if ($s['cancellation_deadline']>time()) {
                 echo '<form action="participant_show.php" method="POST">';
-                if ($token_string) echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+                if ($token_string) {
+                    echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+                }
                 echo '  <input type="hidden" name="s" value="'.$s['session_id'].'">
                         <input type="hidden" name="cancel" value="true">
                         <input type="hidden" name="reallycancel" value="true">
@@ -347,7 +381,9 @@ function expregister__list_registered_for_mobile($registered,$labs,$allow_subjec
             $can_cancel=false;
             if ($allow_subject_cancellation) {
                 $s['cancellation_deadline']=sessions__get_cancellation_deadline($s);
-                if ($s['cancellation_deadline']>time()) $can_cancel=true;
+                if ($s['cancellation_deadline']>time()) {
+                    $can_cancel=true;
+                }
             }
             $cancel_deadline_text='';
             if ($allow_subject_cancellation && isset($s['cancellation_deadline']) && $s['cancellation_deadline']) {
@@ -372,14 +408,19 @@ function expregister__list_registered_for_mobile($registered,$labs,$allow_subjec
                 </button>';
         }
         echo '</div>';
-        if (count($registered_labs)>1) $lab_addresses_title=lang('laboratory_addresses');
-        else $lab_addresses_title=lang('laboratory_address');
+        if (count($registered_labs)>1) {
+            $lab_addresses_title=lang('laboratory_addresses');
+        } else {
+            $lab_addresses_title=lang('laboratory_address');
+        }
         echo '<div class="orsee-public-detail-card mt-3">
                 <div class="orsee-public-detail-row">
                     <div class="orsee-public-detail-label">'.$lab_addresses_title.'</div>
                 </div>';
         foreach ($registered_labs as $lab_id) {
-            if (!isset($labs[$lab_id])) continue;
+            if (!isset($labs[$lab_id])) {
+                continue;
+            }
             echo '<div class="orsee-public-detail-row">
                     <div class="orsee-public-detail-label">'.htmlspecialchars((string)$labs[$lab_id]['lab_name'],ENT_QUOTES,'UTF-8').'</div>
                     <div>'.nl2br(htmlspecialchars((string)$labs[$lab_id]['lab_address'],ENT_QUOTES,'UTF-8')).'</div>
@@ -408,7 +449,7 @@ function expregister__get_history($participant_id) {
     while ($varray = pdo_fetch_assoc($result)) {
         $varray['session_unixtime']=ortime__sesstime_to_unixtime($varray['session_start']);
         $now=time();
-        if( $now >= $varray['session_unixtime']) {
+        if ($now >= $varray['session_unixtime']) {
             $varray['session_name']=session__build_name($varray);
             $history[]=$varray;
         }
@@ -419,13 +460,14 @@ function expregister__get_history($participant_id) {
 function expregister__list_history($participant) {
     global $settings, $lang, $color, $preloaded_laboratories, $preloaded_payment_types;
 
-    if (!(is_array($preloaded_laboratories) && count($preloaded_laboratories)>0))
+    if (!(is_array($preloaded_laboratories) && count($preloaded_laboratories)>0)) {
         $preloaded_laboratories=laboratories__get_laboratories();
-        
+    }
+
     if (!(is_array($preloaded_payment_types) && count($preloaded_payment_types)>0)) {
         $preloaded_payment_types=payments__load_paytypes();
     }
-    
+
     $history=expregister__get_history($participant['participant_id']);
 
     if (count($history)==0) {
@@ -460,8 +502,11 @@ function expregister__list_history($participant) {
                 <div class="orsee-table-cell">'.htmlspecialchars((string)$s['experiment_public_name'],ENT_QUOTES,'UTF-8').'</div>
                 <div class="orsee-table-cell">'.$s['session_name'].'</div>
                 <div class="orsee-table-cell">';
-        if (isset($preloaded_laboratories[$s['laboratory_id']])) echo $preloaded_laboratories[$s['laboratory_id']]['lab_name'];
-        else echo lang('unknown_laboratory');
+        if (isset($preloaded_laboratories[$s['laboratory_id']])) {
+            echo $preloaded_laboratories[$s['laboratory_id']]['lab_name'];
+        } else {
+            echo lang('unknown_laboratory');
+        }
         echo '  </div>
                 <div class="orsee-table-cell">';
         if ($s['session_status']=="completed" || $s['session_status']=="balanced") {
@@ -479,8 +524,11 @@ function expregister__list_history($participant) {
         if ($settings['enable_payment_module']=='y' && $settings['payments_in_part_history']=='y') {
             echo '<div class="orsee-table-cell">';
             if ($s['session_status']=="balanced") {
-                if (isset($preloaded_payment_types[$s['payment_type']])) echo $preloaded_payment_types[$s['payment_type']];
-                else echo '-';
+                if (isset($preloaded_payment_types[$s['payment_type']])) {
+                    echo $preloaded_payment_types[$s['payment_type']];
+                } else {
+                    echo '-';
+                }
             } else {
                 echo '-';
             }
@@ -528,11 +576,19 @@ function expregister__register($participant,$session) {
 function expregister__cancel($participant,$session) {
     global $settings;
     $pstatuses=expregister__get_participation_statuses();
-    if (!isset($settings['subject_cancellation_participation_status'])) $new_status=0;
-    else $new_status=$settings['subject_cancellation_participation_status'];
-    if (!isset($pstatuses[$new_status])) $new_status=0;
-    if ($new_status==0) $session_id=0;
-    else $session_id=$session['session_id'];
+    if (!isset($settings['subject_cancellation_participation_status'])) {
+        $new_status=0;
+    } else {
+        $new_status=$settings['subject_cancellation_participation_status'];
+    }
+    if (!isset($pstatuses[$new_status])) {
+        $new_status=0;
+    }
+    if ($new_status==0) {
+        $session_id=0;
+    } else {
+        $session_id=$session['session_id'];
+    }
     $pars=array(':session_id'=>$session_id,
                 ':pstatus_id'=>$new_status,
                 ':experiment_id'=>$session['experiment_id'],
@@ -550,21 +606,28 @@ function expregister__cancel($participant,$session) {
 
 
 function expregister__participation_status_select_field($postvarname,$selected,$hidden=array(),$show_color=true,$select_wrapper_class='select is-primary',$compact=false) {
-
     $statuses=expregister__get_participation_statuses();
     if ($compact && stripos($select_wrapper_class,'select-compact')===false) {
         $select_wrapper_class=trim($select_wrapper_class.' select-compact');
     }
     if ($show_color && isset($statuses[$selected])) {
-        if ($statuses[$selected]['participated']) $scolor='var(--color-participation-status-participated)';
-        elseif ($statuses[$selected]['noshow']) $scolor='var(--color-participation-status-noshow)';
-        else $scolor='var(--color-participation-status-other)';
+        if ($statuses[$selected]['participated']) {
+            $scolor='var(--color-participation-status-participated)';
+        } elseif ($statuses[$selected]['noshow']) {
+            $scolor='var(--color-participation-status-noshow)';
+        } else {
+            $scolor='var(--color-participation-status-other)';
+        }
         $out='<span class="'.$select_wrapper_class.'"><SELECT name="'.$postvarname.'" style="background: '.$scolor.';">';
-    } else $out='<span class="'.$select_wrapper_class.'"><SELECT name="'.$postvarname.'">';
+    } else {
+        $out='<span class="'.$select_wrapper_class.'"><SELECT name="'.$postvarname.'">';
+    }
     foreach ($statuses as $status) {
         if (!in_array($status['pstatus_id'],$hidden)) {
             $out.='<OPTION value="'.$status['pstatus_id'].'"';
-            if ($status['pstatus_id']==$selected) $out.=" SELECTED";
+            if ($status['pstatus_id']==$selected) {
+                $out.=" SELECTED";
+            }
             $out.='>'.$status['internal_name'];
             $out.='</OPTION>
                 ';
@@ -578,9 +641,13 @@ function expregister__get_pstatus_colors() {
     $statuses=expregister__get_participation_statuses();
     $scolors=array();
     foreach ($statuses as $k=>$status) {
-        if ($status['participated']) $scolor='var(--color-participation-status-participated)';
-        elseif ($status['noshow']) $scolor='var(--color-participation-status-noshow)';
-        else $scolor='var(--color-participation-status-other)';
+        if ($status['participated']) {
+            $scolor='var(--color-participation-status-participated)';
+        } elseif ($status['noshow']) {
+            $scolor='var(--color-participation-status-noshow)';
+        } else {
+            $scolor='var(--color-participation-status-other)';
+        }
         $scolors[$k]=$scolor;
     }
     return $scolors;
@@ -604,7 +671,11 @@ function expregister__get_participation_statuses() {
                 ORDER BY content_name";
         $result=or_query($query);
         while ($line = pdo_fetch_assoc($result)) {
-            if ($line['content_type']=='participation_status_internal_name') $field='internal_name'; else $field='display_name';
+            if ($line['content_type']=='participation_status_internal_name') {
+                $field='internal_name';
+            } else {
+                $field='display_name';
+            }
             $participation_statuses[$line['content_name']][$field]=$line[lang('lang')];
         }
     }
@@ -616,7 +687,9 @@ function expregister__get_specific_pstatuses($what="participated",$reverse=false
     $pstatuses=expregister__get_participation_statuses();
     $psarr=array();
     foreach ($pstatuses as $psid=>$pstatus) {
-        if ($pstatus[$what]) $psarr[]=$psid;
+        if ($pstatus[$what]) {
+            $psarr[]=$psid;
+        }
     }
     return $psarr;
 }
@@ -624,8 +697,9 @@ function expregister__get_specific_pstatuses($what="participated",$reverse=false
 function expregister__get_pstatus_query_snippet($what="participated",$reverse=false) {
     // what can be participated, noshow, participateagain
     $psarr=expregister__get_specific_pstatuses($what,$reverse);
-    if (count($psarr)==1) return " pstatus_id='".$psarr[0]."' ";
-    else {
+    if (count($psarr)==1) {
+        return " pstatus_id='".$psarr[0]."' ";
+    } else {
         return " pstatus_id IN (".implode(", ",$psarr).") ";
         //$check_statuses_query=array();
         //foreach ($psarr as $cs) $check_statuses_query[]=" pstatus_id='".$cs."' ";

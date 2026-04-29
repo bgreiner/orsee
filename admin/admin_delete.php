@@ -1,24 +1,26 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="delete_admin";
 include("header.php");
-if ($proceed) {
 
-    if (isset($_REQUEST['admin_id']) && $_REQUEST['admin_id']) $admin_id=$_REQUEST['admin_id'];
-    else { redirect ("admin/"); $proceed=false; }
+if ($proceed) {
+    if (isset($_REQUEST['admin_id']) && $_REQUEST['admin_id']) {
+        $admin_id=$_REQUEST['admin_id'];
+    } else {
+        redirect("admin/");
+        $proceed=false;
+    }
 }
 
 if ($proceed) {
-
     if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
         } else {
-        redirect ('admin/admin_edit.php?admin_id='.$admin_id);
-        $proceed=false;
+            redirect('admin/admin_edit.php?admin_id='.$admin_id);
+            $proceed=false;
         }
     }
 }
@@ -32,36 +34,34 @@ if ($proceed) {
 }
 
 if ($proceed) {
-
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-    else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
 
     $allow=check_allow('admin_delete','admin_edit.php?admin_id='.$admin_id);
 }
 
 if ($proceed) {
-
     $admin=orsee_db_load_array("admin",$admin_id,"admin_id");
 
 
     if ($reallydelete) {
-
         $pars=array(':admin_id'=>$admin_id);
         $query="DELETE FROM ".table('admin')."
                 WHERE admin_id= :admin_id";
         $result=or_query($query,$pars);
         log__admin("admin_delete",$admin['adminname']);
 
-        message (lang('admin_deleted').': '.$admin['adminname']);
+        message(lang('admin_deleted').': '.$admin['adminname']);
 
-        redirect ('admin/admin_show.php');
+        redirect('admin/admin_show.php');
         $proceed=false;
     }
-
 }
 
 if ($proceed) {
-
     // form
 
     $num_experiments=experiment__count_experiments("experimenter LIKE :adminname",array(':adminname'=>'%|'.$admin['adminname'].'|%'));
@@ -92,25 +92,17 @@ if ($proceed) {
                     <div class="orsee-form-row-col">
                         '.button_link(
                             'admin_delete.php?admin_id='.$admin_id.'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
-                            lang('yes_delete'),
-                            'check-square',
-                            '',
-                            '',
-                            'orsee-btn--delete'
-                        ).'
+                            lang('yes_delete'),'check-square','','','orsee-btn--delete').'
                     </div>
                     <div class="orsee-form-row-col has-text-right">
                         '.button_link(
                             'admin_delete.php?admin_id='.$admin_id.'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
-                            lang('no_sorry'),
-                            'undo'
-                        ).'
+                            lang('no_sorry'),'undo').'
                     </div>
                 </div>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
 
 ?>

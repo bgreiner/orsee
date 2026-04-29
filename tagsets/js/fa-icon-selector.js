@@ -59,7 +59,7 @@
             var options = root.querySelectorAll('[data-role="option"]');
             for (var i = 0; i < options.length; i++) {
                 var s = options[i].getAttribute("data-search") || "";
-                options[i].style.display = (q === "" || s.indexOf(q) !== -1) ? "" : "none";
+                options[i].style.display = q === "" || s.indexOf(q) !== -1 ? "" : "none";
             }
         });
 

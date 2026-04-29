@@ -3,10 +3,14 @@
 ob_start();
 $title="experiment";
 $menu__area="experiments_main";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (!$_REQUEST['experiment_id']) redirect ("admin/");
-    else $experiment_id=$_REQUEST['experiment_id'];
+    if (!$_REQUEST['experiment_id']) {
+        redirect("admin/");
+    } else {
+        $experiment_id=$_REQUEST['experiment_id'];
+    }
 }
 
 if ($proceed) {
@@ -37,12 +41,12 @@ if ($proceed) {
     // change session status if requested
     if (isset($_REQUEST['bulk_set_session_status']) && $_REQUEST['bulk_set_session_status'] && isset($_REQUEST['session_status'])
         && isset($_REQUEST['sel']) && is_array($_REQUEST['sel']) && count($_REQUEST['sel'])>0
-        && in_array($_REQUEST['session_status'],array('planned','live','completed','balanced')) ) {
+        && in_array($_REQUEST['session_status'],array('planned','live','completed','balanced'))) {
         if (!csrf__validate_request_message()) {
             redirect('admin/experiment_show.php?experiment_id='.$experiment_id);
         }
         $pars=array();
-        foreach($_REQUEST['sel'] as $k=>$v) {
+        foreach ($_REQUEST['sel'] as $k=>$v) {
             $pars[]=array(':session_id'=>$k,':session_status'=>$_REQUEST['session_status'],':experiment_id'=>$experiment_id);
         }
         $query="UPDATE ".table('sessions')."
@@ -50,7 +54,7 @@ if ($proceed) {
                 WHERE experiment_id= :experiment_id
                 AND session_id= :session_id";
         $done=or_query($query,$pars);
-        message (lang('bulk_updated_session_statuses'));
+        message(lang('bulk_updated_session_statuses'));
         redirect('admin/experiment_show.php?experiment_id='.$experiment_id);
     }
 }
@@ -65,7 +69,10 @@ if ($proceed) {
                 FROM ".table('sessions')."
                 WHERE experiment_id= :experiment_id
                 ORDER BY session_start";
-        $result=or_query($query,$pars); $min=0; $max=0; $sids=array();
+        $result=or_query($query,$pars);
+        $min=0;
+        $max=0;
+        $sids=array();
         while ($s=pdo_fetch_assoc($result)) {
             $s['regcount']=0;
             $s['total_payment']=0;
@@ -73,10 +80,15 @@ if ($proceed) {
             $sessions[$s['session_id']]=$s;
             $sesstime=$s['session_start'];
             if ($min==0) {
-                $min=$sesstime; $max=$sesstime;
+                $min=$sesstime;
+                $max=$sesstime;
             } else {
-                if ($sesstime < $min) $min=$sesstime;
-                if ($sesstime > $max) $max=$sesstime;
+                if ($sesstime < $min) {
+                    $min=$sesstime;
+                }
+                if ($sesstime > $max) {
+                    $max=$sesstime;
+                }
             }
             $sids[]=$s['session_id'];
         }
@@ -100,7 +112,9 @@ if ($proceed) {
                 $result=or_query($query);
                 while ($s=pdo_fetch_assoc($result)) {
                     $sessions[$s['session_id']]['payments_by_type'][$s['payment_type']]=$s['total_payment'];
-                    if (!isset($experiment_payments_by_type[$s['payment_type']])) $experiment_payments_by_type[$s['payment_type']]=0;
+                    if (!isset($experiment_payments_by_type[$s['payment_type']])) {
+                        $experiment_payments_by_type[$s['payment_type']]=0;
+                    }
                     $experiment_payments_by_type[$s['payment_type']]+=$s['total_payment'];
                 }
             }
@@ -108,7 +122,9 @@ if ($proceed) {
     }
 
     $exptypes=load_external_experiment_types();
-    if (!isset($lang[$experiment['experiment_type']])) $lang[$experiment['experiment_type']]=$experiment['experiment_type'];
+    if (!isset($lang[$experiment['experiment_type']])) {
+        $lang[$experiment['experiment_type']]=$experiment['experiment_type'];
+    }
 
     show_message();
 
@@ -133,7 +149,9 @@ if ($proceed) {
 
     $ethics=false;
     if ($settings['enable_ethics_approval_module']=='y') {
-        if (!isset($max)) $max=-1;
+        if (!isset($max)) {
+            $max=-1;
+        }
         $ethics=experiment__get_ethics_approval_desc($experiment,$max);
     }
 
@@ -142,8 +160,11 @@ if ($proceed) {
             $payment_types=payments__load_paytypes();
             $payment_lines=array();
             foreach ($experiment_payments_by_type as $paytype=>$payamount) {
-                if (isset($payment_types[$paytype])) $paytype_name=$payment_types[$paytype];
-                else $paytype_name=lang('unknown');
+                if (isset($payment_types[$paytype])) {
+                    $paytype_name=$payment_types[$paytype];
+                } else {
+                    $paytype_name=lang('unknown');
+                }
                 $payment_lines[]=$paytype_name.': '.or__format_number($payamount,2);
             }
             $payment_value=implode('<br>',$payment_lines);
@@ -170,7 +191,9 @@ if ($proceed) {
     echo '<div class="orsee-panel-title">';
     echo '<div class="orsee-panel-title-main">'.lang('experiment').': '.$experiment['experiment_name'].'</div>';
     echo '<div class="orsee-panel-actions">';
-    foreach ($header_buttons as $button) echo $button;
+    foreach ($header_buttons as $button) {
+        echo $button;
+    }
     echo '</div>';
     echo '</div>';
 
@@ -208,14 +231,18 @@ if ($proceed) {
         }
         echo '</div>';
         echo '<div class="orsee-panel-actions">';
-        if (check_allow('session_edit')) echo button_link('session_edit.php?experiment_id='.$experiment['experiment_id'], lang('create_new'),'plus-circle');
+        if (check_allow('session_edit')) {
+            echo button_link('session_edit.php?experiment_id='.$experiment['experiment_id'], lang('create_new'),'plus-circle');
+        }
         echo '</div>';
         echo '</div>';
 
         echo '<div class="orsee-session-summary">'.count($sessions).' '.lang('xxx_sessions_registered').' &middot; '.lang('select_all').' '.javascript__selectall_checkbox_script().'</div>';
 
         echo '<div class="orsee-dense-list">';
-        foreach ($sessions as $s) sessions__format_alist($s,$experiment);
+        foreach ($sessions as $s) {
+            sessions__format_alist($s,$experiment);
+        }
         echo '</div>';
 
         echo '<div class="orsee-session-bulk-actions">';
@@ -239,29 +266,45 @@ if ($proceed) {
         echo '<div class="orsee-panel-split-main">';
         echo '<div class="orsee-stat-list">';
         echo '<div class="orsee-stat-row"><div class="orsee-stat-label">';
-        if ($allow_sp) echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&focus=assigned">';
+        if ($allow_sp) {
+            echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&focus=assigned">';
+        }
         echo lang('assigned_subjects');
-        if ($allow_sp) echo '</a>';
+        if ($allow_sp) {
+            echo '</a>';
+        }
         echo '</div><div class="orsee-stat-value">'.$counts['assigned'].'</div></div>';
 
         echo '<div class="orsee-stat-row"><div class="orsee-stat-label">';
-        if ($allow_sp) echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&focus=invited">';
+        if ($allow_sp) {
+            echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&focus=invited">';
+        }
         echo lang('invited_subjects');
-        if ($allow_sp) echo '</a>';
+        if ($allow_sp) {
+            echo '</a>';
+        }
         echo '</div><div class="orsee-stat-value">'.experiment__count_participate_at($experiment_id,"","invited=1").'</div></div>';
 
         echo '<div class="orsee-stat-row"><div class="orsee-stat-label">';
-        if ($allow_sp) echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&focus=enroled">';
+        if ($allow_sp) {
+            echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&focus=enroled">';
+        }
         echo lang('registered_subjects');
-        if ($allow_sp) echo '</a>';
+        if ($allow_sp) {
+            echo '</a>';
+        }
         echo '</div><div class="orsee-stat-value">'.$counts['enroled'].'</div></div>';
 
         if ($counts['enroled']>0) {
             foreach ($counts['pstatus'] as $k=>$psarr) {
                 echo '<div class="orsee-stat-row orsee-stat-row-compact"><div class="orsee-stat-label">';
-                if ($allow_sp) echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&pstatus='.$k.'">';
+                if ($allow_sp) {
+                    echo '<a href="experiment_participants_show.php?experiment_id='.$experiment['experiment_id'].'&pstatus='.$k.'">';
+                }
                 echo $psarr['internal_name'];
-                if ($allow_sp) echo '</a>';
+                if ($allow_sp) {
+                    echo '</a>';
+                }
                 echo '</div><div class="orsee-stat-value">'.$psarr['count'].'</div></div>';
             }
         }
@@ -289,7 +332,9 @@ if ($proceed) {
             $nums=email__get_privileges('experiment',$experiment,'read',true);
             if ($nums['allowed'] && $nums['num_all']>0) {
                 $btext=lang('view_emails_for_experiment').' ['.$nums['num_all'];
-                if ($nums['num_new']) $btext.=' ('.$nums['num_new'].')';
+                if ($nums['num_new']) {
+                    $btext.=' ('.$nums['num_new'].')';
+                }
                 $btext.=']';
                 $buttons[]=button_link('emails_main.php?mode=experiment&id='.$experiment['experiment_id'],$btext,'envelope-square');
             }
@@ -305,7 +350,7 @@ if ($proceed) {
                 if (count($perm_queries)>0) {
                     echo '<div class="orsee-permanent-query-block">';
                     echo '<div class="orsee-permanent-query-title"><strong>'.lang('found_active_permanent_query').'</strong></div>';
-                    foreach($perm_queries as $pquery) {
+                    foreach ($perm_queries as $pquery) {
                         $posted_query=json_decode($pquery['json_query'],true);
                         $pseudo_query_array=query__get_pseudo_query_array($posted_query['query']);
                         $pseudo_query_display=query__display_pseudo_query($pseudo_query_array,false);
@@ -321,9 +366,11 @@ if ($proceed) {
                 }
             }
             if (count($buttons)>0) {
-            echo '<div class="orsee-action-grid">';
-            foreach ($buttons as $button) echo '<div class="orsee-action-grid-item">'.$button.'</div>';
-            echo '</div>';
+                echo '<div class="orsee-action-grid">';
+                foreach ($buttons as $button) {
+                    echo '<div class="orsee-action-grid-item">'.$button.'</div>';
+                }
+                echo '</div>';
             }
             echo '</div>';
         }
@@ -332,5 +379,6 @@ if ($proceed) {
         echo '</div>';
     }
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

@@ -4,19 +4,22 @@
 
 // select field for numbers from begin to end by steps
 function helpers__select_numbers($name,$prevalue,$begin,$end,$fillzeros=2,$steps=1,$none=false) {
-
     $i=$begin;
     echo '<span class="select is-primary"><select name="'.$name.'" id="'.$name.'">';
-    if ($none) echo '<option value="">-</option>';
+    if ($none) {
+        echo '<option value="">-</option>';
+    }
     while ($i<=$end) {
         echo '<option value="'.$i.'"';
-        if ($i == (int) $prevalue) echo ' SELECTED';
-                echo '>';
+        if ($i == (int) $prevalue) {
+            echo ' SELECTED';
+        }
+        echo '>';
         echo helpers__pad_number($i,$fillzeros);
         echo '</option>
             ';
         $i=$i+$steps;
-        }
+    }
     echo '</select></span>';
 }
 
@@ -24,16 +27,20 @@ function helpers__select_number($name,$prevalue,$begin,$end,$fillzeros=2,$steps=
     $out='';
     $i=$begin;
     $out.='<select name="'.$name.'" id="'.$name.'">';
-    if ($none) $out.='<option value="">-</option>';
+    if ($none) {
+        $out.='<option value="">-</option>';
+    }
     while ($i<=$end) {
         $out.='<option value="'.$i.'"';
-        if ($i == (int) $prevalue) $out.=' SELECTED';
+        if ($i == (int) $prevalue) {
+            $out.=' SELECTED';
+        }
         $out.='>';
         $out.=helpers__pad_number($i,$fillzeros);
         $out.='</option>
             ';
         $i=$i+$steps;
-        }
+    }
     $out.='</select>';
     return $out;
 }
@@ -42,17 +49,21 @@ function helpers__select_number($name,$prevalue,$begin,$end,$fillzeros=2,$steps=
 // select field for text array
 function helpers__select_text($tarray,$name,$prevalue,$none=false) {
     global $lang;
-        $out='<select name="'.$name.'">';
-        if ($none) $out.='<option value=""></option>';
-        foreach ($tarray as $k=>$text) {
-                $out.='<option value="'.$k.'"';
-                if ($k == $prevalue) $out.=' SELECTED';
-                $out.='>';
-                $out.=lang($text);
-                $out.='</option>
+    $out='<select name="'.$name.'">';
+    if ($none) {
+        $out.='<option value=""></option>';
+    }
+    foreach ($tarray as $k=>$text) {
+        $out.='<option value="'.$k.'"';
+        if ($k == $prevalue) {
+            $out.=' SELECTED';
+        }
+        $out.='>';
+        $out.=lang($text);
+        $out.='</option>
                         ';
-                }
-        $out.='</select>';
+    }
+    $out.='</select>';
     return $out;
 }
 
@@ -64,17 +75,19 @@ function helpers__select_numbers_relative($name,$prevalue,$begin,$end,$fillzeros
     echo '<span class="select is-primary"><select name="'.$name.'">';
     while ($i <= $end) {
         echo '<option value="'.$i.'"';
-        if ($i== (int) $prevalue) echo ' SELECTED';
-                echo '>';
+        if ($i== (int) $prevalue) {
+            echo ' SELECTED';
+        }
+        echo '>';
         echo helpers__pad_number($i,$fillzeros);
         if ($current_time > 0) {
             $utime=$current_time - ($i * 60 * 60);
             echo ' ('.ortime__format($utime,'',$authdata['language']).')';
-            }
+        }
         echo '</option>
             ';
         $i=$i+$steps;
-        }
+    }
     echo '</select></span>';
 }
 
@@ -82,43 +95,59 @@ function helpers__select_numbers_relative($name,$prevalue,$begin,$end,$fillzeros
 
 function experiment_ext_types__checkboxes($postvarname,$showvar,$checked=array()) {
     $exptypes=load_external_experiment_types();
-    foreach($exptypes as $exptype_id=>$exptype) {
+    foreach ($exptypes as $exptype_id=>$exptype) {
         echo '<INPUT type="checkbox" name="'.$postvarname.'['.$exptype_id.']"
                  value="'.$exptype_id.'"';
-        if (isset($checked[$exptype_id]) && $checked[$exptype_id]) echo " CHECKED";
-                echo '>'.$exptype[lang('lang')];
-                echo '<BR>';
+        if (isset($checked[$exptype_id]) && $checked[$exptype_id]) {
+            echo " CHECKED";
+        }
+        echo '>'.$exptype[lang('lang')];
+        echo '<BR>';
     }
 }
 
 // select field for sessions
 function select__sessions($preval,$varname,$sessions,$hide_nosession=false,$with_exp=false,$select_wrapper_class='select is-primary') {
     global $lang, $expadmindata;
-    if (!$preval) $preval=0;
-    if (!$varname) $varname="session";
+    if (!$preval) {
+        $preval=0;
+    }
+    if (!$varname) {
+        $varname="session";
+    }
 
     $out='';
     $out.='<span class="'.$select_wrapper_class.'"><SELECT name="'.$varname.'">';
     if (!$hide_nosession) {
         $out.='<OPTION value="0"';
-        if ($preval==0) $out.=" SELECTED";
+        if ($preval==0) {
+            $out.=" SELECTED";
+        }
         $out.='>'.lang('no_session').'</OPTION>';
     }
 
     foreach ($sessions as $line) {
         $out.='<OPTION value="'.$line['session_id'].'"';
-            if ($preval==$line['session_id']) $out.=" SELECTED";
+        if ($preval==$line['session_id']) {
+            $out.=" SELECTED";
+        }
         $out.='>';
         $session_label=ortime__format(ortime__sesstime_to_unixtime($line['session_start']),'hide_second:true',lang('lang'));
         if ($with_exp) {
-            if (lang__is_rtl()) $out.=$session_label.' - '.$line['experiment_name'];
-            else $out.=$line['experiment_name'].' - '.$session_label;
+            if (lang__is_rtl()) {
+                $out.=$session_label.' - '.$line['experiment_name'];
+            } else {
+                $out.=$line['experiment_name'].' - '.$session_label;
+            }
         } else {
             $out.=$session_label;
         }
         if (isset($line['p_is_assigned'])) {
-            if ($line['p_is_assigned']) $out.=' - '.lang('is_assigned_to_experiment_short');
-            else $out.=' - '.lang('is_not_yet_assigned_to_experiment_short');
+            if ($line['p_is_assigned']) {
+                $out.=' - '.lang('is_assigned_to_experiment_short');
+            } else {
+                $out.=' - '.lang('is_not_yet_assigned_to_experiment_short');
+            }
         }
         $out.='</OPTION>';
     }
@@ -141,7 +170,9 @@ function formhelpers__legacy_percent_to_php_format($format) {
 }
 
 function formhelpers__format_to_flatpickr($format) {
-    if (strpos($format,'%')!==false) $format=formhelpers__legacy_percent_to_php_format($format);
+    if (strpos($format,'%')!==false) {
+        $format=formhelpers__legacy_percent_to_php_format($format);
+    }
     $map=array(
         'd'=>'d',
         'j'=>'j',
@@ -165,30 +196,52 @@ function formhelpers__format_to_flatpickr($format) {
 
 function formhelpers__pick_date_flatpickr($field, $selected_date=0, $years_backward=0, $years_forward=0, $compact=false, $voluntary=false, $date_mode='ymd', $dom_suffix='') {
     global $lang;
-    if ($date_mode!=='ymd' && $date_mode!=='ym' && $date_mode!=='y') $date_mode='ymd';
+    if ($date_mode!=='ymd' && $date_mode!=='ym' && $date_mode!=='y') {
+        $date_mode='ymd';
+    }
 
-    if ($selected_date) $sda=ortime__sesstime_to_array($selected_date);
-    else $sda=array('y'=>0,'m'=>0,'d'=>0);
+    if ($selected_date) {
+        $sda=ortime__sesstime_to_array($selected_date);
+    } else {
+        $sda=array('y'=>0,'m'=>0,'d'=>0);
+    }
 
     $has_min_date=($years_backward>0);
     $has_max_date=($years_forward>0);
-    if ($has_min_date) $year_start=(int)date("Y")-$years_backward;
+    if ($has_min_date) {
+        $year_start=(int)date("Y")-$years_backward;
+    }
     if ($has_max_date) {
         $year_stop=(int)date("Y")+$years_forward;
-        if (date("Y")>=$year_stop) $year_stop=date("Y")+1;
+        if (date("Y")>=$year_stop) {
+            $year_stop=date("Y")+1;
+        }
     }
 
-    if ($date_mode==='ym') $display_format=lang('format_datetime_date_no_day');
-    elseif ($date_mode==='y') $display_format='Y';
-    else $display_format=lang('format_datetime_date');
+    if ($date_mode==='ym') {
+        $display_format=lang('format_datetime_date_no_day');
+    } elseif ($date_mode==='y') {
+        $display_format='Y';
+    } else {
+        $display_format=lang('format_datetime_date');
+    }
     $flatpickr_format=formhelpers__format_to_flatpickr($display_format);
     $first_day_of_week=(int)lang('format_datetime_firstdayofweek_0:Su_1:Mo');
 
-    $daysMin=explode(",",lang('format_datetime_weekday_abbr')); foreach ($daysMin as $k=>$v) $daysMin[$k]=trim($v);
+    $daysMin=explode(",",lang('format_datetime_weekday_abbr'));
+    foreach ($daysMin as $k=>$v) {
+        $daysMin[$k]=trim($v);
+    }
     $daysMin=array_slice($daysMin,0,7);
-    $months=explode(",",lang('format_datetime_month_names')); foreach ($months as $k=>$v) $months[$k]=trim($v);
+    $months=explode(",",lang('format_datetime_month_names'));
+    foreach ($months as $k=>$v) {
+        $months[$k]=trim($v);
+    }
     $months=array_slice($months,0,12);
-    $monthsShort=explode(",",lang('format_datetime_month_abbr')); foreach ($monthsShort as $k=>$v) $monthsShort[$k]=trim($v);
+    $monthsShort=explode(",",lang('format_datetime_month_abbr'));
+    foreach ($monthsShort as $k=>$v) {
+        $monthsShort[$k]=trim($v);
+    }
     $monthsShort=array_slice($monthsShort,0,12);
 
     $locale_json=json_encode(array(
@@ -209,16 +262,23 @@ function formhelpers__pick_date_flatpickr($field, $selected_date=0, $years_backw
             $default_day='';
         }
     } elseif ($date_mode==='ym') {
-        if ($default_year && $default_month) $default_day=1;
-        else $default_day='';
+        if ($default_year && $default_month) {
+            $default_day=1;
+        } else {
+            $default_day='';
+        }
     }
     $dom_field=$field;
-    if ($dom_suffix!=='') $dom_field=$field.'_'.$dom_suffix;
+    if ($dom_suffix!=='') {
+        $dom_field=$field.'_'.$dom_suffix;
+    }
     $out='<input type="hidden" id="'.$dom_field.'_d" name="'.$field.'_d" value="'.$default_day.'">
             <input type="hidden" id="'.$dom_field.'_m" name="'.$field.'_m" value="'.$default_month.'">
             <input type="hidden" id="'.$dom_field.'_y" name="'.$field.'_y" value="'.$default_year.'">';
     $input_class='input is-primary orsee-input datepick_input orsee-flatpickr-input';
-    if ($compact) $input_class.=' orsee-input-compact';
+    if ($compact) {
+        $input_class.=' orsee-input-compact';
+    }
     $out.='
             <span class="orsee-inline-controls">
                 <span class="control has-icons-right">
@@ -428,12 +488,16 @@ function formhelpers__pick_date_flatpickr($field, $selected_date=0, $years_backw
 function formhelpers__pick_time_flatpickr($field, $selected_time=0,$minute_steps=0) {
     global $settings, $lang;
 
-    if (!$selected_time) $selected_time=ortime__unixtime_to_sesstime();
-    if (!$minute_steps) $minute_steps=$settings['session_duration_minute_steps'];
+    if (!$selected_time) {
+        $selected_time=ortime__unixtime_to_sesstime();
+    }
+    if (!$minute_steps) {
+        $minute_steps=$settings['session_duration_minute_steps'];
+    }
 
     $tformat=lang('format_datetime_time_no_sec');
     $is_mil_time=is_mil_time($tformat);
-    $is_mil_time_str=($is_mil_time)?'true':'false';
+    $is_mil_time_str=($is_mil_time) ? 'true' : 'false';
     $flatpickr_format=formhelpers__format_to_flatpickr($tformat);
     $sda=ortime__sesstime_to_array($selected_time);
     $default_hour=(int)$sda['h'];
@@ -506,11 +570,13 @@ function formhelpers__pick_time($field, $selected_time=0,$minute_steps=0) {
     return formhelpers__pick_time_flatpickr($field,$selected_time,$minute_steps);
 }
 
-function formhelpers__orderlist($listID, $formName, $rows, $no_add_button=false, $add_button_title="", $tableHeads = ""){
+function formhelpers__orderlist($listID, $formName, $rows, $no_add_button=false, $add_button_title="", $tableHeads = "") {
     $dropdownSelector = ($no_add_button ? 'null' : "document.getElementById('".$listID."Dropdown')");
     $out='';
     $out.=" <script>
-            var ".$listID."_rows = "; $out.=json_encode($rows); $out.=";
+            var ".$listID."_rows = ";
+    $out.=json_encode($rows);
+    $out.=";
             document.addEventListener('DOMContentLoaded', function() {
                 window.list_".$listID." = new ListTool(".$listID."_rows, document.getElementById('list_".$listID."'), " . $dropdownSelector . ", '".$formName."');
             });
@@ -518,7 +584,9 @@ function formhelpers__orderlist($listID, $formName, $rows, $no_add_button=false,
 
     $out.='<div class="orsee-listtool">';
     if (!$no_add_button) {
-        if (!$add_button_title) $add_button_title=lang('add');
+        if (!$add_button_title) {
+            $add_button_title=lang('add');
+        }
         $out.='<div class="orsee-listtool-add">
             <ul id="'.$listID.'Dropdown" class="query_add">
                 <li>

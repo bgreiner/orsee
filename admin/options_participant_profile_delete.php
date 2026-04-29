@@ -1,19 +1,23 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="delete_participant_profile_field";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $user_columns=participant__userdefined_columns();
-    if (!isset($_REQUEST['mysql_column_name']) || !isset($user_columns[$_REQUEST['mysql_column_name']]))
+    if (!isset($_REQUEST['mysql_column_name']) || !isset($user_columns[$_REQUEST['mysql_column_name']])) {
         redirect('admin/options_participant_profile.php');
-    else $field_name=$_REQUEST['mysql_column_name'];
+    } else {
+        $field_name=$_REQUEST['mysql_column_name'];
+    }
 }
 
 if ($proceed) {
-    if ($field_name=='email') redirect('admin/options_participant_profile.php');
+    if ($field_name=='email') {
+        redirect('admin/options_participant_profile.php');
+    }
 }
 
 if ($proceed) {
@@ -41,15 +45,17 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-        else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
 }
 
 if ($proceed) {
-
     if ($reallydelete) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/options_participant_profile_delete.php?mysql_column_name=".urlencode($field_name));
+            redirect("admin/options_participant_profile_delete.php?mysql_column_name=".urlencode($field_name));
         }
         // transaction?
         $pars=array(':mysql_column_name'=>$field_name);
@@ -63,8 +69,8 @@ if ($proceed) {
         $result=or_query($query);
 
         log__admin("profile_form_field_delete","mysql_column_name:".$field_name);
-        message (lang('profile_form_field_deleted'));
-        redirect ("admin/options_participant_profile.php");
+        message(lang('profile_form_field_deleted'));
+        redirect("admin/options_participant_profile.php");
     }
 }
 
@@ -93,16 +99,16 @@ if ($proceed) {
                         </div>
                         <div class="orsee-form-row-col has-text-right">
                             '.button_link(
-                                'options_participant_profile_edit.php?mysql_column_name='.urlencode($field_name),
-                                lang('no_sorry'),
-                                'undo'
-                            ).'
+        'options_participant_profile_edit.php?mysql_column_name='.urlencode($field_name),
+        lang('no_sorry'),
+        'undo'
+    ).'
                         </div>
                     </div>
                 </form>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

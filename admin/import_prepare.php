@@ -1,12 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
-    $old_versions=array('orsee2'=>'versions <3.0');
-
+$old_versions=array('orsee2'=>'versions <3.0');
 $title="prepare_data_import";
 $menu__area="options";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     check_allow('import_data','options_main.php');
 }
@@ -31,7 +30,9 @@ if ($proceed) {
                 WHERE `SCHEMA_NAME` NOT IN ('information_schema','mysql')";
         $result=or_query($query);
         while ($line=pdo_fetch_assoc($result)) {
-            if ($line['SCHEMA_NAME']!=$site__database_database) $databases[]=$line['SCHEMA_NAME'];
+            if ($line['SCHEMA_NAME']!=$site__database_database) {
+                $databases[]=$line['SCHEMA_NAME'];
+            }
         }
 
         // first step:
@@ -47,14 +48,18 @@ if ($proceed) {
             echo '          <div class="field">
                             <label class="label">From which ORSEE version do you want to import data?</label>
                             <div class="control"><span class="select is-primary"><SELECT name="old_version">';
-            foreach ($old_versions as $ov=>$text) echo '<OPTION value="'.$ov.'">'.$text.'</OPTION>';
+            foreach ($old_versions as $ov=>$text) {
+                echo '<OPTION value="'.$ov.'">'.$text.'</OPTION>';
+            }
             echo '              </SELECT></span></div>
                         </div>';
 
             echo '          <div class="field">
                             <label class="label">From which database should the data be imported?</label>
                             <div class="control"><span class="select is-primary"><SELECT name="old_database">';
-            foreach ($databases as $db) echo '<OPTION value="'.$db.'">'.$db.'</OPTION>';
+            foreach ($databases as $db) {
+                echo '<OPTION value="'.$db.'">'.$db.'</OPTION>';
+            }
             echo '              </SELECT></span></div>
                         </div>';
 
@@ -68,18 +73,13 @@ if ($proceed) {
     }
 
     if ($continue) {
-
         $old_version=$_REQUEST['old_version'];
         $old_database=$_REQUEST['old_database'];
 
 
-/////////////////////////
+        /////////////////////////
         if ($old_version=="orsee2") {
-
             if (isset($_REQUEST['submit1'])) {
-
-
-
                 echo '<FORM action="'.thisdoc().'" method="POST">'.csrf__field();
                 echo '<INPUT type="hidden" name="old_version" value="'.$old_version.'">';
                 echo '<INPUT type="hidden" name="old_database" value="'.$old_database.'">';
@@ -110,11 +110,13 @@ if ($proceed) {
                 foreach ($prev_statuses as $ps=>$arr) {
                     echo '<div class="orsee-table-row"><div class="orsee-table-cell" data-label="Previous participant status">'.$arr[0].'</div>
                             <div class="orsee-table-cell" data-label="Map to current status"><span class="select is-primary"><SELECT name="status_'.$ps.'">';
-                        foreach ($statuses as $status) {
-                            echo '<OPTION value="'.$status['status_id'].'"';
-                            if ($status['status_id']==$arr[1]) echo ' SELECTED';
-                            echo '>'.$status['name'].'</OPTION>';
+                    foreach ($statuses as $status) {
+                        echo '<OPTION value="'.$status['status_id'].'"';
+                        if ($status['status_id']==$arr[1]) {
+                            echo ' SELECTED';
                         }
+                        echo '>'.$status['name'].'</OPTION>';
+                    }
                     echo '</SELECT></span></div></div>';
                 }
                 echo '</div></div>';
@@ -132,11 +134,13 @@ if ($proceed) {
                 foreach ($prev_pstatuses as $ps=>$arr) {
                     echo '<div class="orsee-table-row"><div class="orsee-table-cell" data-label="Previous participation state">'.$arr[0].'</div>
                             <div class="orsee-table-cell" data-label="Map to current participation status"><span class="select is-primary"><SELECT name="pstatus_'.$ps.'">';
-                        foreach ($pstatuses as $status) {
-                            echo '<OPTION value="'.$status['pstatus_id'].'"';
-                            if ($status['pstatus_id']==$arr[1]) echo ' SELECTED';
-                            echo '>'.$status['internal_name'].'</OPTION>';
+                    foreach ($pstatuses as $status) {
+                        echo '<OPTION value="'.$status['pstatus_id'].'"';
+                        if ($status['pstatus_id']==$arr[1]) {
+                            echo ' SELECTED';
                         }
+                        echo '>'.$status['internal_name'].'</OPTION>';
+                    }
                     echo '</SELECT></span></div></div>';
                 }
                 echo '</div></div>';
@@ -181,13 +185,19 @@ if ($proceed) {
                                 <div class="orsee-table-cell">Form field type</div><div class="orsee-table-cell">Import from '.$old_database.'</div></div>';
                 foreach ($new_fields as $field=>$f) {
                     echo '<div class="orsee-table-row"><div class="orsee-table-cell" data-label="Profile field">'.$field.'</div><div class="orsee-table-cell" data-label="Column type">'.$f['Type'].'</div><div class="orsee-table-cell" data-label="Form field type">';
-                    if (isset($f['fieldtype'])) echo $f['fieldtype']; else echo '???';
+                    if (isset($f['fieldtype'])) {
+                        echo $f['fieldtype'];
+                    } else {
+                        echo '???';
+                    }
                     echo '</div><div class="orsee-table-cell" data-label="Import from '.$old_database.'">';
                     echo '<span class="select is-primary"><SELECT name="map_'.$field.'">';
                     echo '<OPTION value="">Don\'t import</OPTION>';
                     foreach ($old_fields as $of) {
                         echo '<OPTION value="'.$of.'"';
-                        if ($of==$field) echo ' SELECTED';
+                        if ($of==$field) {
+                            echo ' SELECTED';
+                        }
                         echo '>'.$of.'</OPTION>';
                     }
                     echo '</SELECT></span>';
@@ -216,12 +226,9 @@ if ($proceed) {
                     </div>';
                 echo '</div></div>';
                 echo '</FORM>';
-
-
             }
 
             if (isset($_REQUEST['submit2'])) {
-
                 $code='';
                 $code.='$old_db_name="'.$old_database.'";'."\n";
                 $code.='$new_db_name="'.$site__database_database.'";'."\n";
@@ -266,14 +273,11 @@ if ($proceed) {
                 echo '<div class="field"><div class="control">Below you find the code to copy over to install/data_import.php.</div></div>';
                 echo '<div class="field"><div class="control"><TEXTAREA class="textarea is-primary orsee-textarea" rows=40 cols=80>'.$code.'</TEXTAREA></div></div>';
                 echo '</div></div>';
-
             }
         }
-/////////////////////////
-
-
-
+        /////////////////////////
     }
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

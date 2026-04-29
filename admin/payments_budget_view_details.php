@@ -1,25 +1,28 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="statistics";
 $title="budget_report";
-include ("header.php");
-if ($proceed) {
-
-    if (isset($_REQUEST['budget_id'])) $budget_id=$_REQUEST['budget_id'];
-    else redirect('admin/statistics_main.php');
-}
+include("header.php");
 
 if ($proceed) {
-    if (!(check_allow('payments_budget_view_my') || check_allow('payments_budget_view_all')))
+    if (isset($_REQUEST['budget_id'])) {
+        $budget_id=$_REQUEST['budget_id'];
+    } else {
         redirect('admin/statistics_main.php');
+    }
 }
 
 if ($proceed) {
+    if (!(check_allow('payments_budget_view_my') || check_allow('payments_budget_view_all'))) {
+        redirect('admin/statistics_main.php');
+    }
+}
 
+if ($proceed) {
     if (check_allow('payments_budget_view_all')) {
-        $restriction=""; $pars=array();
+        $restriction="";
+        $pars=array();
     } else {
         $pars=array(':adminname'=>'%|'.$expadmindata['adminname']).'|%';
         $restriction=" experimenter LIKE :adminname ";
@@ -29,7 +32,9 @@ if ($proceed) {
     $query="SELECT * FROM ".table('budgets')." ".$restriction."
             ORDER BY enabled DESC, budget_name";
     $result=or_query($query,$pars);
-    $shade=false; $budgets=array(); $budget_ids=array();
+    $shade=false;
+    $budgets=array();
+    $budget_ids=array();
     while ($line = pdo_fetch_assoc($result)) {
         $budgets[$line['budget_id']]=$line;
         $budget_ids[]=$line['budget_id'];
@@ -52,7 +57,8 @@ if ($proceed) {
             AND s.session_status='balanced'
             AND p.experiment_id=e.experiment_id
             ORDER BY s.session_start, p.payment_type";
-    $result=or_query($query,$pars); $payments=array();
+    $result=or_query($query,$pars);
+    $payments=array();
     while ($line = pdo_fetch_assoc($result)) {
         $payments[$line['experiment_id']][$line['session_id']][$line['payment_type']][]=$line;
     }
@@ -67,8 +73,13 @@ if ($proceed) {
     echo '<table class="orsee-table orsee-table-no-hover" style="width: auto; min-width: 50%; margin: 0 auto;">';
 
     $payment_types=payments__load_paytypes();
-    $cexp_id=''; $csess_id=''; $cpaytype_id='';
-    $sum_exp=0; $sum_sess=0; $sum_paytype=0; $pid=0;
+    $cexp_id='';
+    $csess_id='';
+    $cpaytype_id='';
+    $sum_exp=0;
+    $sum_sess=0;
+    $sum_paytype=0;
+    $pid=0;
     foreach ($payments as $exp_id=>$exp) {
         $csess_id='';
         foreach ($exp as $sess_id=>$sess) {
@@ -112,7 +123,9 @@ if ($proceed) {
                                 <td class="orsee-table-cell" style="font-size: var(--font-size-compact);">&nbsp;</td>
                                 <td class="orsee-table-cell" style="font-size: var(--font-size-compact);">&nbsp;</td>
                                 </tr>';
-                    $sum_exp+=$p['payment_amt']; $sum_sess+=$p['payment_amt']; $sum_paytype+=$p['payment_amt'];
+                    $sum_exp+=$p['payment_amt'];
+                    $sum_sess+=$p['payment_amt'];
+                    $sum_paytype+=$p['payment_amt'];
                 }
                 echo '<tr class="orsee-table-row">
                         <td class="orsee-table-cell" colspan="2"></td>
@@ -136,11 +149,11 @@ if ($proceed) {
                 <td class="orsee-table-cell" style="text-align:end; border-bottom: 2px solid var(--color-body-text);"><strong>'.or__format_number($sum_exp,2).'</strong></td>
                 </tr>';
         $sum_exp=0;
-   }
-   echo '</table>';
-   echo '</div>';
-   echo '</div>';
-
+    }
+    echo '</table>';
+    echo '</div>';
+    echo '</div>';
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

@@ -1,12 +1,16 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="my_registrations";
 $title="experiments";
 include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['s']) && $_REQUEST['s']) $session_id=trim($_REQUEST['s']); else $session_id="";
+    if (isset($_REQUEST['s']) && $_REQUEST['s']) {
+        $session_id=trim($_REQUEST['s']);
+    } else {
+        $session_id="";
+    }
 
     if (isset($_REQUEST['register']) && $_REQUEST['register']) {
         $continue=true;
@@ -73,9 +77,9 @@ if ($proceed) {
 
         if ($proceed) {
             if ($full) {
-                 $continue=false;
-                 message(lang('error_session_complete'),'warning');
-                 redirect("public/participant_show.php".$token_string);
+                $continue=false;
+                message(lang('error_session_complete'),'warning');
+                redirect("public/participant_show.php".$token_string);
             }
         }
 
@@ -92,7 +96,11 @@ if ($proceed) {
                         session__build_name($session).". ".
                         lang('this_will_be_confirmed_by_an_email'),'note',null,'toast');
                     $redir="public/participant_show.php".$token_string;
-                    if ($token_string) $redir.="&"; else $redir.="?";
+                    if ($token_string) {
+                        $redir.="&";
+                    } else {
+                        $redir.="?";
+                    }
                     $redir.="s=".$session_id;
                     redirect($redir);
                 }
@@ -100,7 +108,6 @@ if ($proceed) {
                 redirect("public/participant_show.php".$token_string);
             }
         }
-
     } elseif (isset($_REQUEST['cancel']) && $_REQUEST['cancel'] &&
             isset($settings['allow_subject_cancellation']) && $settings['allow_subject_cancellation']=='y') {
         $continue=true;
@@ -161,7 +168,7 @@ if ($proceed) {
                         session__build_name($session).". "
                         .lang('this_will_be_confirmed_by_an_email'),
                         'note',null,'toast'
-                        );
+                    );
                     redirect("public/participant_show.php".$token_string);
                 }
             } else {
@@ -221,7 +228,9 @@ if ($proceed) {
                                 <div class="orsee-public-detail-row orsee-public-detail-row-actions">
                                     <form id="orsee-public-register-form" action="participant_show.php" method="POST">
                                         <input type="hidden" id="orsee-public-register-session" name="s" value="">';
-        if ($token_string) echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+        if ($token_string) {
+            echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+        }
         echo '                          <input type="hidden" name="register" value="true">
                                         <input type="hidden" name="reallyregister" value="true">
                                         '.csrf__field().'
@@ -246,7 +255,9 @@ if ($proceed) {
                         <div class="orsee-public-detail-label">'.$lab_addresses_title.'</div>
                     </div>';
             foreach ($invited_labs as $lab_id) {
-                if (!isset($labs[$lab_id])) continue;
+                if (!isset($labs[$lab_id])) {
+                    continue;
+                }
                 echo '<div class="orsee-public-detail-row">
                         <div class="orsee-public-detail-label">'.htmlspecialchars((string)$labs[$lab_id]['lab_name'],ENT_QUOTES,'UTF-8').'</div>
                         <div>'.nl2br(htmlspecialchars((string)$labs[$lab_id]['lab_address'],ENT_QUOTES,'UTF-8')).'</div>
@@ -299,7 +310,9 @@ if ($proceed) {
                                 <div id="orsee-public-reg-detail-action-row" class="orsee-public-detail-row orsee-public-detail-row-actions">
                                     <form id="orsee-public-cancel-form" action="participant_show.php" method="POST">
                                         <input type="hidden" id="orsee-public-cancel-session" name="s" value="">';
-        if ($token_string) echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+        if ($token_string) {
+            echo '<input type="hidden" name="p" value="'.$participant['participant_id_crypt'].'">';
+        }
         echo '                          <input type="hidden" name="cancel" value="true">
                                         <input type="hidden" name="reallycancel" value="true">
                                         '.csrf__field().'
@@ -312,9 +325,13 @@ if ($proceed) {
                     </div>
                     </div>
                     <div class="orsee-public-desktop-only orsee-public-profile-formwrap">';
-        if (count($registered)>0) echo '<div class="orsee-public-detail-card">';
+        if (count($registered)>0) {
+            echo '<div class="orsee-public-detail-card">';
+        }
         $registered_labs=expregister__list_registered_for($participant,"",$registered,$labs);
-        if (count($registered)>0) echo '</div>';
+        if (count($registered)>0) {
+            echo '</div>';
+        }
         echo '';
         if (count($registered_labs)>0) {
             if (count($registered_labs)>1) {
@@ -327,7 +344,9 @@ if ($proceed) {
                         <div class="orsee-public-detail-label">'.$lab_addresses_title.'</div>
                     </div>';
             foreach ($registered_labs as $lab_id) {
-                if (!isset($labs[$lab_id])) continue;
+                if (!isset($labs[$lab_id])) {
+                    continue;
+                }
                 echo '<div class="orsee-public-detail-row">
                         <div class="orsee-public-detail-label">'.htmlspecialchars((string)$labs[$lab_id]['lab_name'],ENT_QUOTES,'UTF-8').'</div>
                         <div>'.nl2br(htmlspecialchars((string)$labs[$lab_id]['lab_address'],ENT_QUOTES,'UTF-8')).'</div>
@@ -352,7 +371,11 @@ if ($proceed) {
                         <div class="orsee-font-compact">'.$labs[$s['laboratory_id']]['lab_name'].'</div>
                         <div class="orsee-font-compact">'.lang('showup?').' ';
                 if ($s['session_status']=="completed" || $s['session_status']=="balanced") {
-                    if ($pstatuses[$s['pstatus_id']]['noshow']) $tcolor='var(--color-shownup-no)'; else $tcolor='var(--color-shownup-yes)';
+                    if ($pstatuses[$s['pstatus_id']]['noshow']) {
+                        $tcolor='var(--color-shownup-no)';
+                    } else {
+                        $tcolor='var(--color-shownup-yes)';
+                    }
                     $ttext=$pstatuses[$s['pstatus_id']]['display_name'];
                     echo '<strong style="color: '.$tcolor.';">'.$ttext.'</strong>';
                 } else {
@@ -361,9 +384,17 @@ if ($proceed) {
                 echo '  </div>';
                 if ($settings['enable_payment_module']=='y' && $settings['payments_in_part_history']=='y' && $s['session_status']=="balanced") {
                     echo '<div class="orsee-font-compact">'.lang('payment_type_abbr').': ';
-                    if (isset($payment_types[$s['payment_type']])) echo $payment_types[$s['payment_type']]; else echo '-';
+                    if (isset($payment_types[$s['payment_type']])) {
+                        echo $payment_types[$s['payment_type']];
+                    } else {
+                        echo '-';
+                    }
                     echo ', '.lang('payment_amount_abbr').': ';
-                    if ($s['payment_amt']!='') echo $s['payment_amt']; else echo '-';
+                    if ($s['payment_amt']!='') {
+                        echo $s['payment_amt'];
+                    } else {
+                        echo '-';
+                    }
                     echo '</div>';
                 }
                 echo '</div>';
@@ -677,7 +708,7 @@ if ($proceed) {
             </script>';
         echo javascript__confirm_modal_script();
     }
-
 }
 include("footer.php");
+
 ?>
