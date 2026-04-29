@@ -1,28 +1,40 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="delete_participant_status";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['status_id'])) $status_id=$_REQUEST['status_id']; else $status_id="";
-    if (!$status_id) redirect ('admin/participant_status_main.php');
+    if (isset($_REQUEST['status_id'])) {
+        $status_id=$_REQUEST['status_id'];
+    } else {
+        $status_id="";
+    }
+    if (!$status_id) {
+        redirect('admin/participant_status_main.php');
+    }
 }
 
 if ($proceed) {
     $status=orsee_db_load_array("participant_statuses",$status_id,"status_id");
-    if (!isset($status['status_id'])) redirect ('admin/participant_status_main.php');
+    if (!isset($status['status_id'])) {
+        redirect('admin/participant_status_main.php');
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot'])
-        redirect ('admin/participant_status_edit.php?status_id='.$status_id);
+    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
+        redirect('admin/participant_status_edit.php?status_id='.$status_id);
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-        else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
 
     $allow=check_allow('participantstatus_delete','participant_status_edit.php?status_id='.$status_id);
 }
@@ -37,7 +49,7 @@ if ($proceed) {
 
     if ($status['is_default_active']=="y" || $status['is_default_inactive']=="y") {
         message(lang('cannot_delete_participant_status_which_is_default'),'warning');
-        redirect ('admin/participant_status_edit.php?status_id='.$status_id);
+        redirect('admin/participant_status_edit.php?status_id='.$status_id);
     }
 }
 
@@ -51,11 +63,11 @@ if ($proceed) {
 
     if ($reallydelete) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/participant_status_delete.php?status_id='.$status_id);
+            redirect('admin/participant_status_delete.php?status_id='.$status_id);
         }
         $participant_statuses=participant_status__get_statuses();
         if (!isset($_REQUEST['merge_with']) || !isset($participant_statuses[$_REQUEST['merge_with']])) {
-            redirect ('admin/participant_status_delete.php?status_id='.$status_id);
+            redirect('admin/participant_status_delete.php?status_id='.$status_id);
         } else {
             $merge_with=$_REQUEST['merge_with'];
             // transaction?
@@ -81,8 +93,8 @@ if ($proceed) {
             $result=or_query($query,$pars);
 
             log__admin("participant_status_delete","status_id:".$status['status_id']);
-            message (lang('participant_status_deleted_part_moved_to').' "'.$participant_statuses[$merge_with]['name'].'".');
-            redirect ("admin/participant_status_main.php");
+            message(lang('participant_status_deleted_part_moved_to').' "'.$participant_statuses[$merge_with]['name'].'".');
+            redirect("admin/participant_status_main.php");
         }
     }
 }
@@ -121,7 +133,7 @@ if ($proceed) {
                 </form>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

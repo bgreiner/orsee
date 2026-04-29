@@ -1,19 +1,22 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="participants";
 $title="edit_participants";
 $js_modules=array('queryform','flatpickr');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('participants_show','participants_main.php');
 }
 if ($proceed) {
     $only_eligible= (isset($_REQUEST['only_eligible']) && $_REQUEST['only_eligible']) ? $_REQUEST['only_eligible'] : false;
 
-    if (isset($_REQUEST['active']) && $_REQUEST['active']) $active=true;
-    else $active=false;
+    if (isset($_REQUEST['active']) && $_REQUEST['active']) {
+        $active=true;
+    } else {
+        $active=false;
+    }
 
     // to encode: json_encode($_REQUEST['form']).'<BR>';
     // do decode: json_decode($_SESSION['lastquery'],true);
@@ -28,8 +31,11 @@ if ($proceed) {
 if ($proceed) {
     $only_eligible= (isset($_REQUEST['only_eligible']) && $_REQUEST['only_eligible']) ? $_REQUEST['only_eligible'] : false;
 
-    if (isset($_REQUEST['active']) && $_REQUEST['active']) $active=true;
-    else $active=false;
+    if (isset($_REQUEST['active']) && $_REQUEST['active']) {
+        $active=true;
+    } else {
+        $active=false;
+    }
 
     // to encode: json_encode($_REQUEST['form']).'<BR>';
     // do decode: json_decode($_SESSION['lastquery'],true);
@@ -44,11 +50,18 @@ if ($proceed) {
             $done=query__save_query($posted_query_json,'participants_search_all');
         }
         $cgivars=array();
-        if(isset($_REQUEST['search_sort'])) $cgivars[]='search_sort='.urlencode($_REQUEST['search_sort']);
-        if ($active) $cgivars[]='active=true';
-        if (count($cgivars)>0) $cgivarst='?'.implode("&",$cgivars); else $cgivarst='';
+        if (isset($_REQUEST['search_sort'])) {
+            $cgivars[]='search_sort='.urlencode($_REQUEST['search_sort']);
+        }
+        if ($active) {
+            $cgivars[]='active=true';
+        }
+        if (count($cgivars)>0) {
+            $cgivarst='?'.implode("&",$cgivars);
+        } else {
+            $cgivarst='';
+        }
         redirect('admin/'.thisdoc().$cgivarst);
-
     }
 }
 
@@ -62,12 +75,19 @@ if ($proceed) {
 
 if ($proceed) {
     if (isset($_REQUEST['action']) && $_REQUEST['action']) {
-        if (isset($_REQUEST['search_sort'])) $search_sort=$_REQUEST['search_sort'];
-        else $search_sort='';
+        if (isset($_REQUEST['search_sort'])) {
+            $search_sort=$_REQUEST['search_sort'];
+        } else {
+            $search_sort='';
+        }
 
         $plist_ids=array();
         if (isset($_REQUEST['sel'])) {
-            foreach($_REQUEST['sel'] as $k=>$v) if($v) $plist_ids[]=$k;
+            foreach ($_REQUEST['sel'] as $k=>$v) {
+                if ($v) {
+                    $plist_ids[]=$k;
+                }
+            }
         }
         $num_participants=count($plist_ids);
 
@@ -78,11 +98,11 @@ if ($proceed) {
                 $continue=true;
                 foreach ($inv_langs as $inv_lang) {
                     if (!isset($_REQUEST['message_subject_'.$inv_lang]) || !$_REQUEST['message_subject_'.$inv_lang]) {
-                        message (lang('subject').': '.lang('missing_language').": ".$inv_lang,'error');
+                        message(lang('subject').': '.lang('missing_language').": ".$inv_lang,'error');
                         $continue=false;
                     }
                     if (!isset($_REQUEST['message_text_'.$inv_lang]) || !$_REQUEST['message_text_'.$inv_lang]) {
-                        message (lang('message_text').': '.lang('missing_language').": ".$inv_lang,'error');
+                        message(lang('message_text').': '.lang('missing_language').": ".$inv_lang,'error');
                         $continue=false;
                     }
                 }
@@ -110,8 +130,11 @@ if ($proceed) {
                 }
             } elseif ($_REQUEST['action']=='status') {
                 if (isset($_REQUEST['new_status']) && $_REQUEST['new_status']!='') {
-                    if (!isset($_REQUEST['remark'])) $remark='';
-                    else $remark=', '.$_REQUEST['remark'];
+                    if (!isset($_REQUEST['remark'])) {
+                        $remark='';
+                    } else {
+                        $remark=', '.$_REQUEST['remark'];
+                    }
                     $pars=array();
                     foreach ($plist_ids as $pid) {
                         $pars[]=array(':participant_id'=>$pid,
@@ -141,7 +164,7 @@ if ($proceed) {
                             $new_pool=$_REQUEST['new_pool'];
                         }
                     } else {
-                        $new_pool=NULL;
+                        $new_pool=null;
                     }
                 }
                 if ($continue) {
@@ -152,7 +175,9 @@ if ($proceed) {
                                     ':profile_update_request_new_pool'=>$new_pool);
                         $pars[]=$thispar;
                         $target="participant_id: ".$pid.", update_request: ".$_REQUEST['new_profile_update_status'];
-                        if ($new_pool) $target.=", new_pool: ".$new_pool;
+                        if ($new_pool) {
+                            $target.=", new_pool: ".$new_pool;
+                        }
                         log__admin("bulk_set_profile_update_request",$target);
                     }
                     $query="UPDATE ".table('participants')."
@@ -189,11 +214,15 @@ if ($proceed) {
                         foreach ($anon_fields as $field_name=>$anon_field) {
                             $thispar[$field_name]=$anon_field['item_details']['field_value'];
                         }
-                        if ($new_status>-1) $thispar['status_id']=$new_status;
-                        
+                        if ($new_status>-1) {
+                            $thispar['status_id']=$new_status;
+                        }
+
                         $pars[]=$thispar;
                         $target="participant_id: ".$pid;
-                        if ($new_status>-1) $target.=", new_status: ".$new_status;
+                        if ($new_status>-1) {
+                            $target.=", new_status: ".$new_status;
+                        }
                         log__admin("bulk_profile_anonymization",$target);
                     }
                     $anon_field_list=array();
@@ -202,7 +231,9 @@ if ($proceed) {
                     }
                     $query="UPDATE ".table('participants')."
                             SET ".implode(" , ",$anon_field_list);
-                    if ($new_status>-1) $query.=", status_id = :status_id ";
+                    if ($new_status>-1) {
+                        $query.=", status_id = :status_id ";
+                    }
                     $query.=" WHERE participant_id = :participant_id ";
                     $done=or_query($query,$pars);
                     message($num_participants.' '.lang('xxx_participant_profiles_were_anonymized'));
@@ -227,8 +258,8 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if(isset($_REQUEST['search_submit']) || isset($_REQUEST['search_sort'])) {
-        if(isset($_REQUEST['search_sort'])){
+    if (isset($_REQUEST['search_submit']) || isset($_REQUEST['search_sort'])) {
+        if (isset($_REQUEST['search_sort'])) {
             // use old query
             if ($active) {
                 $posted_query_json=$_SESSION['lastquery_participants_search_active'];
@@ -240,11 +271,14 @@ if ($proceed) {
                 $sort=query__get_sort('participants_search_all',$_REQUEST['search_sort']); // sanitize sort
             }
             $posted_query=json_decode($posted_query_json,true);
-
         } else {
             // store new query in session
             $query_id=time();
-            if(isset($_REQUEST['form'])) $posted_query=$_REQUEST['form']; else $posted_query=array('query'=>array());
+            if (isset($_REQUEST['form'])) {
+                $posted_query=$_REQUEST['form'];
+            } else {
+                $posted_query=array('query'=>array());
+            }
             $posted_query_json=json_encode($posted_query);
             if ($active) {
                 $_SESSION['lastquery_participants_search_active'] =  $posted_query_json;
@@ -268,7 +302,9 @@ if ($proceed) {
         if ($active) {
             $active_clause=array('query'=>participant_status__get_pquery_snippet("eligible_for_experiments"),'pars'=>array());
             $additional_clauses=array($active_clause);
-        } else $additional_clauses=array();
+        } else {
+            $additional_clauses=array();
+        }
 
         $query=query__get_query($query_array,$query_id,$additional_clauses,$sort);
 
@@ -280,31 +316,44 @@ if ($proceed) {
 
         echo '<form id="bulkactionform" action="participants_show.php" method="POST">';
         echo csrf__field();
-        if (isset($_REQUEST['search_sort'])) echo '<input type="hidden" name="search_sort" value="'.$_REQUEST['search_sort'].'">';
-        if (isset($_REQUEST['active'])) echo '<input type="hidden" name="active" value="'.$_REQUEST['active'].'">';
+        if (isset($_REQUEST['search_sort'])) {
+            echo '<input type="hidden" name="search_sort" value="'.$_REQUEST['search_sort'].'">';
+        }
+        if (isset($_REQUEST['active'])) {
+            echo '<input type="hidden" name="active" value="'.$_REQUEST['active'].'">';
+        }
 
-        if ($active) $plist_ids=query_show_query_result($query,"participants_search_active");
-        else $plist_ids=query_show_query_result($query,"participants_search_all");
+        if ($active) {
+            $plist_ids=query_show_query_result($query,"participants_search_active");
+        } else {
+            $plist_ids=query_show_query_result($query,"participants_search_all");
+        }
 
         echo '</form>';
-
     } else {
-
         //if (!isset($_SESSION['lastquery_'.$experiment_id])) $_SESSION['lastquery_'.$experiment_id]='';
         //$load_query=$_SESSION['lastquery_'.$experiment_id];
 
         if ($active) {
-            if (!isset($_SESSION['lastquery_participants_search_active'])) $_SESSION['lastquery_participants_search_active']='';
+            if (!isset($_SESSION['lastquery_participants_search_active'])) {
+                $_SESSION['lastquery_participants_search_active']='';
+            }
             $load_query=$_SESSION['lastquery_participants_search_active'];
-            if (!$load_query) $load_query=query__load_default_query('participants_search_active');
+            if (!$load_query) {
+                $load_query=query__load_default_query('participants_search_active');
+            }
             $hide_modules=array('statusids');
             $status_query=participant_status__get_pquery_snippet("eligible_for_experiments");
             $formextra='<INPUT type="hidden" name="active" value="true">';
             $saved_queries=query__load_saved_queries('participants_search_active',$settings['queryform_partsearchactive_savedqueries_numberofentries']);
         } else {
-            if (!isset($_SESSION['lastquery_participants_search_all'])) $_SESSION['lastquery_participants_search_all']='';
+            if (!isset($_SESSION['lastquery_participants_search_all'])) {
+                $_SESSION['lastquery_participants_search_all']='';
+            }
             $load_query=$_SESSION['lastquery_participants_search_all'];
-            if (!$load_query) $load_query=query__load_default_query('participants_search_all');
+            if (!$load_query) {
+                $load_query=query__load_default_query('participants_search_all');
+            }
             $hide_modules=array();
             $status_query="";
             $formextra='';
@@ -322,14 +371,13 @@ if ($proceed) {
         echo '<div>';
         query__show_form($hide_modules,false,$load_query,lang('search_and_show'),$saved_queries,$status_query,$formextra);
         echo '</div>';
-
     }
 }
 
 if ($proceed) {
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

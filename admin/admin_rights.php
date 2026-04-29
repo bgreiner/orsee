@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="my_rights";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     echo '<div class="orsee-options-list-panel">';
     echo '<div class="orsee-panel">';
@@ -15,7 +15,8 @@ if ($proceed) {
     echo '<div class="orsee-table-cell">'.lang('description').'</div>';
     echo '</div>';
 
-    $shade=true; $lastclass="";
+    $shade=true;
+    $lastclass="";
     foreach ($system__admin_rights as $right) {
         $line=explode(":",$right);
         if (isset($rights[$line[0]]) && $rights[$line[0]]) {
@@ -30,12 +31,18 @@ if ($proceed) {
                 $lastclass=$tclass;
             }
             $row_class='orsee-table-row';
-            if ($shade) $row_class.=' is-alt';
+            if ($shade) {
+                $row_class.=' is-alt';
+            }
             echo '<div class="'.$row_class.'">';
             echo '<div class="orsee-table-cell" data-label="'.lang('authorization').'">'.$line[0].'</div>';
             echo '<div class="orsee-table-cell" data-label="'.lang('description').'">'.$line[1].'</div>';
             echo '</div>';
-            if ($shade) $shade=false; else $shade=true;
+            if ($shade) {
+                $shade=false;
+            } else {
+                $shade=true;
+            }
         }
     }
     echo '</div>';
@@ -44,8 +51,7 @@ if ($proceed) {
     echo '</div>';
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
 
 ?>

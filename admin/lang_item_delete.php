@@ -1,15 +1,29 @@
 <?php
 // part of orsee. see orsee.org
-
 ob_start();
 $menu__area="options";
-if (isset($_REQUEST['item'])) $item=$_REQUEST['item']; else $item='';
+if (isset($_REQUEST['item'])) {
+    $item=$_REQUEST['item'];
+} else {
+    $item='';
+}
 $title="";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['item'])) $item=$_REQUEST['item']; else $item="";
-    if (isset($_REQUEST['id'])) $id=$_REQUEST['id']; else $id="";
-    if (!$id || !$item) redirect ("admin/");
+    if (isset($_REQUEST['item'])) {
+        $item=$_REQUEST['item'];
+    } else {
+        $item="";
+    }
+    if (isset($_REQUEST['id'])) {
+        $id=$_REQUEST['id'];
+    } else {
+        $id="";
+    }
+    if (!$id || !$item) {
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
@@ -17,7 +31,7 @@ if ($proceed) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
         } else {
-            redirect ('admin/lang_item_edit.php?item='.$item.'&id='.$id);
+            redirect('admin/lang_item_edit.php?item='.$item.'&id='.$id);
         }
     }
 }
@@ -31,18 +45,24 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-    else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
 
     $titem=orsee_db_load_array("lang",$id,"lang_id");
 
     $done=false;
-    $formfields=participantform__load('draft'); $allow_cat=$item;
-    foreach($formfields as $f) {
+    $formfields=participantform__load('draft');
+    $allow_cat=$item;
+    foreach ($formfields as $f) {
         if (preg_match("/(select_lang|radioline_lang)/",$f['type']) && $item==$f['mysql_column_name']) {
             $done=true;
             $header=participant__field_localized_text($f,'name_lang','name_lang');
-            if (!$header) $header=$f['mysql_column_name'];
+            if (!$header) {
+                $header=$f['mysql_column_name'];
+            }
             $headervar=lang('lang');
             $reset_part_field=$f['mysql_column_name'];
             $deletion_message=lang('symbol_deleted');
@@ -54,7 +74,7 @@ if ($proceed) {
 }
 
 if ($proceed) {
-    switch($item) {
+    switch ($item) {
         case 'experimentclass':
             $header=lang('delete_experiment_class');
             $headervar=lang('lang');
@@ -73,12 +93,12 @@ if ($proceed) {
             $reset_part_field="";
             $deletion_message=lang('datetime_format_deleted');
             break;
-//      case 'help':
-//          $header=lang('delete_help');
-//          $headervar="content_name";
-//          $reset_part_field="";
-//          $deletion_message=lang('help_deleted');
-//          break;
+            //      case 'help':
+            //          $header=lang('delete_help');
+            //          $headervar="content_name";
+            //          $reset_part_field="";
+            //          $deletion_message=lang('help_deleted');
+            //          break;
         case 'mail':
             $header=lang('delete_default_mail');
             $headervar="content_name";
@@ -139,16 +159,16 @@ if ($proceed) {
                     WHERE ".$reset_part_field."= :content_name";
             $result=or_query($query,$pars);
         }
-        message ($deletion_message);
+        message($deletion_message);
         log__admin($item."_delete","lang_id:".$titem['content_type'].','.$titem['content_name']);
-        redirect ('admin/lang_item_main.php?item='.$item);
+        redirect('admin/lang_item_main.php?item='.$item);
     }
 }
 
 
 if ($proceed) {
     // form
-        echo '<div class="orsee-panel orsee-form-shell">
+    echo '<div class="orsee-panel orsee-form-shell">
                 <div class="orsee-panel-title">'.$header.'</div>
                 <div class="orsee-content">
                     <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('do_you_really_want_to_delete').'</div>
@@ -163,25 +183,25 @@ if ($proceed) {
                     <div class="field orsee-form-row-grid orsee-form-row-grid--2" style="align-items: center;">
                         <div class="orsee-form-row-col">
                             '.button_link(
-                                'lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
-                                lang('yes_delete'),
-                                'check-square',
-                                '',
-                                '',
-                                'orsee-btn--delete'
-                            ).'
+        'lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&reallydelete=true&csrf_token='.urlencode(csrf__get_token()),
+        lang('yes_delete'),
+        'check-square',
+        '',
+        '',
+        'orsee-btn--delete'
+    ).'
                         </div>
                         <div class="orsee-form-row-col has-text-right">
                             '.button_link(
-                                'lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
-                                lang('no_sorry'),
-                                'undo'
-                            ).'
+        'lang_item_delete.php?id='.urlencode($id).'&item='.urlencode($item).'&betternot=true&csrf_token='.urlencode(csrf__get_token()),
+        lang('no_sorry'),
+        'undo'
+    ).'
                         </div>
                     </div>
                 </div>
             </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

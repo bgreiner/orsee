@@ -1,16 +1,15 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="statistics";
 $title="subject_pool_statistics";
 include("header.php");
+
 if ($proceed) {
     $allow=check_allow('statistics_participants_show','statistics_main.php');
 }
 
 if ($proceed) {
-
     if (isset($_REQUEST['all']) && $_REQUEST['all']) {
         $all=true;
         $title_add=lang('for_all_profiles_in_database');
@@ -27,16 +26,21 @@ if ($proceed) {
         foreach ($posted as $s=>$valarr) {
             if (is_array($valarr)) {
                 foreach ($valarr as $k=>$v) {
-                    if ($v=='y') $restrict[$s][$k]=true;
+                    if ($v=='y') {
+                        $restrict[$s][$k]=true;
+                    }
                 }
             }
         }
     }
 
-    if ($all) $condition=array();
-    else $condition=array('clause'=>participant_status__get_pquery_snippet('eligible_for_experiments'),
-                    'pars'=>array()
-                    );
+    if ($all) {
+        $condition=array();
+    } else {
+        $condition=array('clause'=>participant_status__get_pquery_snippet('eligible_for_experiments'),
+                        'pars'=>array()
+                        );
+    }
     $stats_data=stats__get_data($condition,'stats',$restrict);
     $_SESSION['stats_data']=$stats_data;
 
@@ -66,8 +70,11 @@ if ($proceed) {
     echo '</div>';
 
     foreach ($stats_data as $k=>$table) {
-        if (isset($table['data']) && is_array($table['data']) && count($table['data'])>0) $show=true;
-        else $show=false;
+        if (isset($table['data']) && is_array($table['data']) && count($table['data'])>0) {
+            $show=true;
+        } else {
+            $show=false;
+        }
         if ($show) {
             $out=stats__stats_display_table($table,$browsable,$restrict);
             echo '<div class="orsee-panel orsee-option-section">';
@@ -120,7 +127,7 @@ if ($proceed) {
     echo button_back('statistics_main.php');
     echo '</div>';
     echo '</div>';
-
 }
 include("footer.php");
+
 ?>

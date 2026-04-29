@@ -3,8 +3,12 @@
 
 function javascript__toast_messages($duration_ms=3200,$root_selector='.orsee',$message_host_id='orsee-public-message-host',$toast_host_id='orsee-public-toast-host') {
     $duration_ms=(int)$duration_ms;
-    if ($duration_ms<800) $duration_ms=800;
-    if ($duration_ms>12000) $duration_ms=12000;
+    if ($duration_ms<800) {
+        $duration_ms=800;
+    }
+    if ($duration_ms>12000) {
+        $duration_ms=12000;
+    }
     $root_selector=json_encode((string)$root_selector);
     $message_host_id=json_encode((string)$message_host_id);
     $toast_host_id=json_encode((string)$toast_host_id);
@@ -146,8 +150,12 @@ function get_tag_picker($name,$data,$selected=array(),$options=array()) {
     static $orsee_tag_picker_bootstrap_emitted=false;
 
     $out='';
-    if (!is_array($data)) return $out;
-    if (!is_array($selected)) $selected=array();
+    if (!is_array($data)) {
+        return $out;
+    }
+    if (!is_array($selected)) {
+        $selected=array();
+    }
 
     $op=array(
         'prompt_text'=>lang('choose').' ...',
@@ -156,14 +164,18 @@ function get_tag_picker($name,$data,$selected=array(),$options=array()) {
     );
     if (is_array($options)) {
         foreach ($options as $key=>$value) {
-            if (isset($op[$key])) $op[$key]=$value;
+            if (isset($op[$key])) {
+                $op[$key]=$value;
+            }
         }
     }
 
     $safe_name=preg_replace('/[^a-zA-Z0-9_\-]/','_',$name);
 
     $selected_map=array();
-    foreach ($selected as $sid) $selected_map[(string)$sid]=true;
+    foreach ($selected as $sid) {
+        $selected_map[(string)$sid]=true;
+    }
 
     $picker_style='';
     $picker_bg=trim((string)$op['tag_bg_color']);
@@ -195,7 +207,9 @@ function get_tag_picker($name,$data,$selected=array(),$options=array()) {
     foreach ($data as $id=>$label) {
         $id_s=(string)$id;
         $out.='<option value="'.htmlspecialchars($id_s).'"';
-        if (isset($selected_map[$id_s])) $out.=' disabled';
+        if (isset($selected_map[$id_s])) {
+            $out.=' disabled';
+        }
         $out.='>'.htmlspecialchars((string)$label).'</option>';
     }
     $out.='</select></div></div>';
@@ -343,11 +357,17 @@ function multipicker_json_to_array($json) {
                 $data[$matches[2][$k]]=$matches[1][$k];
             }
             $done=natcasesort($data);
-            foreach($data as $k=>$v) $ret[]=$k;
+            foreach ($data as $k=>$v) {
+                $ret[]=$k;
+            }
         } elseif ($json=='[]') {
         } else {
             $data=explode(",",$json);
-            foreach ($data as $v) if ($v || $v=='0') $ret[]=$v;
+            foreach ($data as $v) {
+                if ($v || $v=='0') {
+                    $ret[]=$v;
+                }
+            }
         }
     }
     return $ret;
@@ -355,7 +375,9 @@ function multipicker_json_to_array($json) {
 
 function javascript__iframe_modal_bootstrap() {
     static $done=false;
-    if ($done) return '';
+    if ($done) {
+        return '';
+    }
     $done=true;
     return '<script>
             (function(){
@@ -515,7 +537,9 @@ function javascript__email_popup() {
 }
 
 function javascript__selectall_checkbox_script($target_name='sel') {
-    if (!preg_match('/^[a-zA-Z0-9_]+$/',$target_name)) $target_name='sel';
+    if (!preg_match('/^[a-zA-Z0-9_]+$/',$target_name)) {
+        $target_name='sel';
+    }
     $out='<INPUT id="selall" type="checkbox" name="selall" value="y">
             <script language="JavaScript">
                 (function() {

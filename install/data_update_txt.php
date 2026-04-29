@@ -6,7 +6,7 @@
 
 
 // PREPARATIONS:
-// - Configure your participant data form. Make sure it contains the fields you want to import/update. 
+// - Configure your participant data form. Make sure it contains the fields you want to import/update.
 // - Prepare a data file, where the columns contain the values for participant profile fields. If you update select_lang/radioline_lang items, the data needs to contain the ID of the respective value (e.g. the column for fields of studies should not contain values like "Economics", but the internal ORSEE Id number for "Economics", as listed in the respective table in Options/Items for profile fields of type "select_lang"/"radioline_lang"/Main field of studies.) For select/radioline fields (e.g. the original "gender"), the data needs to contain the option values (see Options/Participant profile fields/Edit ...).
 // - The data file should *not* contain a header. You will need the respective column numbers below, column numbering starts with 0.
 // - Save the file as "tab-separated txt file".
@@ -31,11 +31,11 @@ $key_column_name="participant_id_crypt"; // Name of column to used as a key. Use
 // The mapping from your data columns (indexed 0 to ...) to the participant form fields
 $pform_mapping=array();
 $pform_mapping["participant_id_crypt"]=0; // column index number in your data file
-$pform_mapping["begin_of_studies"]=1; 
+$pform_mapping["begin_of_studies"]=1;
 $pform_mapping["phone_number"]=2;
 
 // If you want to update the participant status ID or the subpool id of the affected participants (e.g. in order to mark those profiles which have been updated), you can include status_id / subpool_id as columns above and in your data file, or you simply set them below. Empty or non-existing settings below imply that participant status ID / subpool id will not be changed.
-$participant_status_id=""; 
+$participant_status_id="";
 $subpool_id="";
 
 
@@ -49,7 +49,7 @@ $check_regexp=true; // check data field against regexp defined for ORSEE pform f
 include("../admin/cronheader.php");
 
 function detectUTF8($string) {
-        return preg_match('%(?:
+    return preg_match('%(?:
         [\xC2-\xDF][\x80-\xBF]        # non-overlong 2-byte
         |\xE0[\xA0-\xBF][\x80-\xBF]               # excluding overlongs
         |[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}      # straight 3-byte
@@ -61,7 +61,7 @@ function detectUTF8($string) {
 }
 
 function convert_array_to_UTF8($arr) {
-    foreach($arr as $k=>$v) {
+    foreach ($arr as $k=>$v) {
         if (!detectUTF8(stripslashes($v))) {
             $arr[$k]=mb_convert_encoding(stripslashes($v), 'UTF-8', 'ISO-8859-1');
         }
@@ -76,10 +76,12 @@ $continue=true;
 
 if ($continue) {
     // check form fields
-    $formfields=participantform__load(); $pfields=array(); $allowed_values=array();
+    $formfields=participantform__load();
+    $pfields=array();
+    $allowed_values=array();
     foreach ($formfields as $f) {
         $pfields[]=$f['mysql_column_name'];
-        if(preg_match("/(radioline|select_list)/",$f['type'])) {
+        if (preg_match("/(radioline|select_list)/",$f['type'])) {
             $allowed_values[$f['mysql_column_name']]=explode(",",$f['option_values']);
         } elseif (preg_match("/(select_lang|radioline_lang)/",$f['type'])) {
             $langvals=lang__load_lang_cat($f['mysql_column_name']);
@@ -105,19 +107,25 @@ if ($continue) {
 }
 
 if ($continue) {
-    $pcount=0; $taberror=false; $colerror=false; $col_count=-1;
+    $pcount=0;
+    $taberror=false;
+    $colerror=false;
+    $col_count=-1;
     $data_file=file($txt_file_name);
-    $participants=array(); $unique_values=array();
-    
+    $participants=array();
+    $unique_values=array();
+
     foreach ($data_file as $line) {
         $pcount++;
         $l=explode("\t",trim($line));
         if (!$taberror && count($l)<=1) {
-            $continue=false; $taberror=true;
+            $continue=false;
+            $taberror=true;
             echo "Error: Only one column found in data file. No tabs used?\n";
         }
         if (!$colerror && $col_count!=-1 && count($l)!=$col_count) {
-            $continue=false; $taberror=true;
+            $continue=false;
+            $taberror=true;
             echo "Error line ".$pcount.": Rows have different numbers of columns. Check data file.\n";
         } else {
             $col_count=count($l);
@@ -138,7 +146,7 @@ if ($continue) {
             if ($check_regexp) {
                 foreach ($formfields as $f) {
                     if (isset($pform_mapping[$f['mysql_column_name']]) && $f['perl_regexp']!='') {
-                        if(!preg_match($f['perl_regexp'],$p[$f['mysql_column_name']])) {
+                        if (!preg_match($f['perl_regexp'],$p[$f['mysql_column_name']])) {
                             $continue=false;
                             echo "Error line ".$pcount.": field ".$f['mysql_column_name']." (column ".$pform_mapping[$f['mysql_column_name']].") has regexp that is not matched. Check data.\n";
                         }
@@ -147,7 +155,7 @@ if ($continue) {
             }
             foreach ($p as $k=>$v) {
                 if (isset($allowed_values[$k])) {
-                    if(!in_array($v,$allowed_values[$k])) {
+                    if (!in_array($v,$allowed_values[$k])) {
                         $continue=false;
                         echo "Error line ".$pcount.": The value ".$v." in field ".$k." (column ".$pform_mapping[$k].") is not defined as an ID for this field in ORSEE. Check data/ORSEE config.\n";
                     }

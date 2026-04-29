@@ -3,7 +3,12 @@
 
 function payments__paytype_selectfield($formfieldvarname,$selected,$exclude=array(),$only=array(),$select_wrapper_class='select is-primary') {
     $paytypes=payments__load_paytypes();
-    $first=true; if (count($only)>0) $restrict=true; else $restrict=false;
+    $first=true;
+    if (count($only)>0) {
+        $restrict=true;
+    } else {
+        $restrict=false;
+    }
     $out='';
     $out.='<span class="'.$select_wrapper_class.'"><SELECT name="'.$formfieldvarname.'">';
     foreach ($paytypes as $k=>$v) {
@@ -24,7 +29,12 @@ function payments__paytype_selectfield($formfieldvarname,$selected,$exclude=arra
 
 function payments__budget_selectfield($formfieldvarname,$selected,$exclude=array(),$only=array(),$select_wrapper_class='select is-primary') {
     $budgets=payments__load_budgets();
-    $first=true; if (count($only)>0) $restrict=true; else $restrict=false;
+    $first=true;
+    if (count($only)>0) {
+        $restrict=true;
+    } else {
+        $restrict=false;
+    }
     $out='';
     $out.='<span class="'.$select_wrapper_class.'"><SELECT name="'.$formfieldvarname.'">';
     foreach ($budgets as $k=>$v) {
@@ -68,7 +78,9 @@ function payments__load_budgets($include_notenabled=false) {
     } else {
         $budgets=array();
         $query="SELECT * FROM ".table('budgets');
-        if (!$include_notenabled) $query.=" WHERE enabled = 1 ";
+        if (!$include_notenabled) {
+            $query.=" WHERE enabled = 1 ";
+        }
         $query.=" ORDER BY budget_name";
         $result=or_query($query);
         while ($line = pdo_fetch_assoc($result)) {
@@ -101,7 +113,8 @@ function payments__get_default_paytype($experiment=array(),$session=array()) {
     }
     if ($continue) {
         $paytypes=payments__load_paytypes();
-        ksort($paytypes); $first=true;
+        ksort($paytypes);
+        $first=true;
         foreach ($paytypes as $k=>$paytype) {
             if ($first) {
                 return $k;
@@ -133,7 +146,8 @@ function payments__get_default_budget($experiment=array(),$session=array()) {
     }
     if ($continue) {
         $budgets=payments__load_budgets(true);
-        ksort($budgets); $first=true;
+        ksort($budgets);
+        $first=true;
         foreach ($budgets as $k=>$budget) {
             if ($first) {
                 return $k;

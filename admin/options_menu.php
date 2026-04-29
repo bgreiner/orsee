@@ -1,15 +1,16 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="options";
 $js_modules=array('listtool');
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     $area='public';
-    if (isset($_REQUEST['area']) && in_array($_REQUEST['area'],array('public','admin'),true)) $area=$_REQUEST['area'];
+    if (isset($_REQUEST['area']) && in_array($_REQUEST['area'],array('public','admin'),true)) {
+        $area=$_REQUEST['area'];
+    }
     if ($area==='public') {
         $allow=check_allow('public_content_edit','options_main.php');
     } else {
@@ -20,7 +21,9 @@ if ($proceed) {
 if (!function_exists('menu__new_item_id')) {
     function menu__new_item_id($prefix,$existing_ids=array()) {
         $prefix=preg_replace('/[^a-zA-Z0-9_]/','',strtolower((string)$prefix));
-        if ($prefix==='') $prefix='item';
+        if ($prefix==='') {
+            $prefix='item';
+        }
         do {
             $candidate=$prefix.'_'.substr(create_random_token($prefix.microtime(true)),0,8);
         } while (in_array($candidate,$existing_ids,true));
@@ -50,15 +53,21 @@ if (!function_exists('menu__default_lang_array')) {
 
 if ($proceed) {
     $config=html__menu_load_config($area);
-    if (!isset($config['items']) || !is_array($config['items'])) $config['items']=array();
+    if (!isset($config['items']) || !is_array($config['items'])) {
+        $config['items']=array();
+    }
 
     $by_id=array();
     $fixed_items=array();
     foreach ($config['items'] as $item) {
-        if (!is_array($item) || !isset($item['id'])) continue;
+        if (!is_array($item) || !isset($item['id'])) {
+            continue;
+        }
         $id=(string)$item['id'];
         $by_id[$id]=$item;
-        if (isset($item['fixed']) && $item['fixed']==='y') $fixed_items[$id]=$item;
+        if (isset($item['fixed']) && $item['fixed']==='y') {
+            $fixed_items[$id]=$item;
+        }
     }
 
     if (isset($_REQUEST['save_order']) && $_REQUEST['save_order']) {
@@ -71,9 +80,13 @@ if ($proceed) {
             $existing_ids=array_keys($by_id);
             $existing_content_names=array();
             foreach ($config['items'] as $item) {
-                if (!is_array($item) || !isset($item['content_name'])) continue;
+                if (!is_array($item) || !isset($item['content_name'])) {
+                    continue;
+                }
                 $content_name=trim((string)$item['content_name']);
-                if ($content_name!=='') $existing_content_names[]=$content_name;
+                if ($content_name!=='') {
+                    $existing_content_names[]=$content_name;
+                }
             }
 
             foreach ($order as $raw_id) {
@@ -187,20 +200,32 @@ if ($proceed) {
             }
 
             foreach ($fixed_items as $fixed_id=>$fixed_item) {
-                if (!isset($seen_ids[$fixed_id])) $new_items[]=$fixed_item;
+                if (!isset($seen_ids[$fixed_id])) {
+                    $new_items[]=$fixed_item;
+                }
             }
 
             $new_ids=array();
             foreach ($new_items as $new_item_line) {
-                if (!is_array($new_item_line) || !isset($new_item_line['id'])) continue;
+                if (!is_array($new_item_line) || !isset($new_item_line['id'])) {
+                    continue;
+                }
                 $new_ids[(string)$new_item_line['id']]=true;
             }
             $removed_content_names=array();
             foreach ($by_id as $old_id=>$old_item) {
-                if (isset($new_ids[$old_id])) continue;
-                if (!is_array($old_item)) continue;
-                if (!(isset($old_item['richtext']) && $old_item['richtext']==='y')) continue;
-                if (!isset($old_item['content_name']) || trim((string)$old_item['content_name'])==='') continue;
+                if (isset($new_ids[$old_id])) {
+                    continue;
+                }
+                if (!is_array($old_item)) {
+                    continue;
+                }
+                if (!(isset($old_item['richtext']) && $old_item['richtext']==='y')) {
+                    continue;
+                }
+                if (!isset($old_item['content_name']) || trim((string)$old_item['content_name'])==='') {
+                    continue;
+                }
                 $removed_content_names[trim((string)$old_item['content_name'])]=true;
             }
 
@@ -210,21 +235,31 @@ if ($proceed) {
                 if (count($removed_content_names)>0) {
                     $remaining_refs=array();
                     foreach ($new_items as $ref_item) {
-                        if (!is_array($ref_item) || !isset($ref_item['content_name'])) continue;
+                        if (!is_array($ref_item) || !isset($ref_item['content_name'])) {
+                            continue;
+                        }
                         $ref_content_name=trim((string)$ref_item['content_name']);
-                        if ($ref_content_name!=='') $remaining_refs[$ref_content_name]=true;
+                        if ($ref_content_name!=='') {
+                            $remaining_refs[$ref_content_name]=true;
+                        }
                     }
                     $other_area=($area==='public' ? 'admin' : 'public');
                     $other_config=html__menu_load_config($other_area);
                     if (is_array($other_config) && isset($other_config['items']) && is_array($other_config['items'])) {
                         foreach ($other_config['items'] as $ref_item) {
-                            if (!is_array($ref_item) || !isset($ref_item['content_name'])) continue;
+                            if (!is_array($ref_item) || !isset($ref_item['content_name'])) {
+                                continue;
+                            }
                             $ref_content_name=trim((string)$ref_item['content_name']);
-                            if ($ref_content_name!=='') $remaining_refs[$ref_content_name]=true;
+                            if ($ref_content_name!=='') {
+                                $remaining_refs[$ref_content_name]=true;
+                            }
                         }
                     }
                     foreach (array_keys($removed_content_names) as $removed_content_name) {
-                        if (isset($remaining_refs[$removed_content_name])) continue;
+                        if (isset($remaining_refs[$removed_content_name])) {
+                            continue;
+                        }
                         $query="DELETE FROM ".table('lang')."
                                 WHERE content_type='public_content'
                                 AND content_name=:content_name";
@@ -241,22 +276,35 @@ if ($proceed) {
     }
 
     $config=html__menu_load_config($area);
-    if (!isset($config['items']) || !is_array($config['items'])) $config['items']=array();
+    if (!isset($config['items']) || !is_array($config['items'])) {
+        $config['items']=array();
+    }
 
     $poss_cols=array();
     $saved_cols=array();
     foreach ($config['items'] as $item) {
-        if (!is_array($item) || !isset($item['id'])) continue;
+        if (!is_array($item) || !isset($item['id'])) {
+            continue;
+        }
         $id=(string)$item['id'];
         $entrytype=(isset($item['entrytype']) ? (string)$item['entrytype'] : 'link');
         $type_label=$entrytype;
-        if ($entrytype==='headlink') $type_label=lang('menu_type_primary_link');
-        elseif ($entrytype==='head') $type_label=lang('menu_type_head');
-        elseif ($entrytype==='link') $type_label=lang('menu_type_submenu');
-        elseif ($entrytype==='space') $type_label=lang('menu_type_spacer');
-        if (isset($item['custom_external']) && $item['custom_external']==='y') $type_label=lang('menu_type_external_link');
+        if ($entrytype==='headlink') {
+            $type_label=lang('menu_type_primary_link');
+        } elseif ($entrytype==='head') {
+            $type_label=lang('menu_type_head');
+        } elseif ($entrytype==='link') {
+            $type_label=lang('menu_type_submenu');
+        } elseif ($entrytype==='space') {
+            $type_label=lang('menu_type_spacer');
+        }
+        if (isset($item['custom_external']) && $item['custom_external']==='y') {
+            $type_label=lang('menu_type_external_link');
+        }
         $name=html__menu_text_from_lang_map((isset($item['menu_term_lang']) ? $item['menu_term_lang'] : array()),$id);
-        if ($entrytype==='space') $name='---';
+        if ($entrytype==='space') {
+            $name='---';
+        }
         $edit_button='<button type="submit" name="go_edit" value="'.htmlspecialchars($id).'" class="button orsee-btn orsee-btn-compact"><i class="fa fa-pencil-square-o" style="padding: 0 0.3em 0 0"></i>'.lang('edit').'</button>';
         $hidden=(isset($item['hidden']) && $item['hidden']==='y' ? lang('y') : lang('n'));
         $show_loginout='-';
@@ -272,7 +320,9 @@ if ($proceed) {
             }
         }
         $row_cols='<div class="orsee-listcell orsee-listcell-nowrap">'.$type_label.'</div><div class="orsee-listcell">'.$name.'</div>';
-        if ($area==='public') $row_cols.='<div class="orsee-listcell orsee-listcell-center">'.$show_loginout.'</div>';
+        if ($area==='public') {
+            $row_cols.='<div class="orsee-listcell orsee-listcell-center">'.$show_loginout.'</div>';
+        }
         $row_cols.='<div class="orsee-listcell orsee-listcell-center">'.$hidden.'</div><div class="orsee-listcell">'.$edit_button.'</div>';
         $poss_cols[$id]=array(
             'display_text'=>$name,
@@ -324,7 +374,9 @@ if ($proceed) {
     echo '<form action="options_menu.php" method="POST">'.csrf__field();
     echo '<input type="hidden" name="area" value="'.htmlspecialchars($area).'">';
     $headers='<div class="orsee-listcell orsee-listcell-nowrap">'.lang('menu_type').'</div><div class="orsee-listcell">'.lang('menu_menu_term').'</div>';
-    if ($area==='public') $headers.='<div class="orsee-listcell orsee-listcell-center">'.lang('menu_show_when_logged_in_out').'</div>';
+    if ($area==='public') {
+        $headers.='<div class="orsee-listcell orsee-listcell-center">'.lang('menu_show_when_logged_in_out').'</div>';
+    }
     $headers.='<div class="orsee-listcell orsee-listcell-center">'.lang('menu_hidden').'</div><div class="orsee-listcell"></div>';
     if ($area==='public') {
         $downtime_lang_id=lang__get_lang_id('public_content','error_temporary_disabled');
@@ -364,5 +416,6 @@ if ($proceed) {
     echo '</div>';
 }
 
-include ("footer.php");
+include("footer.php");
+
 ?>

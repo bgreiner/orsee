@@ -5,8 +5,13 @@ $temp__nosession=true;
 $menu__area="public_register";
 $title="confirm_registration";
 include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['c'])) $c=$_REQUEST['c']; else $c='';
+    if (isset($_REQUEST['c'])) {
+        $c=$_REQUEST['c'];
+    } else {
+        $c='';
+    }
     if (!$c) {
         message(lang('confirmation_error'),'warning');
         redirect("public/");
@@ -23,7 +28,9 @@ if ($proceed) {
         $pars=array(':participant_id'=>$participant_id,':default_active_status'=>$default_active_status);
         if ($settings['allow_permanent_queries']=='y') {
             $qadd=', apply_permanent_queries = 1 ';
-        } else $qadd='';
+        } else {
+            $qadd='';
+        }
         $query="UPDATE ".table('participants')."
                 SET status_id= :default_active_status,
                  confirmation_token = ''
@@ -57,4 +64,5 @@ if ($proceed) {
     }
 }
 include("footer.php");
+
 ?>

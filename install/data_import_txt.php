@@ -56,7 +56,7 @@ $check_regexp=true; // check data field against regexp defined for ORSEE pform f
 include("../admin/cronheader.php");
 
 function detectUTF8($string) {
-        return preg_match('%(?:
+    return preg_match('%(?:
         [\xC2-\xDF][\x80-\xBF]        # non-overlong 2-byte
         |\xE0[\xA0-\xBF][\x80-\xBF]               # excluding overlongs
         |[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}      # straight 3-byte
@@ -68,7 +68,7 @@ function detectUTF8($string) {
 }
 
 function convert_array_to_UTF8($arr) {
-    foreach($arr as $k=>$v) {
+    foreach ($arr as $k=>$v) {
         if (!detectUTF8(stripslashes($v))) {
             $arr[$k]=mb_convert_encoding(stripslashes($v), 'UTF-8', 'ISO-8859-1');
         }
@@ -102,7 +102,8 @@ if ($continue) {
 if ($continue) {
     // check experiment types
     $exptypes=load_external_experiment_types();
-    $texptypes=explode(",",$experiment_types); $cexptypes=array();
+    $texptypes=explode(",",$experiment_types);
+    $cexptypes=array();
     foreach ($texptypes as $id) {
         $id=trim($id);
         if (!isset($exptypes[$id])) {
@@ -116,18 +117,20 @@ if ($continue) {
 
 if ($continue) {
     // check form fields
-    $formfields=participantform__load(); $pfields=array(); $allowed_values=array();
+    $formfields=participantform__load();
+    $pfields=array();
+    $allowed_values=array();
     foreach ($formfields as $f) {
         $pfields[]=$f['mysql_column_name'];
         if ($check_compulsory) {
-            if($f['subpools']=='all' | in_array($subpool_id,explode(",",$f['subpools']))) {
+            if ($f['subpools']=='all' | in_array($subpool_id,explode(",",$f['subpools']))) {
                 if ($f['compulsory']=='y' && !isset($pform_mapping[$f['mysql_column_name']])) {
                     $continue=false;
                     echo "Error: form field ".$f['mysql_column_name']." is compulsory but not defined in \$pform_mapping. Please check configuration/data.\n";
                 }
             }
         }
-        if(preg_match("/(radioline|select_list)/",$f['type'])) {
+        if (preg_match("/(radioline|select_list)/",$f['type'])) {
             $allowed_values[$f['mysql_column_name']]=explode(",",$f['option_values']);
         } elseif (preg_match("/(select_lang|radioline_lang)/",$f['type'])) {
             $langvals=lang__load_lang_cat($f['mysql_column_name']);
@@ -145,19 +148,25 @@ if ($continue) {
 }
 
 if ($continue) {
-    $pcount=0; $taberror=false; $colerror=false; $col_count=-1;
+    $pcount=0;
+    $taberror=false;
+    $colerror=false;
+    $col_count=-1;
     $data_file=file($txt_file_name);
-    $participants=array(); $unique_values=array();
-    
+    $participants=array();
+    $unique_values=array();
+
     foreach ($data_file as $line) {
         $pcount++;
         $l=explode("\t",trim($line));
         if (!$taberror && count($l)<=1) {
-            $continue=false; $taberror=true;
+            $continue=false;
+            $taberror=true;
             echo "Error: Only one column found in data file. No tabs used?\n";
         }
         if (!$colerror && $col_count!=-1 && count($l)!=$col_count) {
-            $continue=false; $taberror=true;
+            $continue=false;
+            $taberror=true;
             echo "Error line ".$pcount.": Rows have different numbers of columns. Check data file.\n";
         } else {
             $col_count=count($l);
@@ -177,21 +186,21 @@ if ($continue) {
         if ($continue) {
             if ($check_compulsory || $check_regexp) {
                 foreach ($formfields as $f) {
-                    if($f['subpools']=='all' | in_array($subpool_id,explode(",",$f['subpools']))) {
+                    if ($f['subpools']=='all' | in_array($subpool_id,explode(",",$f['subpools']))) {
                         if ($check_compulsory && $f['compulsory']=='y') {
-                            if(!isset($p[$f['mysql_column_name']]) || !$p[$f['mysql_column_name']]) {
+                            if (!isset($p[$f['mysql_column_name']]) || !$p[$f['mysql_column_name']]) {
                                 $continue=false;
                                 echo "Error line ".$pcount.": field ".$f['mysql_column_name']." (column ".$pform_mapping[$f['mysql_column_name']].") is compulsory but empty. Check data.\n";
                             }
                         }
                         if ($check_regexp && $f['perl_regexp']!='') {
-                            if(!preg_match($f['perl_regexp'],$p[$f['mysql_column_name']])) {
+                            if (!preg_match($f['perl_regexp'],$p[$f['mysql_column_name']])) {
                                 $continue=false;
                                 echo "Error line ".$pcount.": field ".$f['mysql_column_name']." (column ".$pform_mapping[$f['mysql_column_name']].") has regexp that is not matched. Check data.\n";
                             }
                         }
                     }
-                    if($f['require_unique_on_create_page']=='y' && isset($p[$f['mysql_column_name']]) && $p[$f['mysql_column_name']]) {
+                    if ($f['require_unique_on_create_page']=='y' && isset($p[$f['mysql_column_name']]) && $p[$f['mysql_column_name']]) {
                         if (isset($unique_values[$f['mysql_column_name']][$p[$f['mysql_column_name']]])) {
                             $continue=false;
                             echo "Error line ".$pcount.": field ".$f['mysql_column_name']." (column ".$pform_mapping[$f['mysql_column_name']].") needs to be unique but value was used before in row ".$unique_values[$f['mysql_column_name']][$p[$f['mysql_column_name']]].". Check data.\n";
@@ -204,7 +213,7 @@ if ($continue) {
             // todo: check whether ids/option values for select_lang/radion_lang/select/radioline exist ...
             foreach ($p as $k=>$v) {
                 if (isset($allowed_values[$k])) {
-                    if(!in_array($v,$allowed_values[$k])) {
+                    if (!in_array($v,$allowed_values[$k])) {
                         $continue=false;
                         echo "Error line ".$pcount.": The value ".$v." in field ".$k." (column ".$pform_mapping[$k].") is not defined as an ID for this field in ORSEE. Check data/ORSEE config.\n";
                     }

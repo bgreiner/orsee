@@ -1,10 +1,9 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="create_new_mysql_table_column";
 $menu__area="options";
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     $allow=check_allow('pform_config_field_add','options_participant_profile.php');
@@ -22,74 +21,79 @@ if ($proceed) {
         if (!csrf__validate_request_message()) {
             $proceed=false;
         } else {
-        $continue=true;
-        $name=trim((string)$_REQUEST['mysql_column_name']);
-        $coltype=(isset($_REQUEST['mysql_column_type']) ? trim((string)$_REQUEST['mysql_column_type']) : '1');
-        if ($continue) {
-            if ($name==='') {
-                $continue=false;
-                message(lang('error_missing_mysql_column_name'),'error');
+            $continue=true;
+            $name=trim((string)$_REQUEST['mysql_column_name']);
+            $coltype=(isset($_REQUEST['mysql_column_type']) ? trim((string)$_REQUEST['mysql_column_type']) : '1');
+            if ($continue) {
+                if ($name==='') {
+                    $continue=false;
+                    message(lang('error_missing_mysql_column_name'),'error');
+                }
             }
-        }
-        if ($continue) {
-            if (!preg_match("/^[a-z][a-z_]+[a-z]$/",$name)) {
-                $continue=false;
-                message(lang('error_column_name_does_not_match_requirements').': <b>'.htmlspecialchars((string)$name,ENT_QUOTES,'UTF-8').'</b>', 'error');
+            if ($continue) {
+                if (!preg_match("/^[a-z][a-z_]+[a-z]$/",$name)) {
+                    $continue=false;
+                    message(lang('error_column_name_does_not_match_requirements').': <b>'.htmlspecialchars((string)$name,ENT_QUOTES,'UTF-8').'</b>', 'error');
+                }
             }
-        }
-        if ($continue) {
-            $user_columns=participant__userdefined_columns();
-            if (isset($user_columns[$name])) {
-                $continue=false;
-                message(lang('error_column_of_this_name_exists').': <b>'.htmlspecialchars((string)$name,ENT_QUOTES,'UTF-8').'</b>', 'error');
+            if ($continue) {
+                $user_columns=participant__userdefined_columns();
+                if (isset($user_columns[$name])) {
+                    $continue=false;
+                    message(lang('error_column_of_this_name_exists').': <b>'.htmlspecialchars((string)$name,ENT_QUOTES,'UTF-8').'</b>', 'error');
+                }
             }
-        }
-        if ($continue) {
-            $pars=array(':content_type'=>$name);
-            $query="SELECT count(*) AS ct
+            if ($continue) {
+                $pars=array(':content_type'=>$name);
+                $query="SELECT count(*) AS ct
                     FROM ".table('lang')."
                     WHERE content_type=:content_type";
-            $line=orsee_query($query,$pars);
-            if ((int)$line['ct']>0) {
-                $continue=false;
-                message(lang('error_mysql_column_name_conflicts_with_lang_content_type').': <b>'.htmlspecialchars((string)$name,ENT_QUOTES,'UTF-8').'</b>', 'error');
+                $line=orsee_query($query,$pars);
+                if ((int)$line['ct']>0) {
+                    $continue=false;
+                    message(lang('error_mysql_column_name_conflicts_with_lang_content_type').': <b>'.htmlspecialchars((string)$name,ENT_QUOTES,'UTF-8').'</b>', 'error');
+                }
             }
-        }
-        if ($continue) {
-            if ($coltype==='3') {
-                $ttypespec=$type_specs[3]['fullspec'];
-                $tindexspec=$index_specs[3];
-            } elseif ($coltype==='2') {
-                $ttypespec=$type_specs[2]['fullspec'];
-                $tindexspec=$index_specs[2];
-            } else {
-                $ttypespec=$type_specs[1]['fullspec'];
-                $tindexspec=$index_specs[1];
-            }
+            if ($continue) {
+                if ($coltype==='3') {
+                    $ttypespec=$type_specs[3]['fullspec'];
+                    $tindexspec=$index_specs[3];
+                } elseif ($coltype==='2') {
+                    $ttypespec=$type_specs[2]['fullspec'];
+                    $tindexspec=$index_specs[2];
+                } else {
+                    $ttypespec=$type_specs[1]['fullspec'];
+                    $tindexspec=$index_specs[1];
+                }
 
-            $create_query="ALTER TABLE ".table('participants')."
+                $create_query="ALTER TABLE ".table('participants')."
                             ADD COLUMN ".$name." ".$ttypespec.",
                             ADD INDEX ".str_replace("#name#",$name,$tindexspec);
-            $done=or_query($create_query);
-            if ($done) {
-                message(lang('mysql_column_created'));
-                redirect('admin/options_participant_profile.php');
-            } else {
-                message(lang('database_error'), 'error');
+                $done=or_query($create_query);
+                if ($done) {
+                    message(lang('mysql_column_created'));
+                    redirect('admin/options_participant_profile.php');
+                } else {
+                    message(lang('database_error'), 'error');
+                }
             }
-        }
         }
     }
 }
 
 
 if ($proceed) {
+    if (isset($_REQUEST['mysql_column_name'])) {
+        $mysql_column_name=trim($_REQUEST['mysql_column_name']);
+    } else {
+        $mysql_column_name='';
+    }
 
-    if (isset($_REQUEST['mysql_column_name'])) $mysql_column_name=trim($_REQUEST['mysql_column_name']);
-    else $mysql_column_name='';
-
-    if (isset($_REQUEST['mysql_column_type'])) $mysql_column_type=trim($_REQUEST['mysql_column_type']);
-    else $mysql_column_type=1;
+    if (isset($_REQUEST['mysql_column_type'])) {
+        $mysql_column_type=trim($_REQUEST['mysql_column_type']);
+    } else {
+        $mysql_column_type=1;
+    }
 
 
     javascript__tooltip_prepare();
@@ -116,7 +120,9 @@ if ($proceed) {
                             <span class="select is-primary"><select name="mysql_column_type">';
     foreach ($type_specs as $k=>$arr) {
         echo '<option value="'.$k.'"';
-        if ($k==$mysql_column_type) echo ' SELECTED';
+        if ($k==$mysql_column_type) {
+            echo ' SELECTED';
+        }
         echo '>'.$arr['spec'].'</option>';
     }
     echo                    '</select></span>
@@ -161,7 +167,7 @@ if ($proceed) {
                 });
             });
         </script>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

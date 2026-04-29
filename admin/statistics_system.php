@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="statistics";
 $title="system_statistics";
 include("header.php");
+
 if ($proceed) {
     $allow=check_allow('statistics_system_show','statistics_main.php');
 }
@@ -34,7 +34,7 @@ if ($proceed) {
     echo button_back('statistics_main.php');
     echo '</div>';
     echo '</div>';
-
 }
 include("footer.php");
+
 ?>

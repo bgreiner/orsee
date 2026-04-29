@@ -1,44 +1,52 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="session_reminder_send";
 include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['session_id']) && $_REQUEST['session_id']) $session_id=$_REQUEST['session_id'];
-    else redirect ("admin/");
+    if (isset($_REQUEST['session_id']) && $_REQUEST['session_id']) {
+        $session_id=$_REQUEST['session_id'];
+    } else {
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
     $session=orsee_db_load_array("sessions",$session_id,"session_id");
-    if (!isset($session['session_id'])) redirect ("admin/");
+    if (!isset($session['session_id'])) {
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot'])
-        redirect ('admin/experiment_participants_show.php?experiment_id='.$session['experiment_id'].'&session_id='.$session_id);
+    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
+        redirect('admin/experiment_participants_show.php?experiment_id='.$session['experiment_id'].'&session_id='.$session_id);
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['reallysend']) && $_REQUEST['reallysend']) $reallysend=true;
-    else $reallysend=false;
+    if (isset($_REQUEST['reallysend']) && $_REQUEST['reallysend']) {
+        $reallysend=true;
+    } else {
+        $reallysend=false;
+    }
 
     $allow=check_allow('session_send_reminder','experiment_participants_show.php?experiment_id='.
                             $session['experiment_id'].'&session_id='.$session_id);
 }
 
 if ($proceed) {
-
     if ($reallysend) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/session_send_reminder.php?session_id='.$session_id);
+            redirect('admin/session_send_reminder.php?session_id='.$session_id);
         }
         // send it out to mail queue
         $number=experimentmail__send_session_reminders_to_queue($session);
-        message ($number.' '.lang('xxx_session_reminder_emails_sent_out'));
+        message($number.' '.lang('xxx_session_reminder_emails_sent_out'));
         log__admin("session_send_reminder","session:".session__build_name($session,$settings['admin_standard_language']).
                                 ", session_id:".$session_id.", experiment_id:".$session['experiment_id']);
-        redirect ('admin/experiment_participants_show.php?experiment_id='.$session['experiment_id'].'&session_id='.$session_id);
+        redirect('admin/experiment_participants_show.php?experiment_id='.$session['experiment_id'].'&session_id='.$session_id);
     }
 }
 
@@ -60,7 +68,7 @@ if ($proceed) {
                     </div>
                 </div>
             </form>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

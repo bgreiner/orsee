@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="budgets";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('payments_budget_edit','options_main.php');
 }
@@ -24,7 +24,9 @@ if ($proceed) {
     echo '<div class="orsee-table-cell">'.lang('name').'</div>';
     echo '<div class="orsee-table-cell">'.lang('experimenter').'</div>';
     echo '<div class="orsee-table-cell">'.lang('budget_limit').'</div>';
-    if (check_allow('payments_budget_edit')) echo '<div class="orsee-table-cell">'.lang('action').'</div>';
+    if (check_allow('payments_budget_edit')) {
+        echo '<div class="orsee-table-cell">'.lang('action').'</div>';
+    }
     echo '</div>';
 
     $query="SELECT * FROM ".table('budgets')."
@@ -39,11 +41,13 @@ if ($proceed) {
         } else {
             $shade=true;
         }
-        if (!$line['enabled']) $row_class.=' orsee-table-row-disabled';
+        if (!$line['enabled']) {
+            $row_class.=' orsee-table-row-disabled';
+        }
 
         echo '<div class="'.$row_class.'">';
         echo '<div class="orsee-table-cell" data-label="'.lang('id').'">'.$line['budget_id'].'</div>';
-        echo '<div class="orsee-table-cell" data-label="'.lang('enabled?').'">'.($line['enabled']?lang('y'):lang('n')).'</div>';
+        echo '<div class="orsee-table-cell" data-label="'.lang('enabled?').'">'.($line['enabled'] ? lang('y') : lang('n')).'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('name').'">'.$line['budget_name'].'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('experimenter').'">'.experiment__list_experimenters($line['experimenter'],false,true).'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('budget_limit').'">'.$line['budget_limit'].'</div>';
@@ -54,12 +58,10 @@ if ($proceed) {
         }
         echo '</div>';
     }
-   echo '</div>';
-   echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
-   echo '</div>';
-
-
-
+    echo '</div>';
+    echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
+    echo '</div>';
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

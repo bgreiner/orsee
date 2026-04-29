@@ -1,7 +1,6 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="my_data";
 $title="edit_participant_data";
 $js_modules=array('flatpickr','switchy','intltelinput');
@@ -35,22 +34,28 @@ if ($proceed) {
 
         // checks and errors
         foreach ($_REQUEST as $k=>$v) {
-            if(!is_array($v)) $_REQUEST[$k]=trim($v);
+            if (!is_array($v)) {
+                $_REQUEST[$k]=trim($v);
+            }
         }
         $check_result=participantform__check_fields($_REQUEST,'profile_form_public_edit');
         $errors__dataform=$check_result['errors'];
         $form_input=$check_result['sanitized'];
         $allowed_fields=$check_result['allowed_fields'];
         $error_count=count($errors__dataform);
-        if ($error_count>0) $continue=false;
+        if ($error_count>0) {
+            $continue=false;
+        }
 
         $response=participantform__check_unique($form_input,"edit",$form_input['participant_id']);
-        if($response['problem']) { $continue=false; }
+        if ($response['problem']) {
+            $continue=false;
+        }
 
         if ($continue) {
             if (isset($participant['pending_profile_update_request']) && $participant['pending_profile_update_request']=='y') {
                 $form_input['pending_profile_update_request']='n';
-                $form_input['profile_update_request_new_pool']=NULL;
+                $form_input['profile_update_request_new_pool']=null;
                 message(lang('profile_confirmed').'<BR>');
             }
             $participant=$form_input;
@@ -70,7 +75,7 @@ if ($proceed) {
                 redirect("public/".$edit_url.'#profile');
             } else {
                 message(lang('database_error'),'error');
-                redirect ("public/".$edit_url.'#profile');
+                redirect("public/".$edit_url.'#profile');
             }
         }
     }
@@ -97,14 +102,26 @@ if ($proceed && $allow_change_pw) {
             redirect("public/".$edit_url.'#change_pw');
         }
 
-        if (isset($_REQUEST['passold'])) $passold=$_REQUEST['passold']; else $passold="";
-        if (isset($_REQUEST['password'])) $password=$_REQUEST['password']; else $password="";
-        if (isset($_REQUEST['password2'])) $password2=$_REQUEST['password2']; else $password2="";
+        if (isset($_REQUEST['passold'])) {
+            $passold=$_REQUEST['passold'];
+        } else {
+            $passold="";
+        }
+        if (isset($_REQUEST['password'])) {
+            $password=$_REQUEST['password'];
+        } else {
+            $password="";
+        }
+        if (isset($_REQUEST['password2'])) {
+            $password2=$_REQUEST['password2'];
+        } else {
+            $password2="";
+        }
 
         $continue=true;
         if ($continue) {
             if (!$passold) {
-                message (lang('error_please_fill_in_all_fields'),'error');
+                message(lang('error_please_fill_in_all_fields'),'error');
                 $continue=false;
             }
         }
@@ -122,11 +139,11 @@ if ($proceed && $allow_change_pw) {
         }
 
         if ($continue==false) {
-            message (lang('error_password_not_changed'),'error');
-            redirect ("public/".$edit_url.'#change_pw');
+            message(lang('error_password_not_changed'),'error');
+            redirect("public/".$edit_url.'#change_pw');
         } else {
             participant__set_password($password,$participant['participant_id']);
-            message (lang('password_changed_log_in_again'));
+            message(lang('password_changed_log_in_again'));
             log__participant("participant_password_change",$participant['participant_id']);
             log__participant("logout",$participant['participant_id']);
             participant__logout();
@@ -151,13 +168,13 @@ if ($proceed) {
         log__participant("delete",$participant_id);
         log__participant("logout",$participant_id);
         participant__logout();
-        message (lang('removed_from_invitation_list'));
+        message(lang('removed_from_invitation_list'));
         redirect("public/");
     }
 }
 
 if ($proceed) {
-// form
+    // form
     if ($form) {
         if (isset($_REQUEST['add']) && $_REQUEST['add'] && isset($_SESSION['message_queue']) && is_array($_SESSION['message_queue'])) {
             foreach ($_SESSION['message_queue'] as $idx=>$msg) {
@@ -169,7 +186,9 @@ if ($proceed) {
         }
 
         $tabs=array('profile','unsubscribe');
-        if ($allow_change_pw) array_splice($tabs,1,0,'change_pw');
+        if ($allow_change_pw) {
+            array_splice($tabs,1,0,'change_pw');
+        }
         $participant_password_dir=($settings['force_ltr_participant_login_password']==='y' ? ' dir="ltr"' : '');
         echo '<div id="orsee-public-mobile-screen" class="orsee-public-screen has-rail">';
         echo '<div class="orsee-public-inline-message-buffer">';
@@ -371,4 +390,5 @@ if ($proceed) {
     }
 }
 include("footer.php");
+
 ?>

@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="participant_statuses";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('participantstatus_edit','options_main.php');
 }
@@ -27,7 +27,9 @@ if ($proceed) {
     echo '<div class="orsee-table-cell">'.lang('default_for_active_participants').'</div>';
     echo '<div class="orsee-table-cell">'.lang('default_for_inactive_participants').'</div>';
     echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('subjects').'</div>';
-    if (check_allow('participantstatus_edit')) echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('action').'</div>';
+    if (check_allow('participantstatus_edit')) {
+        echo '<div class="orsee-table-cell" style="white-space: nowrap;">'.lang('action').'</div>';
+    }
     echo '</div>';
 
     // load status names from lang table
@@ -37,7 +39,8 @@ if ($proceed) {
     $query="SELECT count(*) as status_count, status_id
             FROM ".table('participants')."
             GROUP BY status_id";
-    $result=or_query($query); $status_counts=array();
+    $result=or_query($query);
+    $status_counts=array();
     while ($line=pdo_fetch_assoc($result)) {
         $status_counts[$line['status_id']]=$line['status_count'];
     }
@@ -62,14 +65,21 @@ if ($proceed) {
         echo '<div class="orsee-table-cell" data-label="'.lang('access_to_profile').'">'.$line['access_to_profile'].'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('eligible_for_experiments').'">'.$line['eligible_for_experiments'].'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('default_for_active_participants').'">';
-        if ($line['is_default_active']=='y') echo '<strong>'.lang('y').'</strong>';
+        if ($line['is_default_active']=='y') {
+            echo '<strong>'.lang('y').'</strong>';
+        }
         echo '</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('default_for_inactive_participants').'">';
-        if ($line['is_default_inactive']=='y') echo '<strong>'.lang('y').'</strong>';
+        if ($line['is_default_inactive']=='y') {
+            echo '<strong>'.lang('y').'</strong>';
+        }
         echo '</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('subjects').'" style="white-space: nowrap;">';
-        if (isset($status_counts[$line['status_id']])) echo $status_counts[$line['status_id']];
-        else echo '0';
+        if (isset($status_counts[$line['status_id']])) {
+            echo $status_counts[$line['status_id']];
+        } else {
+            echo '0';
+        }
         echo '</div>';
         if (check_allow('participantstatus_edit')) {
             echo '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'" style="white-space: nowrap;">';
@@ -78,12 +88,11 @@ if ($proceed) {
         }
         echo '</div>';
     }
-   echo '</div>';
+    echo '</div>';
 
-   echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
-   echo '</div>';
-
-
+    echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
+    echo '</div>';
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

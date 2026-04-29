@@ -1,41 +1,52 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="delete_budget";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['budget_id'])) $budget_id=$_REQUEST['budget_id']; else $budget_id="";
-    if (!$budget_id) redirect ('admin/payments_budget_main.php');
+    if (isset($_REQUEST['budget_id'])) {
+        $budget_id=$_REQUEST['budget_id'];
+    } else {
+        $budget_id="";
+    }
+    if (!$budget_id) {
+        redirect('admin/payments_budget_main.php');
+    }
 }
 
 if ($proceed) {
     $budget=orsee_db_load_array("budgets",$budget_id,"budget_id");
-    if (!isset($budget['budget_id'])) redirect ('admin/payments_budget_main.php');
+    if (!isset($budget['budget_id'])) {
+        redirect('admin/payments_budget_main.php');
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot'])
-        redirect ('admin/payments_budget_edit.php?budget_id='.$budget_id);
+    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
+        redirect('admin/payments_budget_edit.php?budget_id='.$budget_id);
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-        else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
 
     $allow=check_allow('payments_budget_delete','payments_budget_edit.php?budget_id='.$budget_id);
 }
 
 if ($proceed) {
-
     if ($reallydelete) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/payments_budget_delete.php?budget_id='.$budget_id);
+            redirect('admin/payments_budget_delete.php?budget_id='.$budget_id);
         }
         $budgets=payments__load_budgets();
         if (!isset($_REQUEST['merge_with']) || !isset($budgets[$_REQUEST['merge_with']])) {
-            redirect ('admin/payments_budget_delete.php?budget_id='.$budget_id);
+            redirect('admin/payments_budget_delete.php?budget_id='.$budget_id);
         } else {
             $merge_with=$_REQUEST['merge_with'];
             // transaction?
@@ -56,8 +67,14 @@ if ($proceed) {
             $result=or_query($query,$pars);
             while ($line=pdo_fetch_assoc($result)) {
                 $ids=db_string_to_id_array($line['payment_budgets']);
-                foreach ($ids as $k=>$v) if ($v==$budget_id) unset($ids[$k]);
-                if (!in_array($merge_with,$ids)) $ids[]=$merge_with;
+                foreach ($ids as $k=>$v) {
+                    if ($v==$budget_id) {
+                        unset($ids[$k]);
+                    }
+                }
+                if (!in_array($merge_with,$ids)) {
+                    $ids[]=$merge_with;
+                }
                 $upars[]=array(
                             ':session_id'=>$line['session_id'],
                             ':payment_budgets'=>id_array_to_db_string($ids)
@@ -69,7 +86,7 @@ if ($proceed) {
             $done=or_query($query,$upars);
 
             // update experiments
-                        $upars=array();
+            $upars=array();
             $pars=array(':payment_budget'=>'%|'.$budget_id.'|%');
             $query="SELECT experiment_id, payment_budgets
                     FROM ".table('experiments')."
@@ -77,8 +94,14 @@ if ($proceed) {
             $result=or_query($query,$pars);
             while ($line=pdo_fetch_assoc($result)) {
                 $ids=db_string_to_id_array($line['payment_budgets']);
-                foreach ($ids as $k=>$v) if ($v==$budget_id) unset($ids[$k]);
-                if (!in_array($merge_with,$ids)) $ids[]=$merge_with;
+                foreach ($ids as $k=>$v) {
+                    if ($v==$budget_id) {
+                        unset($ids[$k]);
+                    }
+                }
+                if (!in_array($merge_with,$ids)) {
+                    $ids[]=$merge_with;
+                }
                 $upars[]=array(
                             ':experiment_id'=>$line['experiment_id'],
                             ':payment_budgets'=>id_array_to_db_string($ids)
@@ -96,8 +119,8 @@ if ($proceed) {
             $result=or_query($query,$pars);
 
             log__admin("payments_budget_delete","budget_id:".$budget['budget_id'].", merge_with:".$merge_with);
-            message (lang('payments_budget_deleted_exp_sess_part_moved_to').' "'.$budgets[$merge_with]['budget_name'].'".');
-            redirect ("admin/payments_budget_main.php");
+            message(lang('payments_budget_deleted_exp_sess_part_moved_to').' "'.$budgets[$merge_with]['budget_name'].'".');
+            redirect("admin/payments_budget_main.php");
         }
     }
 }
@@ -136,7 +159,7 @@ if ($proceed) {
                 </form>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

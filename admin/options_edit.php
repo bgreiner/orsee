@@ -3,13 +3,16 @@
 ob_start();
 $title="";
 if (isset($_REQUEST['otype']) && $_REQUEST['otype']) {
-    if ($_REQUEST['otype']=="general") $title='edit_general_settings';
-    elseif ($_REQUEST['otype']=="default") $title='edit_default_values';
+    if ($_REQUEST['otype']=="general") {
+        $title='edit_general_settings';
+    } elseif ($_REQUEST['otype']=="default") {
+        $title='edit_default_values';
+    }
 }
-
 $js_modules=array('switchy','flatpickr');
 $menu__area="options";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('settings_view','options_main.php');
 }
@@ -19,11 +22,14 @@ if ($proceed) {
         $otype=$_REQUEST['otype'];
     } else {
         $otype="";
-        redirect ("admin/options_main.php");
+        redirect("admin/options_main.php");
     }
 
-    if ($otype=='general') $opts=$system__options_general;
-    else $opts=$system__options_defaults;
+    if ($otype=='general') {
+        $opts=$system__options_general;
+    } else {
+        $opts=$system__options_defaults;
+    }
 
     echo '<div class="orsee-options-general-edit-wrap">';
 
@@ -46,16 +52,18 @@ if ($proceed) {
 
 if ($proceed) {
     if (check_allow('settings_edit') && isset($_REQUEST['change']) && $_REQUEST['change']) {
-        $newoptions=$_REQUEST['options']; $now=time();
-        
+        $newoptions=$_REQUEST['options'];
+        $now=time();
+
         // add and process option values which may be differently submitted
         foreach ($opts as $o) {
-            if($o['type']=='date') {
+            if ($o['type']=='date') {
                 $newoptions[$o['option_name']]=ortime__array_to_sesstime($_REQUEST,'options__'.$o['option_name'].'_');
             }
         }
-        
-        $pars_new=array(); $pars_update=array();
+
+        $pars_new=array();
+        $pars_update=array();
         foreach ($newoptions as $oname => $ovalue) {
             if (isset($options[$oname])) {
                 $pars_update[]=array(':value'=>$ovalue,
@@ -86,7 +94,7 @@ if ($proceed) {
         }
         message(lang('changes_saved'));
         log__admin("options_edit","type:".$otype);
-        redirect ('admin/options_edit.php?otype='.$otype);
+        redirect('admin/options_edit.php?otype='.$otype);
     }
 }
 
@@ -126,8 +134,8 @@ if ($proceed) {
             })();
             </script>';
     }
-
 }
 
-include ("footer.php");
+include("footer.php");
+
 ?>

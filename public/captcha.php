@@ -5,20 +5,22 @@ if (!extension_loaded('gd')) {
     die("no GD installed");
 }
 $suppress_html_header=true;
-include ("header.php");
+include("header.php");
+
 $captcha_length = 5;
 $available_letters = 'ABCDEFGHJKLMNPRTUVWXYZ2346789';
 $captcha = '';
 for ($i=0; $i < $captcha_length; $i++) {
-    do { $ipos = mt_rand(0, strlen($available_letters) - 1); }
-    while (stripos($captcha, $available_letters[$ipos]) !== false);
+    do {
+        $ipos = mt_rand(0, strlen($available_letters) - 1);
+    } while (stripos($captcha, $available_letters[$ipos]) !== false);
     $captcha .= $available_letters[$ipos];
 }
 $_SESSION['captcha_string'] = $captcha;
 $im = imagecreatetruecolor($captcha_length*38, 70);
 $bg = imagecolorallocate($im, 255, 255, 255);
 imagefill($im, 0, 0, $bg);
-for($i=0;$i<120;$i++) {
+for ($i=0;$i<120;$i++) {
     $done = imagesetthickness($im, 3);
     $lines = imagecolorallocate($im, rand(100, 220), rand(100, 220), rand(100, 220));
     $start_x = rand(0,$captcha_length*38);

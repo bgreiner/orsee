@@ -5,11 +5,13 @@ $menu__area="faqs";
 $menu_item_id='faqs';
 $title="faq_long";
 include("header.php");
+
 if ($proceed) {
     $query="SELECT * FROM ".table('faqs').", ".table('lang')."
             WHERE ".table('lang').".content_name=".table('faqs').".faq_id
             AND ".table('lang').".content_type='faq_answer'";
-    $result=or_query($query); $answers=array();
+    $result=or_query($query);
+    $answers=array();
     while ($line=pdo_fetch_assoc($result)) {
         $answers[$line['faq_id']]=$line;
     }
@@ -20,7 +22,9 @@ if ($proceed) {
             ORDER BY ".table('faqs').".evaluation DESC, ".table('lang').".".lang('lang');
     $result=or_query($query);
 
-    if (!isset($_SESSION['vote'])) $_SESSION['vote']=array();
+    if (!isset($_SESSION['vote'])) {
+        $_SESSION['vote']=array();
+    }
 
     $helpful_label=lang('this_faq_answered_my_question');
 
@@ -101,7 +105,7 @@ if ($proceed) {
                 });
         });
     </script>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

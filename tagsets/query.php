@@ -4,7 +4,11 @@
 function query__show_form($hide_modules,$experiment=array(),$load_query="",$button_title='Search and show',$saved_queries=array(),$status_query="",$formextra="") {
     global $lang;
 
-    if (is_array($experiment) && isset($experiment['experiment_id']) && $experiment['experiment_id']) $experiment_id=$experiment['experiment_id']; else $experiment_id="";
+    if (is_array($experiment) && isset($experiment['experiment_id']) && $experiment['experiment_id']) {
+        $experiment_id=$experiment['experiment_id'];
+    } else {
+        $experiment_id="";
+    }
 
     $prototypes = query__get_query_form_prototypes($hide_modules,$experiment_id,$status_query);
     //echo '<pre>'; var_dump($prototypes); echo '</pre>';
@@ -12,11 +16,11 @@ function query__show_form($hide_modules,$experiment=array(),$load_query="",$butt
     $pastitems = "";
     $pastitemsdata = "";
     if (is_array($saved_queries) && count($saved_queries)>0) {
-        foreach($saved_queries as $id => $query){
+        foreach ($saved_queries as $id => $query) {
             $decoded = json_decode($query,true);
             $pastitems = $pastitems . '<a style="text-align: start;" onclick="javascript:loadFromObj(pastQueries[' . $id . ']); return false;">' . query__display_pseudo_query(query__get_pseudo_query_array($decoded['query'])) . '</a>';
             $pastitemsdata = $pastitemsdata . $query;
-            if((count($saved_queries)-1) != $id){
+            if ((count($saved_queries)-1) != $id) {
                 $pastitems = $pastitems . '<hr>';
                 $pastitemsdata = $pastitemsdata . ',';
             }
@@ -27,8 +31,12 @@ function query__show_form($hide_modules,$experiment=array(),$load_query="",$butt
     // display form
     echo '  <form id="queryForm" action="'.thisdoc().'" method="POST">';
     echo csrf__field();
-    if ($formextra) echo $formextra;
-    if ($experiment_id) echo '<INPUT type="hidden" name="experiment_id" value="'.$experiment_id.'">';
+    if ($formextra) {
+        echo $formextra;
+    }
+    if ($experiment_id) {
+        echo '<INPUT type="hidden" name="experiment_id" value="'.$experiment_id.'">';
+    }
     echo '<div class="orsee-querytool orsee-listtool">';
     echo '<div class="orsee-querytool-topline">'.str_replace(" ","&nbsp;",trim(lang('query_select_all'))).'</div>';
     echo '<div class="orsee-querytool-toolbar">';
@@ -76,7 +84,9 @@ function query__debug_sql_panel($sql,$pars=array(),$title='Query') {
 function query__extract_string(&$string, $start, $end) {
     $string = " ".$string;
     $ini = strpos($string, $start);
-    if ($ini == 0) return "";
+    if ($ini == 0) {
+        return "";
+    }
     $ini += strlen($start);
     $len = strpos($string, $end, $ini) - $ini;
     $tmp = substr($string, $ini, $len);
@@ -86,61 +96,64 @@ function query__extract_string(&$string, $start, $end) {
 
 
 function query__echo_form_javascript($prototypes,$load_query="") {
+    function pos_prototype($icon='bars') {
+        $out='';
+        $out.='\'<div class="orsee-listcell orsee-listcell-drag"><button type="button" class="fa-'.$icon.' dragHandle" style="';
+        $out.='font-family: FontAwesome; height: 2em; width: 2em; font-size: 1em';
+        $out.='" onclick="return false;"></button></div>\';';
+        return $out;
+    }
 
-            function pos_prototype($icon='bars') {
-                $out='';
-                $out.='\'<div class="orsee-listcell orsee-listcell-drag"><button type="button" class="fa-'.$icon.' dragHandle" style="';
-                $out.='font-family: FontAwesome; height: 2em; width: 2em; font-size: 1em';
-                $out.='" onclick="return false;"></button></div>\';';
-                return $out;
-            }
-
-            echo '<script>
+    echo '<script>
                     var position_index=0;
                     var logop_index=1;
                     var field_index=2;
                     var deletion_index=3;
             ';
-            if ($load_query) echo 'var jsonData = '.$load_query.';
+    if ($load_query) {
+        echo 'var jsonData = '.$load_query.';
             ';
-            echo '  var deletionPrototype = \'<div class="orsee-listcell orsee-listcell-action"><i class="fa fa-times-circle fa-lg" style="color: red;" onclick="javascript:removeFromQuery(this.parentNode.parentNode); return false;"></i></div>\';
+    }
+    echo '  var deletionPrototype = \'<div class="orsee-listcell orsee-listcell-action"><i class="fa fa-times-circle fa-lg" style="color: red;" onclick="javascript:removeFromQuery(this.parentNode.parentNode); return false;"></i></div>\';
                     var positionPrototype = '.pos_prototype('bars').'
                     var positionPrototypeOpenBracket = '.pos_prototype('arrows').'
                     var positionPrototypeCloseBracket = '.pos_prototype('arrows-v').'
                 </script>';
 
 
-        $tmp = array();
-        foreach($prototypes as $proto){
-            $htmlJs = query__extract_string($proto['content'], '<script type="text/javascript">', '</script>');
-            $tmp[$proto['type']] = array(
-                'type' => $proto['type'],
-                'displayName' => $proto['displayname'],
-                'html' => $proto['content'],
-                'jsEval' => $htmlJs,
-                'placeholder' => $proto['field_name_placeholder']
-            );
-        }
-        echo "<script type='text/javascript'>var Ptypes = ";
-        echo json_encode(fix_utf8($tmp));
-        echo ";
+    $tmp = array();
+    foreach ($prototypes as $proto) {
+        $htmlJs = query__extract_string($proto['content'], '<script type="text/javascript">', '</script>');
+        $tmp[$proto['type']] = array(
+            'type' => $proto['type'],
+            'displayName' => $proto['displayname'],
+            'html' => $proto['content'],
+            'jsEval' => $htmlJs,
+            'placeholder' => $proto['field_name_placeholder']
+        );
+    }
+    echo "<script type='text/javascript'>var Ptypes = ";
+    echo json_encode(fix_utf8($tmp));
+    echo ";
             buildDropdown();
             ";
-	echo "</script>";
-
+    echo "</script>";
 }
 
 function query__strip_ws_subqueries_recursively($subqueries) {
-    foreach($subqueries as $k=>$subquery) {
+    foreach ($subqueries as $k=>$subquery) {
         $subqueries[$k]['clause']['query'] = trim(preg_replace('/\s+/', ' ', $subqueries[$k]['clause']['query']));
-        if (isset($subqueries[$k]['subqueries'])) $subqueries[$k]['subqueries']=query__strip_ws_subqueries_recursively($subqueries[$k]['subqueries']);
+        if (isset($subqueries[$k]['subqueries'])) {
+            $subqueries[$k]['subqueries']=query__strip_ws_subqueries_recursively($subqueries[$k]['subqueries']);
+        }
     }
     return $subqueries;
 }
 
 function query__make_like_list($list,$columnname) {
     $list_array=explode(",",$list);
-    $like_array=array(); $pars=array();
+    $like_array=array();
+    $pars=array();
     $i=0;
     foreach ($list_array as $key=>$value) {
         $like_array[]=$columnname." LIKE :".$columnname.$i." ";
@@ -152,7 +165,9 @@ function query__make_like_list($list,$columnname) {
 
 function query__make_enquoted_list($list,$parname="id") {
     $list_array=explode(",",$list);
-    $par_names=array(); $pars=array(); $i=0;
+    $par_names=array();
+    $pars=array();
+    $i=0;
     foreach ($list_array as $key=>$value) {
         $par_names[]=':'.$parname.$i;
         $pars[':'.$parname.$i]=trim($value);
@@ -162,26 +177,35 @@ function query__make_enquoted_list($list,$parname="id") {
 }
 
 function query__get_subqueries($clause,$subqueries,$resolve_subqueries=false) {
-    foreach($subqueries as $k=>$subquery) {
-        if(isset($subquery['subqueries'])) $subquery['clause']=query__get_subqueries($subquery['clause'],$subquery['subqueries'],$resolve_subqueries);
+    foreach ($subqueries as $k=>$subquery) {
+        if (isset($subquery['subqueries'])) {
+            $subquery['clause']=query__get_subqueries($subquery['clause'],$subquery['subqueries'],$resolve_subqueries);
+        }
         if ($resolve_subqueries) {
             // execute subquery
             $ids=array();
             $result=or_query($subquery['clause']['query'],$subquery['clause']['pars']);
-            while ($line=pdo_fetch_assoc($result)) $ids[]=$line['id'];
+            while ($line=pdo_fetch_assoc($result)) {
+                $ids[]=$line['id'];
+            }
             $clause['query']=str_replace("#subquery".$k."#","'".implode("', '",$ids)."'",$clause['query']);
         } else {
             $clause['query']=str_replace("#subquery".$k."#",$subquery['clause']['query'],$clause['query']);
-            foreach ($subquery['clause']['pars'] as $p=>$v) $clause['pars'][$p]=$v;
+            foreach ($subquery['clause']['pars'] as $p=>$v) {
+                $clause['pars'][$p]=$v;
+            }
         }
     }
     return $clause;
 }
 
 function query__get_query($query_array,$query_id,$additional_clauses,$sort,$resolve_subqueries=false) {
-    $i=0; $pars=array();
+    $i=0;
+    $pars=array();
     $query="SELECT * from ".table('participants')." ";
-    if (count($query_array['clauses'])>0 || count($additional_clauses)>0) $query.="WHERE ";
+    if (count($query_array['clauses'])>0 || count($additional_clauses)>0) {
+        $query.="WHERE ";
+    }
     if (count($additional_clauses)>0) {
         $add_queries=array();
         foreach ($additional_clauses as $add_clause) {
@@ -194,16 +218,22 @@ function query__get_query($query_array,$query_id,$additional_clauses,$sort,$reso
         }
         $query.=implode(' AND ',$add_queries);
     }
-    if (count($additional_clauses)>0 && count($query_array['clauses'])>0) $query.=' AND (';
+    if (count($additional_clauses)>0 && count($query_array['clauses'])>0) {
+        $query.=' AND (';
+    }
     foreach ($query_array['clauses'] as $k=>$q) {
         $query.="\n";
         if ($q['ctype']=='bracket_open') {
-            if ($q['op']) $query.=' '.$q['op'];
+            if ($q['op']) {
+                $query.=' '.$q['op'];
+            }
             $query.=' '.$q['clause']['query'].' ';
         } elseif ($q['ctype']=='bracket_close') {
             $query.=' '.$q['clause']['query'].' ';
         } else {
-            if (isset($q['subqueries'])) $q['clause']=query__get_subqueries($q['clause'],$q['subqueries'],$resolve_subqueries);
+            if (isset($q['subqueries'])) {
+                $q['clause']=query__get_subqueries($q['clause'],$q['subqueries'],$resolve_subqueries);
+            }
             foreach ($q['clause']['pars'] as $p=>$v) {
                 $q['clause']['query']=preg_replace('/'.$p.'([^0-9])/',$p.'_'.$i.'\\1',$q['clause']['query'].' ');
                 $pars[$p.'_'.$i]=$v;
@@ -212,7 +242,9 @@ function query__get_query($query_array,$query_id,$additional_clauses,$sort,$reso
             $query.=' '.$q['op'].' ('.$q['clause']['query'].') ';
         }
     }
-    if (count($additional_clauses)>0 && count($query_array['clauses'])>0) $query.=' ) ';
+    if (count($additional_clauses)>0 && count($query_array['clauses'])>0) {
+        $query.=' ) ';
+    }
     if (isset($query_array['limit'])) {
         $query.="\n ORDER BY rand(";
         if ($query_id) {
@@ -237,14 +269,20 @@ function query__get_query($query_array,$query_id,$additional_clauses,$sort,$reso
 
 
 function query__pseudo_query_not_without($params) {
-    if ($params['not']) $text=lang('without');
-    else $text=lang('only');
+    if ($params['not']) {
+        $text=lang('without');
+    } else {
+        $text=lang('only');
+    }
     return $text;
 }
 
 function query__pseudo_query_not_not($params) {
-    if ($params['not']) $text=lang('not').' ';
-    else $text='';
+    if ($params['not']) {
+        $text=lang('not').' ';
+    } else {
+        $text='';
+    }
     return $text;
 }
 
@@ -253,15 +291,24 @@ function query__display_pseudo_query($pseudo_query_array,$active=false) {
     // get max level
     $maxlevel=0;
     foreach ($pseudo_query_array as $key=>$entry) {
-        if ($entry['level']>$maxlevel) $maxlevel=$entry['level'];
-        $next_level=''; $previous_level='';
+        if ($entry['level']>$maxlevel) {
+            $maxlevel=$entry['level'];
+        }
+        $next_level='';
+        $previous_level='';
         if (isset($pseudo_query_array[$key+1])) {
-            if ($entry['level']<$pseudo_query_array[$key+1]['level']) $next_level='higher';
-            elseif ($entry['level']>$pseudo_query_array[$key+1]['level']) $next_level='lower';
+            if ($entry['level']<$pseudo_query_array[$key+1]['level']) {
+                $next_level='higher';
+            } elseif ($entry['level']>$pseudo_query_array[$key+1]['level']) {
+                $next_level='lower';
+            }
         }
         if (isset($pseudo_query_array[$key-1])) {
-            if ($entry['level']<$pseudo_query_array[$key-1]['level']) $previous_level='higher';
-            elseif ($entry['level']>$pseudo_query_array[$key-1]['level']) $previous_level='lower';
+            if ($entry['level']<$pseudo_query_array[$key-1]['level']) {
+                $previous_level='higher';
+            } elseif ($entry['level']>$pseudo_query_array[$key-1]['level']) {
+                $previous_level='lower';
+            }
         }
         $pseudo_query_array[$key]['next_level']=$next_level;
         $pseudo_query_array[$key]['previous_level']=$previous_level;
@@ -269,7 +316,11 @@ function query__display_pseudo_query($pseudo_query_array,$active=false) {
     $out='';
     $out.='<TABLE class="orsee-pseudo-query-table" border="0" cellpadding="0" cellspacing="0">';
     $numcol=$maxlevel+2+$maxlevel-1;
-    if ($active) $select_phrase=lang('query_select_all_active'); else $select_phrase=lang('query_select_all');
+    if ($active) {
+        $select_phrase=lang('query_select_all_active');
+    } else {
+        $select_phrase=lang('query_select_all');
+    }
     $out.='<TR class="orsee-pseudo-query-row orsee-pseudo-query-row-title"><TD class="orsee-pseudo-query-cell orsee-pseudo-query-title" colspan="'.($numcol).'"><B>'.$select_phrase.'</B></TD></TR>';
     $thiscol=0;
     foreach ($pseudo_query_array as $entry) {
@@ -277,9 +328,11 @@ function query__display_pseudo_query($pseudo_query_array,$active=false) {
         if ($entry['previous_level']=='') {
             $out.= '<TR class="orsee-pseudo-query-row">';
             for ($i=1; $i<=$entry['level']; $i++) {
-                $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-indent"></TD>'; $thiscol++;
+                $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-indent"></TD>';
+                $thiscol++;
             }
-            $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-op">'.$entry['op_text'].'</TD>'; $thiscol++;
+            $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-op">'.$entry['op_text'].'</TD>';
+            $thiscol++;
         }
         if ($entry['next_level']=='') {
             $span=$numcol-$thiscol;
@@ -287,7 +340,8 @@ function query__display_pseudo_query($pseudo_query_array,$active=false) {
             $out.= '</TR>';
             $thiscol=0;
         } else {
-            $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-text">'.$entry['text'].'</TD>'; $thiscol++;
+            $out.= '<TD class="orsee-pseudo-query-cell orsee-pseudo-query-text">'.$entry['text'].'</TD>';
+            $thiscol++;
         }
     }
     $out.='</TABLE>';
@@ -307,15 +361,26 @@ function query_show_query_result($query_arr,$type="participants_search_active",$
     $count_results=pdo_num_rows($result);
 
     echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;"><strong>'.$count_results.' '.lang('xxx_participants_in_result_set').'</strong></div>';
-    if ($type=='assign') echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;">'.lang('only_ny_assigned_part_showed').'</div>';
-    elseif($type=='deassign') echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;">'.lang('only_assigned_part_ny_reg_shownup_part_showed').'</div>';
-    if ($type=='participants_search_active' || $type=='participants_search_all') query__resulthead_participantsearch();
-    elseif ($type=='assign' || $type=='deassign') query__resulthead_assign($type);
+    if ($type=='assign') {
+        echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;">'.lang('only_ny_assigned_part_showed').'</div>';
+    } elseif ($type=='deassign') {
+        echo '<div class="has-text-centered" style="margin: 0 0 0.35rem 0; line-height: 1.2;">'.lang('only_assigned_part_ny_reg_shownup_part_showed').'</div>';
+    }
+    if ($type=='participants_search_active' || $type=='participants_search_all') {
+        query__resulthead_participantsearch();
+    } elseif ($type=='assign' || $type=='deassign') {
+        query__resulthead_assign($type);
+    }
 
-    if ($type=='participants_search_active') $cols=participant__get_result_table_columns('result_table_search_active');
-    elseif ($type=='participants_search_all') $cols=participant__get_result_table_columns('result_table_search_all');
-    elseif ($type=='participants_unconfirmed') $cols=participant__get_result_table_columns('result_table_search_unconfirmed');
-    else $cols=participant__get_result_table_columns('result_table_assign');
+    if ($type=='participants_search_active') {
+        $cols=participant__get_result_table_columns('result_table_search_active');
+    } elseif ($type=='participants_search_all') {
+        $cols=participant__get_result_table_columns('result_table_search_all');
+    } elseif ($type=='participants_unconfirmed') {
+        $cols=participant__get_result_table_columns('result_table_search_unconfirmed');
+    } else {
+        $cols=participant__get_result_table_columns('result_table_assign');
+    }
 
     $table_classes='orsee-table orsee-table-tablet-2rows orsee-table-mobile orsee-table-cells-compact';
     $head_row_classes='orsee-table-row orsee-table-head';
@@ -326,16 +391,26 @@ function query_show_query_result($query_arr,$type="participants_search_active",$
     echo participant__get_result_table_headcells($cols,$allow_sort);
     echo '</div>';
 
-    $shade=false; $assign_ids=array();
+    $shade=false;
+    $assign_ids=array();
     while ($p=pdo_fetch_assoc($result)) {
-        if ($type=='participants_unconfirmed') $assign_ids[]=$p['email'];
-        else $assign_ids[]=$p['participant_id'];
+        if ($type=='participants_unconfirmed') {
+            $assign_ids[]=$p['email'];
+        } else {
+            $assign_ids[]=$p['participant_id'];
+        }
         echo '<div class="'.$body_row_base;
-        if ($shade) echo ' is-alt';
+        if ($shade) {
+            echo ' is-alt';
+        }
         echo '">';
         echo participant__get_result_table_row($cols,$p);
         echo '</div>';
-        if ($shade) $shade=false; else $shade=true;
+        if ($shade) {
+            $shade=false;
+        } else {
+            $shade=true;
+        }
     }
     echo '</div>';
 
@@ -346,26 +421,46 @@ function query__headcell($name,$sort="",$allow_sort=true) {
     $celltag='div';
 
     $out='';
-    if (!isset($_REQUEST['focus'])) $_REQUEST['focus']="";
-    if (!isset($_REQUEST['experiment_id'])) $_REQUEST['experiment_id']="";
-    if (!isset($_REQUEST['session_id'])) $_REQUEST['session_id']="";
-    if (!isset($_REQUEST['active'])) $_REQUEST['active']="";
+    if (!isset($_REQUEST['focus'])) {
+        $_REQUEST['focus']="";
+    }
+    if (!isset($_REQUEST['experiment_id'])) {
+        $_REQUEST['experiment_id']="";
+    }
+    if (!isset($_REQUEST['session_id'])) {
+        $_REQUEST['session_id']="";
+    }
+    if (!isset($_REQUEST['active'])) {
+        $_REQUEST['active']="";
+    }
     $is_sorted=($allow_sort && isset($_REQUEST['search_sort']) && $_REQUEST['search_sort']==$sort && $sort);
     $out.= '
         <'.$celltag.' class="orsee-table-cell';
-    if ($is_sorted) $out.=' is-sorted';
+    if ($is_sorted) {
+        $out.=' is-sorted';
+    }
     $out.='"';
     $out.= '>';
     if ($allow_sort && $sort) {
         $out.= '<A class="orsee-sort-link" HREF="'.thisdoc().'?search_sort='.urlencode($sort);
-        if ($_REQUEST['experiment_id']) $out.= '&experiment_id='.$_REQUEST['experiment_id'];
-        if ($_REQUEST['session_id']) $out.= '&session_id='.$_REQUEST['session_id'];
-        if ($_REQUEST['focus']) $out.= '&focus='.$_REQUEST['focus'];
-        if ($_REQUEST['active']) $out.= '&active='.$_REQUEST['active'];
+        if ($_REQUEST['experiment_id']) {
+            $out.= '&experiment_id='.$_REQUEST['experiment_id'];
+        }
+        if ($_REQUEST['session_id']) {
+            $out.= '&session_id='.$_REQUEST['session_id'];
+        }
+        if ($_REQUEST['focus']) {
+            $out.= '&focus='.$_REQUEST['focus'];
+        }
+        if ($_REQUEST['active']) {
+            $out.= '&active='.$_REQUEST['active'];
+        }
         $out.= '">';
     }
     $out.= $name;
-    if ($allow_sort && $sort) $out.='<i class="fa fa-sort-asc orsee-sort-icon" aria-hidden="true"></i></A>';
+    if ($allow_sort && $sort) {
+        $out.='<i class="fa fa-sort-asc orsee-sort-icon" aria-hidden="true"></i></A>';
+    }
     $out.= '</'.$celltag.'>';
     return $out;
 }
@@ -373,9 +468,13 @@ function query__headcell($name,$sort="",$allow_sort=true) {
 function query__load_default_sort($type,$experiment_id=0) {
     //type can be: participants_search_active, participants_search_all, assign, deassign, session_list
 
-    if ($type=='participants_search_active') $cols=participant__get_result_table_columns('result_table_search_active');
-    elseif ($type=='participants_search_all') $cols=participant__get_result_table_columns('result_table_search_all');
-    else $cols=participant__get_result_table_columns('result_table_assign');
+    if ($type=='participants_search_active') {
+        $cols=participant__get_result_table_columns('result_table_search_active');
+    } elseif ($type=='participants_search_all') {
+        $cols=participant__get_result_table_columns('result_table_search_all');
+    } else {
+        $cols=participant__get_result_table_columns('result_table_assign');
+    }
 
     $pform_columns=participant__load_all_pform_fields();
 
@@ -384,7 +483,9 @@ function query__load_default_sort($type,$experiment_id=0) {
     foreach ($cols as $k=>$arr) {
         if (isset($arr['item_details']['default_sortby']) && $arr['item_details']['default_sortby']) {
             $default_sort=$k;
-            if (isset($pform_columns[$k]['sort_order']) && $pform_columns[$k]['sort_order']) $default_sort=$pform_columns[$k]['sort_order'];
+            if (isset($pform_columns[$k]['sort_order']) && $pform_columns[$k]['sort_order']) {
+                $default_sort=$pform_columns[$k]['sort_order'];
+            }
         }
     }
     return $default_sort;
@@ -394,18 +495,26 @@ function query__get_sort($type,$search_sort,$experiment_id=0) {
     //sanitizes sort string
     //type can be: participants_search_active, participants_search_all, assign, deassign, session_list
 
-    if ($type=='participants_search_active') $cols=participant__get_result_table_columns('result_table_search_active');
-    elseif ($type=='participants_search_all') $cols=participant__get_result_table_columns('result_table_search_all');
-    elseif ($type=='session_participants_list') $cols=participant__get_result_table_columns('session_participants_list');
-    elseif ($type=='session_participants_list_pdf') $cols=participant__get_result_table_columns('session_participants_list_pdf');
-    else $cols=participant__get_result_table_columns('result_table_assign');
+    if ($type=='participants_search_active') {
+        $cols=participant__get_result_table_columns('result_table_search_active');
+    } elseif ($type=='participants_search_all') {
+        $cols=participant__get_result_table_columns('result_table_search_all');
+    } elseif ($type=='session_participants_list') {
+        $cols=participant__get_result_table_columns('session_participants_list');
+    } elseif ($type=='session_participants_list_pdf') {
+        $cols=participant__get_result_table_columns('session_participants_list_pdf');
+    } else {
+        $cols=participant__get_result_table_columns('result_table_assign');
+    }
 
     $pform_columns=participant__load_all_pform_fields();
 
     $search_ok=false;
     foreach ($cols as $k=>$arr) {
         if (isset($pform_columns[$k]['sort_order']) && $pform_columns[$k]['sort_order']) {
-            if ($search_sort==$pform_columns[$k]['sort_order']) $search_ok=true;
+            if ($search_sort==$pform_columns[$k]['sort_order']) {
+                $search_ok=true;
+            }
         } elseif (isset($cols[$k]['sort_order']) && $search_sort==$cols[$k]['sort_order']) {
             $search_ok=true;
         } elseif ($search_sort==$k) {
@@ -413,7 +522,9 @@ function query__get_sort($type,$search_sort,$experiment_id=0) {
         }
     }
 
-    if (!$search_ok) $search_sort=query__load_default_sort($type,$experiment_id);
+    if (!$search_ok) {
+        $search_sort=query__load_default_sort($type,$experiment_id);
+    }
     return $search_sort;
 }
 
@@ -434,10 +545,14 @@ function query__get_bulkactions() {
             }
             if (isset($_REQUEST['message_subject_'.$inv_lang])) {
                 $tsubject=$_REQUEST['message_subject_'.$inv_lang];
-            } else $tsubject='';
+            } else {
+                $tsubject='';
+            }
             if (isset($_REQUEST['message_text_'.$inv_lang])) {
                 $ttext=$_REQUEST['message_text_'.$inv_lang];
-            } else $ttext='';
+            } else {
+                $ttext='';
+            }
             $html.='<div class="field">';
             $html.='<label class="label">'.lang('subject').':</label>';
             $html.='<div class="control"><input class="bforminput input is-primary orsee-input orsee-input-text" type="text" name="message_subject_'.$inv_lang.'" value="'.htmlspecialchars($tsubject).'"></div>';
@@ -457,10 +572,14 @@ function query__get_bulkactions() {
         $display_text=lang('set_participant_status');
         if (isset($_REQUEST['new_status'])) {
             $new_status=$_REQUEST['new_status'];
-        } else $new_status='';
+        } else {
+            $new_status='';
+        }
         if (isset($_REQUEST['remark'])) {
             $remark=$_REQUEST['remark'];
-        } else $remark='';
+        } else {
+            $remark='';
+        }
         $status_select=participant_status__select_field('new_status',$new_status,array(),'bforminput');
         $html='<div class="orsee-form-shell">';
         $html.='<div class="field"><label class="label">'.lang('set_participant_status_for').' #xyz_participants#</label></div>';
@@ -483,13 +602,19 @@ function query__get_bulkactions() {
         $display_text=lang('set_profile_update_request');
         if (isset($_REQUEST['new_pool'])) {
             $new_pool=$_REQUEST['new_pool'];
-        } else $new_pool='';
+        } else {
+            $new_pool='';
+        }
         if (isset($_REQUEST['new_profile_update_status'])) {
             $new_profile_update_status=$_REQUEST['new_profile_update_status'];
-        } else $new_profile_update_status='';
+        } else {
+            $new_profile_update_status='';
+        }
         if (isset($_REQUEST['do_pool_transfer'])) {
             $do_pool_transfer=$_REQUEST['do_pool_transfer'];
-        } else $do_pool_transfer='';
+        } else {
+            $do_pool_transfer='';
+        }
         $pool_select=subpools__select_field('new_pool',$new_pool,array(),'bforminput');
         $html='<div class="orsee-form-shell">';
         $html.='<div class="field"><label class="label">'.lang('set_profile_update_request_for').' #xyz_participants#</label></div>';
@@ -498,32 +623,42 @@ function query__get_bulkactions() {
         $html.='<label class="label">'.lang('set_profile_update_request_status_equal_to').'</label>';
         $html.='<div class="control"><span class="select is-primary"><select name="new_profile_update_status" class="bforminput">';
         $html.='<OPTION value="y"';
-        if ($new_profile_update_status=='y') $html.=' SELECTED';
+        if ($new_profile_update_status=='y') {
+            $html.=' SELECTED';
+        }
         $html.='>'.lang('active').'</OPTION>
                             <OPTION value="n"';
-        if ($new_profile_update_status!='y') $html.=' SELECTED';
+        if ($new_profile_update_status!='y') {
+            $html.=' SELECTED';
+        }
         $html.='>'.lang('inactive').'</OPTION>
                             </select></span></div>';
         $html.='</div>';
         $html.='<div class="field">';
         $html.='<div class="control"><label class="checkbox"><input class="bforminput" type="checkbox" name="do_pool_transfer" value="y"';
-        if ($do_pool_transfer=='y') $html.=' CHECKED';
+        if ($do_pool_transfer=='y') {
+            $html.=' CHECKED';
+        }
         $html.='> '.lang('upon_profile_update_transfer_to_subject_pool').' '.$pool_select.'</label></div>';
         $html.='</div>';
         $html.='<div class="orsee-form-actions has-text-centered"><input id="popupsubmit" class="button orsee-btn" type="submit" name="popupsubmit" value="'.lang('set_status').'"></div>';
         $html.='</div>';
         $bulkactions['profile_update']=array('display_text'=>$display_text,'html'=>$html);
     }
-    
+
     if (check_allow('participants_bulk_anonymization')) {
         // BULK ANONYMIZATION
         $display_text=lang('anonymize_profiles');
         if (isset($_REQUEST['new_status'])) {
             $new_status=$_REQUEST['new_status'];
-        } else $new_status='';
+        } else {
+            $new_status='';
+        }
         if (isset($_REQUEST['do_status_change'])) {
             $do_status_change=$_REQUEST['do_status_change'];
-        } else $do_status_change='';
+        } else {
+            $do_status_change='';
+        }
         $anon_fields=participant__get_result_table_columns('anonymize_profile_list');
         $status_select=participant_status__select_field('new_status',$new_status,array(),'bforminput');
         $status_select='<span class="select is-primary">'.$status_select.'</span>';
@@ -540,12 +675,14 @@ function query__get_bulkactions() {
                 $fvalue='';
             }
             $html.='<div>'.$anon_field['display_text'].'=&gt;'.$fvalue.'</div>';
-        } 
+        }
         $html.='<div>'.lang('disclaimer_anonymize_profiles').'</div></div>';
         $html.='</div>';
         $html.='<div class="field">';
         $html.='<div class="control"><label class="checkbox"><input class="bforminput" type="checkbox" name="do_status_change" value="y"';
-        if ($do_status_change=='y') $html.=' CHECKED';
+        if ($do_status_change=='y') {
+            $html.=' CHECKED';
+        }
         $html.='> '.lang('upon_anonymization_change_status_to').' '.$status_select.'</label></div>';
         $html.='</div>';
         $html.='<div class="orsee-form-actions has-text-centered"><input id="popupsubmit" class="button orsee-btn" type="submit" name="popupsubmit" value="'.lang('profile_anonymize').'"></div>';
@@ -668,26 +805,39 @@ function query__resulthead_participantsearch() {
 
     // back to query form button
     $cgivars=array();
-    if (isset($_REQUEST['active']) && $_REQUEST['active']) $cgivars[]='active=true';
-    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
+    if (isset($_REQUEST['active']) && $_REQUEST['active']) {
+        $cgivars[]='active=true';
+    }
+    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) {
+        $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
+    }
     echo '<A HREF="'.thisdoc();
-    if (count($cgivars)>0) echo '?'.implode("&",$cgivars);
+    if (count($cgivars)>0) {
+        echo '?'.implode("&",$cgivars);
+    }
     echo '" class="button orsee-btn"><i class="fa fa-'.(lang__is_rtl() ? 'arrow-right' : 'arrow-left').'" style="padding: 0 0.3em 0 0"></i>'.lang('back_to_query_form').'</A>';
 
     // save query button
     $cgivars=array();
     $cgivars[]="save_query=true";
     $cgivars[]='csrf_token='.urlencode(csrf__get_token());
-    if(isset($_REQUEST['search_sort'])) $cgivars[]='search_sort='.urlencode($_REQUEST['search_sort']);
-    if (isset($_REQUEST['active']) && $_REQUEST['active']) $cgivars[]='active=true';
-    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
+    if (isset($_REQUEST['search_sort'])) {
+        $cgivars[]='search_sort='.urlencode($_REQUEST['search_sort']);
+    }
+    if (isset($_REQUEST['active']) && $_REQUEST['active']) {
+        $cgivars[]='active=true';
+    }
+    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) {
+        $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
+    }
     echo '<A HREF="'.thisdoc();
-    if (count($cgivars)>0) echo '?'.implode("&",$cgivars);
+    if (count($cgivars)>0) {
+        echo '?'.implode("&",$cgivars);
+    }
     echo '" class="button orsee-btn"><i class="fa fa-floppy-o" style="padding: 0 0.3em 0 0"></i>'.lang('save_query').'</A>';
     echo '</div>';
 
     echo '</div>';
-
 }
 
 function query__resulthead_assign($type='assign') {
@@ -707,14 +857,19 @@ function query__resulthead_assign($type='assign') {
     echo '<div class="orsee-form-row-col has-text-right">';
     // back to query form button
     $cgivars=array();
-    if (isset($_REQUEST['active']) && $_REQUEST['active']) $cgivars[]='active=true';
-    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
+    if (isset($_REQUEST['active']) && $_REQUEST['active']) {
+        $cgivars[]='active=true';
+    }
+    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) {
+        $cgivars[]='experiment_id='.$_REQUEST['experiment_id'];
+    }
     $backlink=thisdoc();
-    if (count($cgivars)>0) $backlink.='?'.implode("&",$cgivars);
+    if (count($cgivars)>0) {
+        $backlink.='?'.implode("&",$cgivars);
+    }
     echo button_back($backlink,lang('back_to_query_form'));
     echo '</div>';
     echo '</div>';
-
 }
 
 function query__get_permanent($experiment_id=0) {
@@ -736,8 +891,8 @@ function query__get_permanent($experiment_id=0) {
     }
     $result=or_query($query,$pars);
     while ($q=pdo_fetch_assoc($result)) {
-            $q['properties']=db_string_to_property_array($q['properties']);
-            $perm_queries[]=$q;
+        $q['properties']=db_string_to_property_array($q['properties']);
+        $perm_queries[]=$q;
     }
     return $perm_queries;
 }
@@ -750,30 +905,42 @@ function participant__get_permanent_query_participants() {
             AND ".$active_clause."
             ORDER BY creation_time";
     $result=or_query($query);
-    while ($p=pdo_fetch_assoc($result)) $participants[]=$p;
+    while ($p=pdo_fetch_assoc($result)) {
+        $participants[]=$p;
+    }
     return $participants;
 }
 
 function query__apply_permanent_queries() {
     global $settings;
-    $continue=true; $target='';
-    $num_queries=0; $num_p=0; $num_assigned=0;
+    $continue=true;
+    $target='';
+    $num_queries=0;
+    $num_p=0;
+    $num_assigned=0;
 
     if ($continue) {
-        if ($settings['allow_permanent_queries']!='y') $continue=false;
+        if ($settings['allow_permanent_queries']!='y') {
+            $continue=false;
+        }
     }
 
     if ($continue) {
         $ppart=array();
         $ppart=participant__get_permanent_query_participants();
-        if (count($ppart)==0) $continue=false;
+        if (count($ppart)==0) {
+            $continue=false;
+        }
     }
 
     if ($continue) {
         $pqu=array();
         $pqu=query__get_permanent();
-        if (count($pqu)==0) $continue=false;
-        else $num_queries=count($pqu);
+        if (count($pqu)==0) {
+            $continue=false;
+        } else {
+            $num_queries=count($pqu);
+        }
     }
 
     if ($continue) {
@@ -783,7 +950,9 @@ function query__apply_permanent_queries() {
             foreach ($pqu as $q) {
                 $continue=true;
                 $experiment=orsee_db_load_array("experiments",$q['experiment_id'],"experiment_id");
-                if (!isset($experiment['experiment_id'])) $continue=false;
+                if (!isset($experiment['experiment_id'])) {
+                    $continue=false;
+                }
                 if ($continue) {
                     $posted_query=json_decode($q['json_query'],true);
                     $query_array=query__get_query_array($posted_query['query']);
@@ -802,7 +971,9 @@ function query__apply_permanent_queries() {
                             $p_is_eligible=true;
                         }
                     }
-                    if (!$p_is_eligible) $continue=false;
+                    if (!$p_is_eligible) {
+                        $continue=false;
+                    }
                 }
                 if ($continue) {
                     // assign participant
@@ -823,7 +994,9 @@ function query__apply_permanent_queries() {
                                 experiment_id = :experiment_id ";
                         $done=or_query($query,$pars);
                     }
-                    if (!isset($query_assigned[$q['query_id']])) $query_assigned[$q['query_id']]=0;
+                    if (!isset($query_assigned[$q['query_id']])) {
+                        $query_assigned[$q['query_id']]=0;
+                    }
                     $query_assigned[$q['query_id']]++;
                 }
             }
@@ -837,15 +1010,19 @@ function query__apply_permanent_queries() {
 
         // and now update permanent queries with assignment numbers
         foreach ($pqu as $q) {
-            if (!isset($query_assigned[$q['query_id']])) $query_assigned[$q['query_id']]=0;
+            if (!isset($query_assigned[$q['query_id']])) {
+                $query_assigned[$q['query_id']]=0;
+            }
             $done=query__update_permanent_query($q['query_id'],$query_assigned[$q['query_id']]);
         }
-
-
     }
     $target='Participants checked: '.$num_p;
-    if ($num_p>0) $target.=', PermQueries found: '.$num_queries;
-    if ($num_queries>0) $target.=', Assignments made: '.$num_assigned;
+    if ($num_p>0) {
+        $target.=', PermQueries found: '.$num_queries;
+    }
+    if ($num_queries>0) {
+        $target.=', Assignments made: '.$num_assigned;
+    }
     return $target;
 }
 
@@ -856,7 +1033,9 @@ function query__update_permanent_query($query_id,$assigned) {
     $result=or_query($query,$pars);
     while ($q=pdo_fetch_assoc($result)) {
         $properties=db_string_to_property_array($q['properties']);
-        if (!isset($properties['assigned_count'])) $properties['assigned_count']=0;
+        if (!isset($properties['assigned_count'])) {
+            $properties['assigned_count']=0;
+        }
         $properties['assigned_count']=$properties['assigned_count']+$assigned;
         $properties_string=property_array_to_db_string($properties);
         $newpars=array(':properties'=>$properties_string,
@@ -888,7 +1067,9 @@ function query__reset_permanent($experiment_id) {
         $done=or_query($newquery,$newpars);
         $addmessage=lang('current_permanent_query_deactivated');
     }
-    if (isset($addmessage)) message($addmessage);
+    if (isset($addmessage)) {
+        message($addmessage);
+    }
 }
 
 function query__load_default_query($type,$experiment_id=0) {
@@ -898,15 +1079,21 @@ function query__load_default_query($type,$experiment_id=0) {
             WHERE query_type=:query_type
             LIMIT 1";
     $query_line=orsee_query($query,$pars);
-    if (isset($query_line['json_query'])) return $query_line['json_query'];
-    else return '';
+    if (isset($query_line['json_query'])) {
+        return $query_line['json_query'];
+    } else {
+        return '';
+    }
 }
 
 function query__save_default_query($json_query,$type) {
-// type can be participants_search_active, participants_search_all, assign, deassign
+    // type can be participants_search_active, participants_search_all, assign, deassign
     global $expadmin;
-    if (isset($expadmindata['admin_id'])) $admin_id=$expadmindata['admin_id'];
-    else $admin_id='';
+    if (isset($expadmindata['admin_id'])) {
+        $admin_id=$expadmindata['admin_id'];
+    } else {
+        $admin_id='';
+    }
 
     $pars=array(':query_type'=>$type);
     $query="SELECT * FROM ".table('queries')."
@@ -939,7 +1126,7 @@ function query__save_default_query($json_query,$type) {
 }
 
 function query__save_query($json_query,$type,$experiment_id=0,$properties=array(),$permanent=false) {
-// type can be participants_search_active, participants_search_all, assign, deassign
+    // type can be participants_search_active, participants_search_all, assign, deassign
     global $expadmin;
     $now=time();
 
@@ -952,7 +1139,9 @@ function query__save_query($json_query,$type,$experiment_id=0,$properties=array(
         $properties['assigned_count']=0;
         $addquery=", permanent=1";
         $addmessage=lang('activated_as_permanent_query');
-    } else $addquery=", permanent=0";
+    } else {
+        $addquery=", permanent=0";
+    }
 
     $properties_string=property_array_to_db_string($properties);
 
@@ -977,8 +1166,11 @@ function query__save_query($json_query,$type,$experiment_id=0,$properties=array(
 
     // otherwise, save the query
     if ($continue) {
-        if (isset($expadmindata['admin_id'])) $admin_id=$expadmindata['admin_id'];
-        else $admin_id='';
+        if (isset($expadmindata['admin_id'])) {
+            $admin_id=$expadmindata['admin_id'];
+        } else {
+            $admin_id='';
+        }
         $pars=array(':query_time'=>$now,
                     ':json_query'=>$json_query,
                     ':query_type'=>$type,
@@ -995,29 +1187,38 @@ function query__save_query($json_query,$type,$experiment_id=0,$properties=array(
                 properties=:properties ".$addquery;
         $done=or_query($query,$pars);
         message(lang('query_saved'));
-        if (isset($addmessage)) message($addmessage);
+        if (isset($addmessage)) {
+            message($addmessage);
+        }
     }
     return $done;
 }
 
 function query__load_saved_queries($type,$limit=-1,$experiment_id=0,$details=false,$order="query_time DESC") {
-// type can be participants_search_active, participants_search_all, assign, deassign
+    // type can be participants_search_active, participants_search_all, assign, deassign
 
     $conditions=array();
     if ($type) {
-        $types=explode(",",$type); $tqueries=array();
+        $types=explode(",",$type);
+        $tqueries=array();
         foreach ($types as $t) {
             $tqueries[]="query_type='".trim($t)."'";
         }
         $conditions[]="( ".implode(' OR ',$tqueries)." )";
     }
 
-    if ($experiment_id) $conditions[]="( experiment_id='".$experiment_id."' )";
+    if ($experiment_id) {
+        $conditions[]="( experiment_id='".$experiment_id."' )";
+    }
 
     $query="SELECT * FROM ".table('queries');
-    if (count($conditions)>0) $query.=" WHERE ".implode(" AND ", $conditions);
+    if (count($conditions)>0) {
+        $query.=" WHERE ".implode(" AND ", $conditions);
+    }
     $query.=" ORDER BY ".$order;
-    if ($limit>0) $query.=" LIMIT ".$limit;
+    if ($limit>0) {
+        $query.=" LIMIT ".$limit;
+    }
     $result=or_query($query);
     $queries=array();
     while ($q=pdo_fetch_assoc($result)) {

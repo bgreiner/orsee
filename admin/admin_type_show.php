@@ -1,12 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="user_types_and_privileges";
 $menu__area="options";
-include ("header.php");
-if ($proceed) {
+include("header.php");
 
+if ($proceed) {
     $allow=check_allow('admin_type_edit','options_main.php');
 
     echo '<div class="orsee-options-list-panel">';
@@ -21,7 +20,7 @@ if ($proceed) {
     echo '<div class="orsee-table-cell"></div>';
     echo '</div>';
 
-     $query="SELECT * FROM ".table('admin_types')." ORDER BY type_name";
+    $query="SELECT * FROM ".table('admin_types')." ORDER BY type_name";
     $result=or_query($query);
 
     $shade=false;
@@ -30,17 +29,22 @@ if ($proceed) {
         $rights_array=array();
         if (isset($type['rights']) && $type['rights']) {
             $rights_array=array_map('trim',explode(',',$type['rights']));
-            $rights_array=array_filter($rights_array,function($v) { return ($v!==''); });
+            $rights_array=array_filter($rights_array,function ($v) { return ($v!==''); });
             $rights_array=array_values($rights_array);
         }
         $num_rights=count($rights_array);
         $rights_show=array_slice($rights_array,0,$num_show_rights);
         $rights_text=implode(', ',$rights_show);
-        if (!$rights_text) $rights_text='-';
-        elseif ($num_rights>$num_show_rights) $rights_text.=' ... and '.($num_rights-$num_show_rights).' more rights.';
+        if (!$rights_text) {
+            $rights_text='-';
+        } elseif ($num_rights>$num_show_rights) {
+            $rights_text.=' ... and '.($num_rights-$num_show_rights).' more rights.';
+        }
 
         $row_class='orsee-table-row';
-        if ($shade) $row_class.=' is-alt';
+        if ($shade) {
+            $row_class.=' is-alt';
+        }
         echo '<div class="'.$row_class.'">';
         echo '<div class="orsee-table-cell" data-label="'.lang('name').'" style="min-width: 12rem;">'.$type['type_name'].'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('rights').'" style="font-size: var(--font-size-compact); line-height: 1.05;">'.$rights_text.'</div>';
@@ -49,7 +53,11 @@ if ($proceed) {
             '</div>';
         echo '</div>';
 
-        if ($shade) $shade=false; else $shade=true;
+        if ($shade) {
+            $shade=false;
+        } else {
+            $shade=true;
+        }
     }
 
     echo '</div>';
@@ -58,7 +66,7 @@ if ($proceed) {
     echo '</div>';
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

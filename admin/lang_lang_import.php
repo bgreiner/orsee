@@ -1,13 +1,19 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="import_language";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['lang_id']) && $_REQUEST['lang_id']) $lang_id=$_REQUEST['lang_id']; else $lang_id='';
+    if (isset($_REQUEST['lang_id']) && $_REQUEST['lang_id']) {
+        $lang_id=$_REQUEST['lang_id'];
+    } else {
+        $lang_id='';
+    }
     $languages=get_languages();
-    if (!$lang_id || !in_array($lang_id,$languages)) redirect ("admin/lang_main.php");
+    if (!$lang_id || !in_array($lang_id,$languages)) {
+        redirect("admin/lang_main.php");
+    }
 }
 if ($proceed) {
     $allow=check_allow('lang_lang_import','lang_lang_edit.php?elang='.$lang_id);
@@ -27,23 +33,32 @@ if ($proceed) {
     $tlang_name=load_language_symbol('lang_name',$lang_id);
 
     if (isset($_REQUEST['upload']) && $_REQUEST['upload']) {
-        if(!isset($_REQUEST['action'])) $_REQUEST['action']="";
+        if (!isset($_REQUEST['action'])) {
+            $_REQUEST['action']="";
+        }
         switch ($_REQUEST['action']) {
-            case 'upgrade': $do_upgrade=true; $do_update=false; break;
-            case 'update': $do_upgrade=false; $do_update=true; break;
-            case 'both':    $do_upgrade=true; $do_update=true; break;
-            default:    $do_upgrade=false; $do_update=false;
+            case 'upgrade': $do_upgrade=true;
+                $do_update=false;
+                break;
+            case 'update': $do_upgrade=false;
+                $do_update=true;
+                break;
+            case 'both':    $do_upgrade=true;
+                $do_update=true;
+                break;
+            default:    $do_upgrade=false;
+                $do_update=false;
         }
 
         $file=$_FILES['contents'];
         if ($file['size']>$settings['upload_max_size'] || $file['error']>0) {
-            message (lang('error_not_uploaded'),'error');
-            redirect ("admin/lang_lang_import.php?lang_id=".$lang_id);
+            message(lang('error_not_uploaded'),'error');
+            redirect("admin/lang_lang_import.php?lang_id=".$lang_id);
         } else {
             $upload=array();
-            $handle = fopen ($file['tmp_name'], "r");
-            $upload_contents = fread ($handle, filesize ($file['tmp_name']));
-            fclose ($handle);
+            $handle = fopen($file['tmp_name'], "r");
+            $upload_contents = fread($handle, filesize($file['tmp_name']));
+            fclose($handle);
 
             if ($proceed) {
                 // load old lang
@@ -52,7 +67,9 @@ if ($proceed) {
                         as content_value FROM ".table('lang');
                 $result=or_query($query);
                 while ($line = pdo_fetch_assoc($result)) {
-                    if ($line['content_value']==NULL) $line['content_value']="";
+                    if ($line['content_value']==null) {
+                        $line['content_value']="";
+                    }
                     $old_lang[$line['content_type']][$line['content_name']]=$line['content_value'];
                 }
 
@@ -66,11 +83,17 @@ if ($proceed) {
                 $json_data=json_decode($upload_contents,true);
                 if (is_array($json_data) && isset($json_data['items']) && is_array($json_data['items'])) {
                     foreach ($json_data['items'] as $row) {
-                        if (!is_array($row)) continue;
-                        if (!isset($row['content_type']) || !isset($row['content_name']) || !array_key_exists('content_value',$row)) continue;
+                        if (!is_array($row)) {
+                            continue;
+                        }
+                        if (!isset($row['content_type']) || !isset($row['content_name']) || !array_key_exists('content_value',$row)) {
+                            continue;
+                        }
                         $content_type=trim((string)$row['content_type']);
                         $content_name=trim((string)$row['content_name']);
-                        if ($content_type==='' || $content_name==='') continue;
+                        if ($content_type==='' || $content_name==='') {
+                            continue;
+                        }
                         $parsed_items[]=array(
                             $content_type,
                             $content_name,
@@ -82,38 +105,50 @@ if ($proceed) {
                     $langtext=base64_decode($upload_contents);
                     $item_array=explode('--:orsee_line:--',$langtext);
                     foreach ($item_array as $item) {
-                        if (!trim($item)) continue;
+                        if (!trim($item)) {
+                            continue;
+                        }
                         $tarr=explode('--:orsee_next:--',$item);
                         if (count($tarr)==3) {
                             $tarr[0]=trim((string)$tarr[0]);
                             $tarr[1]=trim((string)$tarr[1]);
-                            if ($tarr[0]==='' || $tarr[1]==='') continue;
+                            if ($tarr[0]==='' || $tarr[1]==='') {
+                                continue;
+                            }
                             $parsed_items[]=$tarr;
-                        } else $error=true;
+                        } else {
+                            $error=true;
+                        }
                     }
                 }
 
                 if (count($parsed_items)<1 || $error) {
                     message(lang('error_uploaded_file_not_orsee_lang_file'),'error');
-                    redirect ("admin/lang_lang_import.php?lang_id=".$lang_id);
+                    redirect("admin/lang_lang_import.php?lang_id=".$lang_id);
                 }
 
                 foreach ($parsed_items as $tarr) {
-                    if (isset($old_lang[$tarr[0]][$tarr[1]]) && $old_lang[$tarr[0]][$tarr[1]]) $update[$tarr[0]][$tarr[1]]=$tarr[2];
-                    else $upgrade[$tarr[0]][$tarr[1]]=$tarr[2];
+                    if (isset($old_lang[$tarr[0]][$tarr[1]]) && $old_lang[$tarr[0]][$tarr[1]]) {
+                        $update[$tarr[0]][$tarr[1]]=$tarr[2];
+                    } else {
+                        $upgrade[$tarr[0]][$tarr[1]]=$tarr[2];
+                    }
                 }
             }
 
             if ($proceed) {
-                $ignored=0; $errors=0;
+                $ignored=0;
+                $errors=0;
 
                 if ($do_update) {
                     $imported=array();
                     foreach ($update as $type=>$item) {
-                        $count=0; $pars=array();
+                        $count=0;
+                        $pars=array();
                         foreach ($item as $name=>$value) {
-                            if ($name=='lang' || $name=='lang_name' || $name=='lang_icon_base64' || $name=='lang_flag_iso2' || $name=='lang_is_rtl') continue;
-                            else {
+                            if ($name=='lang' || $name=='lang_name' || $name=='lang_icon_base64' || $name=='lang_flag_iso2' || $name=='lang_is_rtl') {
+                                continue;
+                            } else {
                                 $pars[]=array(':value'=>$value,':type'=>$type,':name'=>$name);
                             }
                         }
@@ -125,9 +160,13 @@ if ($proceed) {
                         $imported[]=count($pars).' '.$type;
                     }
                     $impstring=implode(", ",$imported);
-                    if ($impstring) message($impstring.' '.lang('xxx_language_items_updated').' '.$tlang_name.' ('.$lang_id.')');
+                    if ($impstring) {
+                        message($impstring.' '.lang('xxx_language_items_updated').' '.$tlang_name.' ('.$lang_id.')');
+                    }
                 } else {
-                    foreach ($update as $item) $ignored=$ignored+count($item);
+                    foreach ($update as $item) {
+                        $ignored=$ignored+count($item);
+                    }
                 }
 
                 // add new items
@@ -138,10 +177,13 @@ if ($proceed) {
 
                     $created=array();
                     foreach ($upgrade as $type=>$item) {
-                        $count=0; $upars=array(); $ipars=array();
+                        $count=0;
+                        $upars=array();
+                        $ipars=array();
                         foreach ($item as $name=>$value) {
-                            if ($name=='lang' || $name=='lang_name' || $name=='lang_icon_base64' || $name=='lang_flag_iso2' || $name=='lang_is_rtl') continue;
-                            else {
+                            if ($name=='lang' || $name=='lang_name' || $name=='lang_icon_base64' || $name=='lang_flag_iso2' || $name=='lang_is_rtl') {
+                                continue;
+                            } else {
                                 if (isset($old_lang[$type][$name])) {
                                     $upars[]=array(':value'=>$value,':type'=>$type,':name'=>$name);
                                 } else {
@@ -151,33 +193,37 @@ if ($proceed) {
                             }
                         }
                         if (count($upars)>0) {
-                                $query="UPDATE ".table('lang')."
+                            $query="UPDATE ".table('lang')."
                                     SET ".$lang_id."= :value
                                     WHERE content_type= :type
                                     AND content_name= :name";
-                                $done=or_query($query,$upars);
+                            $done=or_query($query,$upars);
                         }
                         if (count($ipars)>0) {
-                                $query="INSERT INTO ".table('lang')."
+                            $query="INSERT INTO ".table('lang')."
                                         SET lang_id= :id,
                                         ".$lang_id."= :value,
                                         content_type= :type,
                                         content_name= :name";
-                                $done=or_query($query,$ipars);
+                            $done=or_query($query,$ipars);
                         }
                         $created[]=(count($upars)+count($ipars)).' '.$type;
                     }
                     $crstring=implode(", ",$created);
-                    if ($crstring) message($crstring.' '.lang('xxx_language_items_created').' '.$tlang_name.' ('.$lang_id.')');
+                    if ($crstring) {
+                        message($crstring.' '.lang('xxx_language_items_created').' '.$tlang_name.' ('.$lang_id.')');
+                    }
                 } else {
-                    foreach ($upgrade as $item) $ignored=$ignored+count($item);
+                    foreach ($upgrade as $item) {
+                        $ignored=$ignored+count($item);
+                    }
                 }
 
                 if ($ignored>0) {
                     message($ignored.' '.lang('xxx_language_items_in_file_ignored'),'warning');
                 }
                 message(lang('please_check_language_symbols').' '.$tlang_name.' ('.$lang_id.')');
-                redirect ("admin/lang_edit.php?el=".$lang_id);
+                redirect("admin/lang_edit.php?el=".$lang_id);
             }
         }
     }
@@ -255,7 +301,7 @@ if ($proceed) {
                 <div class="orsee-options-actions">'.button_back('lang_lang_edit.php?elang='.$lang_id).'</div>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

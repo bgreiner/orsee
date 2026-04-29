@@ -1,35 +1,47 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="options";
 $js_modules=array('listtool','faiconselector');
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     $area='public';
-    if (isset($_REQUEST['area']) && in_array($_REQUEST['area'],array('public','admin'),true)) $area=$_REQUEST['area'];
-    if ($area==='public') $allow=check_allow('public_content_edit','options_main.php');
-    else $allow=check_allow('settings_view','options_main.php');
+    if (isset($_REQUEST['area']) && in_array($_REQUEST['area'],array('public','admin'),true)) {
+        $area=$_REQUEST['area'];
+    }
+    if ($area==='public') {
+        $allow=check_allow('public_content_edit','options_main.php');
+    } else {
+        $allow=check_allow('settings_view','options_main.php');
+    }
 }
 
 if ($proceed) {
-    if (!isset($_REQUEST['item_id']) || trim((string)$_REQUEST['item_id'])==='') redirect('admin/options_menu.php?area='.$area);
+    if (!isset($_REQUEST['item_id']) || trim((string)$_REQUEST['item_id'])==='') {
+        redirect('admin/options_menu.php?area='.$area);
+    }
     $item_id=trim((string)$_REQUEST['item_id']);
     $config=html__menu_load_config($area);
-    if (!isset($config['items']) || !is_array($config['items'])) redirect('admin/options_menu.php?area='.$area);
+    if (!isset($config['items']) || !is_array($config['items'])) {
+        redirect('admin/options_menu.php?area='.$area);
+    }
     $item_index=-1;
     $item=array();
     foreach ($config['items'] as $k=>$line) {
-        if (!is_array($line) || !isset($line['id'])) continue;
+        if (!is_array($line) || !isset($line['id'])) {
+            continue;
+        }
         if ((string)$line['id']===$item_id) {
             $item_index=$k;
             $item=$line;
             break;
         }
     }
-    if ($item_index<0) redirect('admin/options_menu.php?area='.$area);
+    if ($item_index<0) {
+        redirect('admin/options_menu.php?area='.$area);
+    }
 }
 
 $menu_item_edit_allowed_defaults=array(
@@ -58,8 +70,12 @@ if ($proceed && isset($_REQUEST['save']) && $_REQUEST['save']) {
         $proceed=false;
     } else {
         $languages=get_languages();
-        if (!isset($item['menu_term_lang']) || !is_array($item['menu_term_lang'])) $item['menu_term_lang']=array();
-        if (!isset($item['page_title_lang']) || !is_array($item['page_title_lang'])) $item['page_title_lang']=array();
+        if (!isset($item['menu_term_lang']) || !is_array($item['menu_term_lang'])) {
+            $item['menu_term_lang']=array();
+        }
+        if (!isset($item['page_title_lang']) || !is_array($item['page_title_lang'])) {
+            $item['page_title_lang']=array();
+        }
         foreach ($languages as $language) {
             $item['menu_term_lang'][$language]=(isset($_REQUEST['menu_term_lang'][$language]) ? trim((string)$_REQUEST['menu_term_lang'][$language]) : '');
             $item['page_title_lang'][$language]=(isset($_REQUEST['page_title_lang'][$language]) ? trim((string)$_REQUEST['page_title_lang'][$language]) : '');
@@ -138,7 +154,11 @@ if ($proceed && isset($_REQUEST['save']) && $_REQUEST['save']) {
         }
 
         if ($allowed_to_change['hidden']) {
-            if (isset($_REQUEST['hidden']) && $_REQUEST['hidden']==='y') $item['hidden']='y'; else $item['hidden']='n';
+            if (isset($_REQUEST['hidden']) && $_REQUEST['hidden']==='y') {
+                $item['hidden']='y';
+            } else {
+                $item['hidden']='n';
+            }
         } else {
             $item['hidden']='n';
         }
@@ -159,10 +179,13 @@ if ($proceed && isset($_REQUEST['save']) && $_REQUEST['save']) {
 
         if ($allowed_to_change['icon'] && isset($_REQUEST['icon'])) {
             $icon_value=trim((string)$_REQUEST['icon']);
-            if (substr($icon_value,0,3)==='fa-') $icon_value=substr($icon_value,3);
+            if (substr($icon_value,0,3)==='fa-') {
+                $icon_value=substr($icon_value,3);
+            }
             $item['icon']=$icon_value;
+        } elseif (isset($item['entrytype']) && $item['entrytype']==='space') {
+            $item['icon']='';
         }
-        else if (isset($item['entrytype']) && $item['entrytype']==='space') $item['icon']='';
 
         $save_has_error=false;
         if (!(isset($item['entrytype']) && $item['entrytype']==='space')) {
@@ -190,11 +213,17 @@ if ($proceed && isset($_REQUEST['save']) && $_REQUEST['save']) {
         if ($allowed_to_change['content_name']) {
             $old_content_name=(isset($item['content_name']) ? trim((string)$item['content_name']) : '');
             $new_content_name=(isset($_REQUEST['content_name']) ? html__menu_normalize_content_name($_REQUEST['content_name']) : '');
-            if ($new_content_name==='') $new_content_name=html__menu_normalize_content_name($item['id']);
+            if ($new_content_name==='') {
+                $new_content_name=html__menu_normalize_content_name($item['id']);
+            }
             $content_name_exists=false;
             foreach ($config['items'] as $k=>$line) {
-                if (!is_array($line) || !isset($line['content_name'])) continue;
-                if ($k===$item_index) continue;
+                if (!is_array($line) || !isset($line['content_name'])) {
+                    continue;
+                }
+                if ($k===$item_index) {
+                    continue;
+                }
                 if ((string)$line['content_name']===$new_content_name) {
                     $content_name_exists=true;
                     break;
@@ -251,8 +280,12 @@ if ($proceed && isset($_REQUEST['save']) && $_REQUEST['save']) {
             $item['show_if_logged_in']=(int)$menu_item_edit_fixed_public_visibility[$menu_area]['show_if_logged_in'];
         }
 
-        if (!$allowed_to_change['menu_term_lang']) $item['menu_term_lang']=array();
-        if (!$allowed_to_change['page_title_lang']) $item['page_title_lang']=array();
+        if (!$allowed_to_change['menu_term_lang']) {
+            $item['menu_term_lang']=array();
+        }
+        if (!$allowed_to_change['page_title_lang']) {
+            $item['page_title_lang']=array();
+        }
 
         if (!$save_has_error) {
             $config['items'][$item_index]=$item;
@@ -281,10 +314,16 @@ if ($proceed) {
             }
         }
     }
-    if (!is_array($item) || !isset($item['id'])) redirect('admin/options_menu.php?area='.$area);
+    if (!is_array($item) || !isset($item['id'])) {
+        redirect('admin/options_menu.php?area='.$area);
+    }
 
-    if (!isset($item['menu_term_lang']) || !is_array($item['menu_term_lang'])) $item['menu_term_lang']=array();
-    if (!isset($item['page_title_lang']) || !is_array($item['page_title_lang'])) $item['page_title_lang']=array();
+    if (!isset($item['menu_term_lang']) || !is_array($item['menu_term_lang'])) {
+        $item['menu_term_lang']=array();
+    }
+    if (!isset($item['page_title_lang']) || !is_array($item['page_title_lang'])) {
+        $item['page_title_lang']=array();
+    }
     $languages=get_languages();
     $lang_dirs=lang__is_rtl_all_langs();
     $icon_choices=helpers__fontawesome_icon_whitelist();
@@ -368,7 +407,9 @@ if ($proceed) {
             echo '<div class="field"><label class="label">'.lang('menu_item_display_level').'</label><div class="control"><span class="select is-primary"><select name="entrytype">';
             foreach ($entry_options as $v=>$text) {
                 echo '<option value="'.$v.'"';
-                if (isset($item['entrytype']) && $item['entrytype']===$v) echo ' selected';
+                if (isset($item['entrytype']) && $item['entrytype']===$v) {
+                    echo ' selected';
+                }
                 echo '>'.$text.'</option>';
             }
             echo '</select></span></div></div>';
@@ -377,7 +418,9 @@ if ($proceed) {
 
     if ($allowed_to_change['icon']) {
         $icon_value=(isset($item['icon']) ? (string)$item['icon'] : '');
-        if (substr($icon_value,0,3)==='fa-') $icon_value=substr($icon_value,3);
+        if (substr($icon_value,0,3)==='fa-') {
+            $icon_value=substr($icon_value,3);
+        }
         $icon_preview_class=preg_replace('/[^a-z0-9\\-]/i','',$icon_value);
         echo '<div class="field">';
         echo '<label class="label">'.lang('menu_item_icon').'</label>';
@@ -406,7 +449,9 @@ if ($proceed) {
         echo '</div>';
         foreach ($icon_choices as $icon_name) {
             $icon_name=trim((string)$icon_name);
-            if ($icon_name==='') continue;
+            if ($icon_name==='') {
+                continue;
+            }
             $icon_short=(substr($icon_name,0,3)==='fa-' ? substr($icon_name,3) : $icon_name);
             echo '<div data-role="option" data-icon="'.htmlspecialchars($icon_short).'" data-search="'.htmlspecialchars(strtolower($icon_name.' '.$icon_short)).'" class="orsee-fa-icon-selector-option">';
             echo '<i class="fa '.htmlspecialchars($icon_name).' orsee-fa-icon-selector-option-icon" aria-hidden="true"></i>';
@@ -441,16 +486,23 @@ if ($proceed) {
         $show_in=(isset($item['show_if_logged_in']) && (int)$item['show_if_logged_in']);
         $show_out=(isset($item['show_if_not_logged_in']) && (int)$item['show_if_not_logged_in']);
         $show_for='both';
-        if ($show_in && !$show_out) $show_for='logged_in';
-        elseif (!$show_in && $show_out) $show_for='logged_out';
+        if ($show_in && !$show_out) {
+            $show_for='logged_in';
+        } elseif (!$show_in && $show_out) {
+            $show_for='logged_out';
+        }
         echo '<div class="field"><label class="label">'.lang('menu_item_login_visibility').'</label><div class="control"><span class="select is-primary"><select name="show_for_login_state"><option value="both"'.($show_for==='both' ? ' selected' : '').'>'.lang('menu_visibility_always').'</option><option value="logged_in"'.($show_for==='logged_in' ? ' selected' : '').'>'.lang('menu_visibility_logged_in').'</option><option value="logged_out"'.($show_for==='logged_out' ? ' selected' : '').'>'.lang('menu_visibility_logged_out').'</option></select></span></div></div>';
     } elseif ($area==='public') {
         $show_in=(isset($item['show_if_logged_in']) && (int)$item['show_if_logged_in']);
         $show_out=(isset($item['show_if_not_logged_in']) && (int)$item['show_if_not_logged_in']);
         $show_text=lang('menu_visibility_always');
-        if ($show_in && !$show_out) $show_text=lang('menu_visibility_logged_in');
-        elseif (!$show_in && $show_out) $show_text=lang('menu_visibility_logged_out');
-        elseif (!$show_in && !$show_out) $show_text=lang('menu_visibility_never');
+        if ($show_in && !$show_out) {
+            $show_text=lang('menu_visibility_logged_in');
+        } elseif (!$show_in && $show_out) {
+            $show_text=lang('menu_visibility_logged_out');
+        } elseif (!$show_in && !$show_out) {
+            $show_text=lang('menu_visibility_never');
+        }
         echo '<div class="field"><label class="label">'.lang('menu_item_login_visibility').'</label><div class="control"><div>'.$show_text.'</div></div></div>';
     }
 
@@ -461,7 +513,9 @@ if ($proceed) {
     }
 
     foreach (array('menu_term_lang'=>lang('menu_menu_term'),'page_title_lang'=>lang('menu_item_page_title')) as $field_name=>$field_label) {
-        if (isset($allowed_to_change[$field_name]) && !$allowed_to_change[$field_name]) continue;
+        if (isset($allowed_to_change[$field_name]) && !$allowed_to_change[$field_name]) {
+            continue;
+        }
         echo '<div class="field"><label class="label">'.$field_label.'</label>';
         foreach ($languages as $language) {
             $value=(isset($item[$field_name][$language]) ? (string)$item[$field_name][$language] : '');
@@ -500,5 +554,6 @@ if ($proceed) {
     echo '</form></div></div>';
 }
 
-include ("footer.php");
+include("footer.php");
+
 ?>

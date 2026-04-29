@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="edit_language";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('lang_symbol_edit','lang_main.php');
 }
@@ -21,13 +21,21 @@ if ($proceed) {
         $el=$settings['admin_standard_language'];
     }
 
-    if (isset($_REQUEST['search']) && $_REQUEST['search']) $search=$_REQUEST['search']; else $search='';
+    if (isset($_REQUEST['search']) && $_REQUEST['search']) {
+        $search=$_REQUEST['search'];
+    } else {
+        $search='';
+    }
 
-    if (isset($_REQUEST['letter']) && $_REQUEST['letter']) $letter=$_REQUEST['letter']; else $letter='a';
+    if (isset($_REQUEST['letter']) && $_REQUEST['letter']) {
+        $letter=$_REQUEST['letter'];
+    } else {
+        $letter='a';
+    }
 
     if (isset($_REQUEST['alter_lang']) && $_REQUEST['alter_lang'] && isset($_REQUEST['symbols']) && is_array($_REQUEST['symbols'])) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/lang_edit.php?el='.$el.'&letter='.$letter.'&search='.$search);
+            redirect('admin/lang_edit.php?el='.$el.'&letter='.$letter.'&search='.$search);
         }
         $pars=array();
         foreach ($_REQUEST['symbols'] as $symbol => $content) {
@@ -40,12 +48,11 @@ if ($proceed) {
         $done=or_query($query,$pars);
         message(lang('changes_saved'));
         log__admin("language_edit_symbols","language:".$edlang);
-        redirect ('admin/lang_edit.php?el='.$el.'&letter='.$letter.'&search='.$search);
+        redirect('admin/lang_edit.php?el='.$el.'&letter='.$letter.'&search='.$search);
     }
 }
 
 if ($proceed) {
-
     if ($search) {
         $letter="";
         $lpars=array(':search1'=>'%'.$search.'%',
@@ -85,8 +92,11 @@ if ($proceed) {
     $result=or_query($query);
     echo '<div style="text-align: center; margin-bottom: 0.6rem;">';
     while ($line=pdo_fetch_assoc($result)) {
-        if ($line['letter']!=$letter) echo '<A HREF="lang_edit.php?el='.$el.'&letter='.$line['letter'].'">'.$line['letter'].'</A>&nbsp; ';
-        else echo $letter.'&nbsp; ';
+        if ($line['letter']!=$letter) {
+            echo '<A HREF="lang_edit.php?el='.$el.'&letter='.$line['letter'].'">'.$line['letter'].'</A>&nbsp; ';
+        } else {
+            echo $letter.'&nbsp; ';
+        }
     }
     echo '</div>';
 
@@ -142,10 +152,11 @@ if ($proceed) {
         </FORM>';
 
     echo '<div class="orsee-options-actions-center" style="margin-top: 0.84rem;">'.button_link('lang_symbol_edit.php?go=true',
-                        lang('add_symbol'),'plus-circle').'</div>';
+        lang('add_symbol'),'plus-circle').'</div>';
 
     echo '<div class="orsee-options-actions">'.button_back('lang_main.php').'</div>';
     echo '</div>';
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

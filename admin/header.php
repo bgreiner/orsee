@@ -1,15 +1,16 @@
 <?php
 // part of orsee. see orsee.org
 $debug__script_started=microtime();
-include ("../config/settings.php");
-include ("../config/system.php");
-include ("../config/requires.php");
+include("../config/settings.php");
+include("../config/system.php");
+include("../config/requires.php");
 
 $proceed=true;
 if ($proceed) {
     $document=thisdoc();
-    if ($settings__stop_admin_site=="y" && $document!="error_temporarily_disabled.php")
+    if ($settings__stop_admin_site=="y" && $document!="error_temporarily_disabled.php") {
         redirect("admin/error_temporarily_disabled.php");
+    }
 }
 
 if ($proceed) {
@@ -23,24 +24,31 @@ if ($proceed) {
 
     session_start();
 
-    if (isset($_SESSION['expadmindata'])) $expadmindata=$_SESSION['expadmindata']; else $expadmindata=array();
+    if (isset($_SESSION['expadmindata'])) {
+        $expadmindata=$_SESSION['expadmindata'];
+    } else {
+        $expadmindata=array();
+    }
 
-    $tmparr=explode("/",$_SERVER['PHP_SELF']); $tmpnum=count($tmparr);
-    if (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING']) $query_string='?'.$_SERVER['QUERY_STRING'];
-    else $query_string='';
+    $tmparr=explode("/",$_SERVER['PHP_SELF']);
+    $tmpnum=count($tmparr);
+    if (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING']) {
+        $query_string='?'.$_SERVER['QUERY_STRING'];
+    } else {
+        $query_string='';
+    }
     $requested_url=$tmparr[$tmpnum-2]."/".$tmparr[$tmpnum-1].$query_string;
 
     // Check for login
     if ((!(isset($expadmindata['adminname']) && $expadmindata['adminname'])) && $document!="admin_login.php") {
-        redirect ("admin/admin_login.php?requested_url=".urlencode($requested_url));
+        redirect("admin/admin_login.php?requested_url=".urlencode($requested_url));
     }
 }
 
 if ($proceed) {
-
     if (isset($expadmindata['pw_update_requested']) && $expadmindata['pw_update_requested']  && $document!="admin_pw.php") {
         message(lang('please_change_your_password'),'warning');
-        redirect ("admin/admin_pw.php");
+        redirect("admin/admin_pw.php");
     }
 }
 
@@ -50,8 +58,9 @@ if ($proceed) {
         $_SESSION['expadmindata']=$expadmindata;
     }
 
-    if (!isset($expadmindata['language']))
+    if (!isset($expadmindata['language'])) {
         $expadmindata['language']=$settings['admin_standard_language'];
+    }
 
     $authdata['language']=$expadmindata['language'];
     $_SESSION['authdata']=$authdata;

@@ -1,25 +1,36 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="edit_participation_status";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['pstatus_id'])) $pstatus_id=$_REQUEST['pstatus_id'];
-    if (isset($pstatus_id)) $allow=check_allow('participationstatus_edit','participation_status_main.php');
-    else $allow=check_allow('participationstatus_add','participation_status_main.php');
+    if (isset($_REQUEST['pstatus_id'])) {
+        $pstatus_id=$_REQUEST['pstatus_id'];
+    }
+    if (isset($pstatus_id)) {
+        $allow=check_allow('participationstatus_edit','participation_status_main.php');
+    } else {
+        $allow=check_allow('participationstatus_add','participation_status_main.php');
+    }
 }
 
 if ($proceed) {
-    if (isset($pstatus_id) && $pstatus_id==0) $not_assigned=false; else $not_assigned=true;
+    if (isset($pstatus_id) && $pstatus_id==0) {
+        $not_assigned=false;
+    } else {
+        $not_assigned=true;
+    }
 
     // load languages
     $languages=get_languages();
 
     if (isset($pstatus_id)) {
         $pstatus=orsee_db_load_array("participation_statuses",$pstatus_id,"pstatus_id");
-        if (!isset($pstatus['pstatus_id'])) redirect ('admin/participation_status_main.php');
+        if (!isset($pstatus['pstatus_id'])) {
+            redirect('admin/participation_status_main.php');
+        }
         if ($proceed) {
             $pars=array(':pstatus_id'=>$pstatus_id);
             $query="SELECT * from ".table('lang')." WHERE content_type='participation_status_internal_name' AND content_name= :pstatus_id";
@@ -40,33 +51,37 @@ if ($proceed) {
 
     if (isset($_REQUEST['edit']) && $_REQUEST['edit']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/participation_status_edit.php?pstatus_id=".$pstatus_id);
+            redirect("admin/participation_status_edit.php?pstatus_id=".$pstatus_id);
         }
 
         $pstatus_internal_name=$_REQUEST['pstatus_internal_name'];
         foreach ($languages as $language) {
             if (!$pstatus_internal_name[$language]) {
-                    message (lang('missing_language').': "'.lang('internal_name').'" - '.$language,'error');
-                    $continue=false;
+                message(lang('missing_language').': "'.lang('internal_name').'" - '.$language,'error');
+                $continue=false;
             }
         }
         $pstatus_display_name=$_REQUEST['pstatus_display_name'];
         foreach ($languages as $language) {
             if (!$pstatus_display_name[$language]) {
-                message (lang('missing_language').': "'.lang('status_name_displayed_to_participants').'" - '.$language,'error');
+                message(lang('missing_language').': "'.lang('status_name_displayed_to_participants').'" - '.$language,'error');
                 $continue=false;
             }
         }
 
         if ($continue) {
-            $pstatus_internal_name_lang=array(); $pstatus_display_name_lang=array();
+            $pstatus_internal_name_lang=array();
+            $pstatus_display_name_lang=array();
             if (!isset($pstatus_id)) {
                 $new=true;
                 $query="SELECT pstatus_id+1 as new_pstatus_id FROM ".table('participation_statuses')."
                         ORDER BY pstatus_id DESC LIMIT 1";
                 $line=orsee_query($query);
-                if (isset($line['new_pstatus_id'])) $pstatus_id=$line['new_pstatus_id'];
-                else $pstatus_id=1;
+                if (isset($line['new_pstatus_id'])) {
+                    $pstatus_id=$line['new_pstatus_id'];
+                } else {
+                    $pstatus_id=1;
+                }
                 $pstatus_internal_name_lang['content_type']="participation_status_internal_name";
                 $pstatus_internal_name_lang['content_name']=$pstatus_id;
                 $pstatus_display_name_lang['content_type']="participation_status_display_name";
@@ -105,9 +120,9 @@ if ($proceed) {
                 $form_fields['pstatus_id']=$pstatus_id;
                 $done=orsee_db_save_array($form_fields,"participation_statuses",$pstatus_id,"pstatus_id");
             }
-            message (lang('changes_saved'));
+            message(lang('changes_saved'));
             log__admin("participation_status_edit","pstatus_id:".$pstatus['pstatus_id']);
-            redirect ("admin/participation_status_edit.php?pstatus_id=".$pstatus_id);
+            redirect("admin/participation_status_edit.php?pstatus_id=".$pstatus_id);
         } else {
             $pstatus=$_REQUEST;
         }
@@ -122,7 +137,9 @@ if ($proceed) {
 
     echo '
             <form action="participation_status_edit.php" method="POST">'.csrf__field();
-    if (isset($pstatus_id)) echo '<input type="hidden" name="pstatus_id" value="'.$pstatus_id.'">';
+    if (isset($pstatus_id)) {
+        echo '<input type="hidden" name="pstatus_id" value="'.$pstatus_id.'">';
+    }
 
     echo '          <div class="orsee-panel">
                         <div class="orsee-panel-title">
@@ -139,7 +156,9 @@ if ($proceed) {
                                 <label class="label">'.lang('internal_name').':</label>
                                 <div class="control">';
     foreach ($languages as $language) {
-        if (!isset($pstatus_internal_name[$language])) $pstatus_internal_name[$language]='';
+        if (!isset($pstatus_internal_name[$language])) {
+            $pstatus_internal_name[$language]='';
+        }
         echo '                      <div class="field">
                                             <label class="label">'.$language.':</label>
                                             <div class="control">
@@ -154,7 +173,9 @@ if ($proceed) {
                                 <label class="label">'.lang('status_name_displayed_to_participants').'</label>
                                 <div class="control">';
     foreach ($languages as $language) {
-        if (!isset($pstatus_display_name[$language])) $pstatus_display_name[$language]='';
+        if (!isset($pstatus_display_name[$language])) {
+            $pstatus_display_name[$language]='';
+        }
         echo '                      <div class="field">
                                             <label class="label">'.$language.':</label>
                                             <div class="control">
@@ -170,10 +191,14 @@ if ($proceed) {
                                 <label class="label">'.lang('counts_as_participated').'</label>
                                 <div class="control">
                                     <label class="radio"><input type="radio" name="participated" value="1"';
-        if ($pstatus['participated']) echo ' CHECKED';
+        if ($pstatus['participated']) {
+            echo ' CHECKED';
+        }
         echo '>'.lang('yes').'</label>&nbsp;&nbsp;
                                     <label class="radio"><input type="radio" name="participated" value="0"';
-        if (!$pstatus['participated']) echo ' CHECKED';
+        if (!$pstatus['participated']) {
+            echo ' CHECKED';
+        }
         echo '>'.lang('no').'</label>
                                 </div>
                             </div>';
@@ -182,10 +207,14 @@ if ($proceed) {
                                 <label class="label">'.lang('counts_as_noshow').'</label>
                                 <div class="control">
                                     <label class="radio"><input type="radio" name="noshow" value="1"';
-        if ($pstatus['noshow']) echo ' CHECKED';
+        if ($pstatus['noshow']) {
+            echo ' CHECKED';
+        }
         echo '>'.lang('yes').'</label>&nbsp;&nbsp;
                                     <label class="radio"><input type="radio" name="noshow" value="0"';
-        if (!$pstatus['noshow']) echo ' CHECKED';
+        if (!$pstatus['noshow']) {
+            echo ' CHECKED';
+        }
         echo '>'.lang('no').'</label>
                                 </div>
                             </div>';
@@ -194,10 +223,14 @@ if ($proceed) {
                                 <label class="label">'.lang('allows_to_participate_again').'</label>
                                 <div class="control">
                                     <label class="radio"><input type="radio" name="participateagain" value="1"';
-        if ($pstatus['participateagain']) echo ' CHECKED';
+        if ($pstatus['participateagain']) {
+            echo ' CHECKED';
+        }
         echo '>'.lang('yes').'</label>&nbsp;&nbsp;
                                     <label class="radio"><input type="radio" name="participateagain" value="0"';
-        if (!$pstatus['participateagain']) echo ' CHECKED';
+        if (!$pstatus['participateagain']) {
+            echo ' CHECKED';
+        }
         echo '>'.lang('no').'</label>
                                 </div>
                             </div>';
@@ -209,14 +242,18 @@ if ($proceed) {
                                 </div>
                                 <div class="orsee-form-row-col has-text-centered">
                                     <input class="button orsee-btn" name="edit" type="submit" value="';
-    if (!isset($pstatus_id)) echo lang('add'); else echo lang('change');
+    if (!isset($pstatus_id)) {
+        echo lang('add');
+    } else {
+        echo lang('change');
+    }
     echo '                          ">
                                 </div>
                                 <div class="orsee-form-row-col has-text-right">';
 
     if (isset($pstatus_id) && check_allow('participationstatus_delete') && $not_assigned) {
         echo button_link('participation_status_delete.php?pstatus_id='.urlencode($pstatus_id),
-                            lang('delete'),'trash-o','','','orsee-btn--delete');
+            lang('delete'),'trash-o','','','orsee-btn--delete');
     }
 
     echo '                      </div>
@@ -225,7 +262,7 @@ if ($proceed) {
                     </div>
             </form>
             <br>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

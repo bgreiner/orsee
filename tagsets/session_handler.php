@@ -1,7 +1,8 @@
 <?php
 // part of orsee. see orsee.org
 
-class orsee_session_handler implements SessionHandlerInterface {
+class orsee_session_handler implements SessionHandlerInterface
+{
     public function open(string $aSavaPath, string $aSessionName): bool {
         return orsee_session_open($aSavaPath,$aSessionName);
     }
@@ -44,29 +45,29 @@ function orsee_session_register_handler() {
 }
 
 function orsee_session_open($aSavaPath, $aSessionName) {
-       return true;
+    return true;
 }
 
 function orsee_session_close() {
-       return true;
+    return true;
 }
 
-function orsee_session_read( $aKey ) {
-       $query = "SELECT DataValue FROM ".table('http_sessions')." WHERE SessionID=:aKey";
-       $pars=array(':aKey'=>$aKey);
-       $result = or_query($query,$pars);
-       if(pdo_num_rows($result) == 1) {
-             $r = pdo_fetch_assoc($result);
-             return $r['DataValue'];
-       } else {
-             $query = "INSERT INTO ".table('http_sessions')." (SessionID, LastUpdated, DataValue)
+function orsee_session_read($aKey) {
+    $query = "SELECT DataValue FROM ".table('http_sessions')." WHERE SessionID=:aKey";
+    $pars=array(':aKey'=>$aKey);
+    $result = or_query($query,$pars);
+    if (pdo_num_rows($result) == 1) {
+        $r = pdo_fetch_assoc($result);
+        return $r['DataValue'];
+    } else {
+        $query = "INSERT INTO ".table('http_sessions')." (SessionID, LastUpdated, DataValue)
                        VALUES (:aKey, NOW(), '')";
-             or_query($query,$pars);
-             return "";
-       }
+        or_query($query,$pars);
+        return "";
+    }
 }
 
-function orsee_session_write( $aKey, $aVal ) {
+function orsee_session_write($aKey, $aVal) {
     site__database_config();
     $pars=array(':aKey'=>$aKey, ':aVal'=>$aVal);
     $query = "UPDATE ".table('http_sessions')." SET DataValue = :aVal, LastUpdated = NOW() WHERE SessionID = :aKey";
@@ -74,7 +75,7 @@ function orsee_session_write( $aKey, $aVal ) {
     return true;
 }
 
-function orsee_session_destroy( $aKey ) {
+function orsee_session_destroy($aKey) {
     site__database_config();
     $pars=array(':aKey'=>$aKey);
     $query = "DELETE FROM ".table('http_sessions')." WHERE SessionID = :aKey";
@@ -82,7 +83,7 @@ function orsee_session_destroy( $aKey ) {
     return true;
 }
 
-function orsee_session_gc( $aMaxLifeTime ) {
+function orsee_session_gc($aMaxLifeTime) {
     global $settings;
     site__database_config();
     $min_timeout_minutes=15;
@@ -93,8 +94,12 @@ function orsee_session_gc( $aMaxLifeTime ) {
         $effective_lifetime=$orsee_timeout_minutes*60;
     } else {
         $effective_lifetime=(int)$aMaxLifeTime;
-        if ($effective_lifetime < $min_timeout_minutes*60) $effective_lifetime=$min_timeout_minutes*60;
-        if ($effective_lifetime > $max_timeout_minutes*60) $effective_lifetime=$max_timeout_minutes*60;
+        if ($effective_lifetime < $min_timeout_minutes*60) {
+            $effective_lifetime=$min_timeout_minutes*60;
+        }
+        if ($effective_lifetime > $max_timeout_minutes*60) {
+            $effective_lifetime=$max_timeout_minutes*60;
+        }
     }
 
     $pars=array(':aMaxLifeTime'=>$effective_lifetime);

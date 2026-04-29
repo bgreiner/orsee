@@ -2,11 +2,15 @@
 // part of orsee. see orsee.org
 ob_start();
 $title="mail_preview";
-
 include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) $experiment_id=$_REQUEST['experiment_id'];
-            else { $experiment_id=""; redirect ("admin/"); }
+    if (isset($_REQUEST['experiment_id']) && $_REQUEST['experiment_id']) {
+        $experiment_id=$_REQUEST['experiment_id'];
+    } else {
+        $experiment_id="";
+        redirect("admin/");
+    }
 }
 
 if ($proceed) {
@@ -14,8 +18,9 @@ if ($proceed) {
 }
 if ($proceed) {
     $experiment=orsee_db_load_array("experiments",$experiment_id,"experiment_id");
-    if (!check_allow('experiment_restriction_override'))
+    if (!check_allow('experiment_restriction_override')) {
         check_experiment_allowed($experiment,"admin/experiment_show.php?experiment_id=".$experiment_id);
+    }
 }
 
 if ($proceed) {
@@ -42,12 +47,18 @@ if ($proceed) {
 
         if ($experiment['experiment_type']=="laboratory") {
             $sessionlist=experimentmail__get_session_list($experiment_id,$inv_lang);
-        } else $sessionlist='';
+        } else {
+            $sessionlist='';
+        }
 
         $pform_fields=participant__load_participant_email_fields($inv_lang);
         $experimentmail=experimentmail__preview_fake_participant_details($pform_fields);
         $experimentmail=experimentmail__get_invitation_mail_details($experimentmail,$experiment,$sessionlist);
-        if ($experiment['sender_mail']) $sendermail=$experiment['sender_mail']; else $sendermail=$settings['support_mail'];
+        if ($experiment['sender_mail']) {
+            $sendermail=$experiment['sender_mail'];
+        } else {
+            $sendermail=$settings['support_mail'];
+        }
         $email_text=process_mail_template(stripslashes($body),$experimentmail);
 
         echo '<div class="orsee-table" style="width: 100%; max-width: 100%; margin-bottom: 0.75rem;">';
@@ -79,15 +90,14 @@ if ($proceed) {
         echo '  </div></div>
               </div>
             </div>';
-
     }
 
-        echo '  <div class="orsee-options-actions">'.
-                    button_back('experiment_mail_participants.php?experiment_id='.urlencode($experiment_id),lang('back'))
-                .'</div>
+    echo '  <div class="orsee-options-actions">'.
+                button_back('experiment_mail_participants.php?experiment_id='.urlencode($experiment_id),lang('back'))
+            .'</div>
             </div>
         </div>';
-
 }
 include("footer.php");
+
 ?>

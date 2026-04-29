@@ -1,24 +1,34 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
-if (isset($_REQUEST['item'])) $item=$_REQUEST['item']; else $item='';
+if (isset($_REQUEST['item'])) {
+    $item=$_REQUEST['item'];
+} else {
+    $item='';
+}
 $title="options";
 $js_modules=array('listtool');
-include ("header.php");
-if ($proceed) {
+include("header.php");
 
-    if (isset($_REQUEST['item'])) $sent_item=$_REQUEST['item']; else $sent_item="";
+if ($proceed) {
+    if (isset($_REQUEST['item'])) {
+        $sent_item=$_REQUEST['item'];
+    } else {
+        $sent_item="";
+    }
 
     $done=false;
-    $formfields=participantform__load('draft'); $allow_cat=$sent_item;
-    foreach($formfields as $f) {
+    $formfields=participantform__load('draft');
+    $allow_cat=$sent_item;
+    foreach ($formfields as $f) {
         if (preg_match("/(select_lang|radioline_lang|checkboxlist_lang)/",$f['type']) && $sent_item==$f['mysql_column_name']) {
             $done=true;
             $item=$sent_item;
             $header=participant__field_localized_text($f,'name_lang','name_lang');
-            if (!$header) $header=$f['mysql_column_name'];
+            if (!$header) {
+                $header=$f['mysql_column_name'];
+            }
             $where="";
             $order=" order_number ";
             $allow_order=true;
@@ -35,7 +45,7 @@ if ($proceed) {
     $id_nowrap=false;
 
     if (!$done) {
-        switch($sent_item) {
+        switch ($sent_item) {
             case 'public_content':
                 $item=$sent_item;
                 $header=lang('public_content');
@@ -56,15 +66,15 @@ if ($proceed) {
                 $show_id=true;
                 $id_nowrap=true;
                 break;
-//          case 'help':
-//              $item=$sent_item;
-//              $header=lang('help');
-//              $where="";
-//              $order=" content_name ";
-//              $show_part_stats=false;
-//              $show_id=true;
-//              $chnl2br=true;
-//              break;
+                //          case 'help':
+                //              $item=$sent_item;
+                //              $header=lang('help');
+                //              $where="";
+                //              $order=" content_name ";
+                //              $show_part_stats=false;
+                //              $show_id=true;
+                //              $chnl2br=true;
+                //              break;
             case 'mail':
                 $item=$sent_item;
                 $header=lang('default_mails');
@@ -141,7 +151,7 @@ if ($proceed) {
                 $show_part_stats=false;
                 $show_id=false;
                 break;
-            }
+        }
     }
 
     //var_dump($_REQUEST);
@@ -154,7 +164,7 @@ if ($proceed) {
 
 if ($proceed) {
     if ($allow_order && isset($_REQUEST['save_order']) && $_REQUEST['save_order']) {
-        if(isset($_REQUEST['langitem_order']) && is_array($_REQUEST['langitem_order']) && count($_REQUEST['langitem_order'])>0) {
+        if (isset($_REQUEST['langitem_order']) && is_array($_REQUEST['langitem_order']) && count($_REQUEST['langitem_order'])>0) {
             $done=language__save_item_order($item,$_REQUEST['langitem_order']);
             message(lang('new_order_saved'));
             redirect('admin/lang_item_main.php?item='.urlencode($item));
@@ -169,7 +179,7 @@ if ($proceed) {
     echo '<div class="orsee-panel-actions">';
     if (check_allow($allow_cat.'_add')) {
         echo button_link('lang_item_edit.php?item='.urlencode($item).'&addit=true',
-                        lang('create_new'),'plus-circle');
+            lang('create_new'),'plus-circle');
     }
     echo '</div>';
     echo '</div>';
@@ -202,14 +212,23 @@ if ($proceed) {
     $rows=array();
     while ($line=pdo_fetch_assoc($result)) {
         $row=array();
-        if ($show_id) $row['id']=$line['content_name'];
+        if ($show_id) {
+            $row['id']=$line['content_name'];
+        }
         $row['languages']=array();
         foreach ($languages as $language) {
-            if (isset($chnl2br) && $chnl2br) $row['languages'][$language]=nl2br(stripslashes($line[$language]));
-            else $row['languages'][$language]=stripslashes($line[$language]);
+            if (isset($chnl2br) && $chnl2br) {
+                $row['languages'][$language]=nl2br(stripslashes($line[$language]));
+            } else {
+                $row['languages'][$language]=stripslashes($line[$language]);
+            }
         }
         if ($show_part_stats) {
-            if (isset($num_p[$line['content_name']])) $np=$num_p[$line['content_name']]; else $np=0;
+            if (isset($num_p[$line['content_name']])) {
+                $np=$num_p[$line['content_name']];
+            } else {
+                $np=0;
+            }
             $row['participants']=$np;
         }
         $row['action']=button_link('lang_item_edit.php?item='.$item.'&id='.$line['lang_id'],lang('edit'),'pencil-square-o');
@@ -233,9 +252,13 @@ if ($proceed) {
     }
 
     $thc=0;
-    if ($show_id) $thc++;
+    if ($show_id) {
+        $thc++;
+    }
     $thc+=count($languages);
-    if ($show_part_stats) $thc++;
+    if ($show_part_stats) {
+        $thc++;
+    }
     $thc++;
 
 
@@ -243,11 +266,15 @@ if ($proceed) {
         if ($allow_order) {
             echo '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
             echo '<div class="orsee-table-row orsee-table-head">';
-            if ($show_id) echo '<div class="orsee-table-cell">'.lang('id').'</div>';
+            if ($show_id) {
+                echo '<div class="orsee-table-cell">'.lang('id').'</div>';
+            }
             foreach ($languages as $language) {
                 echo '<div class="orsee-table-cell">'.$language.'</div>';
             }
-            if ($show_part_stats) echo '<div class="orsee-table-cell">'.lang('participants').'</div>';
+            if ($show_part_stats) {
+                echo '<div class="orsee-table-cell">'.lang('participants').'</div>';
+            }
             echo '<div class="orsee-table-cell">'.lang('action').'</div>';
             echo '</div>';
             echo '<div class="orsee-table-row">';
@@ -257,11 +284,15 @@ if ($proceed) {
         } else {
             echo '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
             echo '<div class="orsee-table-row orsee-table-head">';
-            if ($show_id) echo '<div class="orsee-table-cell">'.lang('id').'</div>';
+            if ($show_id) {
+                echo '<div class="orsee-table-cell">'.lang('id').'</div>';
+            }
             foreach ($languages as $language) {
                 echo '<div class="orsee-table-cell">'.$language.'</div>';
             }
-            if ($show_part_stats) echo '<div class="orsee-table-cell">'.lang('participants').'</div>';
+            if ($show_part_stats) {
+                echo '<div class="orsee-table-cell">'.lang('participants').'</div>';
+            }
             echo '<div class="orsee-table-cell">'.lang('action').'</div>';
             echo '</div>';
             echo '<div class="orsee-table-row">';
@@ -270,8 +301,9 @@ if ($proceed) {
             echo '</div>';
         }
     } elseif ($allow_order) {
-        $listrows=array(); $i=0;
-        foreach($rows as $k=>$row) {
+        $listrows=array();
+        $i=0;
+        foreach ($rows as $k=>$row) {
             $i++;
             $listrows[$row['content_name']]=array(
                     'display_text' => $row['content_name'],
@@ -291,16 +323,20 @@ if ($proceed) {
         $id_cell_style=$id_nowrap ? ' style="white-space: nowrap; vertical-align: top;"' : ' style="vertical-align: top;"';
         echo '<div class="orsee-table orsee-table-tablet-2cols orsee-table-mobile">';
         echo '<div class="orsee-table-row orsee-table-head">';
-        if ($show_id) echo '<div class="orsee-table-cell">'.lang('id').'</div>';
+        if ($show_id) {
+            echo '<div class="orsee-table-cell">'.lang('id').'</div>';
+        }
         foreach ($languages as $language) {
             echo '<div class="orsee-table-cell">'.$language.'</div>';
         }
-        if ($show_part_stats) echo '<div class="orsee-table-cell">'.lang('participants').'</div>';
+        if ($show_part_stats) {
+            echo '<div class="orsee-table-cell">'.lang('participants').'</div>';
+        }
         echo '<div class="orsee-table-cell">'.lang('action').'</div>';
         echo '</div>';
 
         $shade=false;
-        foreach($rows as $k=>$row) {
+        foreach ($rows as $k=>$row) {
             $row_class='orsee-table-row';
             if ($shade) {
                 $row_class.=' is-alt';
@@ -309,11 +345,15 @@ if ($proceed) {
                 $shade=true;
             }
             echo '<div class="'.$row_class.'">';
-            if ($show_id) echo '<div class="orsee-table-cell" data-label="'.lang('id').'"'.$id_cell_style.'>'.$row['data']['id'].'</div>';
+            if ($show_id) {
+                echo '<div class="orsee-table-cell" data-label="'.lang('id').'"'.$id_cell_style.'>'.$row['data']['id'].'</div>';
+            }
             foreach ($languages as $language) {
                 echo '<div class="orsee-table-cell" data-label="'.$language.'">'.$row['data']['languages'][$language].'</div>';
             }
-            if ($show_part_stats) echo '<div class="orsee-table-cell" data-label="'.lang('participants').'">'.$row['data']['participants'].'</div>';
+            if ($show_part_stats) {
+                echo '<div class="orsee-table-cell" data-label="'.lang('participants').'">'.$row['data']['participants'].'</div>';
+            }
             echo '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'">'.$row['data']['action'].'</div>';
             echo '</div>';
         }
@@ -323,7 +363,7 @@ if ($proceed) {
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
 
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

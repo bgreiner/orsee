@@ -1,23 +1,30 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="options";
 $js_modules=array('queryform','flatpickr');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('pform_default_query_edit','options_main.php');
 }
 if ($proceed) {
     $query_types=array('assign','deassign','participants_search_active','participants_search_all');
-    if (isset($_REQUEST['type']) && $_REQUEST['type'] && in_array($_REQUEST['type'],$query_types)) $type=$_REQUEST['type'];
-    else redirect('admin/options_main.php');
+    if (isset($_REQUEST['type']) && $_REQUEST['type'] && in_array($_REQUEST['type'],$query_types)) {
+        $type=$_REQUEST['type'];
+    } else {
+        redirect('admin/options_main.php');
+    }
 }
 
 if ($proceed) {
     if (isset($_REQUEST['search_submit'])) {
-        if(isset($_REQUEST['form'])) $posted_query=$_REQUEST['form']; else $posted_query=array('query'=>array());
+        if (isset($_REQUEST['form'])) {
+            $posted_query=$_REQUEST['form'];
+        } else {
+            $posted_query=array('query'=>array());
+        }
         $posted_query_json=json_encode($posted_query);
         $done=query__save_default_query($posted_query_json,'default_'.$type);
         redirect('admin/'.thisdoc().'?type='.$type);
@@ -25,7 +32,6 @@ if ($proceed) {
 }
 
 if ($proceed) {
-
     $titles=array('assign'=>'default_search_for_assigning_participants_to_experiment',
                 'deassign'=>'default_search_for_deassigning_participants_from_experiment',
                 'participants_search_active'=>'default_search_for_active_participants',
@@ -33,9 +39,13 @@ if ($proceed) {
 
     show_message();
     $load_query=query__load_default_query($type);
-    if ($type=='participants_search_active') $hide_modules=array('statusids');
-    elseif ($type=='assign' || $type=='deassign') $hide_modules=array('subscriptions');
-    else $hide_modules=array();
+    if ($type=='participants_search_active') {
+        $hide_modules=array('statusids');
+    } elseif ($type=='assign' || $type=='deassign') {
+        $hide_modules=array('subscriptions');
+    } else {
+        $hide_modules=array();
+    }
     $formextra='<INPUT type="hidden" name="type" value="'.$type.'">';
 
     echo '<div class="orsee-panel">';
@@ -45,7 +55,7 @@ if ($proceed) {
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

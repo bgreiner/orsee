@@ -1,29 +1,41 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="delete_participation_status";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
-    if (isset($_REQUEST['pstatus_id'])) $pstatus_id=$_REQUEST['pstatus_id']; else $pstatus_id="";
+    if (isset($_REQUEST['pstatus_id'])) {
+        $pstatus_id=$_REQUEST['pstatus_id'];
+    } else {
+        $pstatus_id="";
+    }
     if ($pstatus_id!='' && $pstatus_id==0) {
-        redirect ('admin/participation_status_edit.php?pstatus_id='.$pstatus_id);
-    } elseif (!$pstatus_id) redirect ('admin/participation_status_main.php');
+        redirect('admin/participation_status_edit.php?pstatus_id='.$pstatus_id);
+    } elseif (!$pstatus_id) {
+        redirect('admin/participation_status_main.php');
+    }
 }
 if ($proceed) {
     $pstatus=orsee_db_load_array("participation_statuses",$pstatus_id,"pstatus_id");
-    if (!isset($pstatus['pstatus_id'])) redirect ('admin/participation_status_main.php');
+    if (!isset($pstatus['pstatus_id'])) {
+        redirect('admin/participation_status_main.php');
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot'])
-        redirect ('admin/participation_status_edit.php?pstatus_id='.$pstatus_id);
+    if (isset($_REQUEST['betternot']) && $_REQUEST['betternot']) {
+        redirect('admin/participation_status_edit.php?pstatus_id='.$pstatus_id);
+    }
 }
 
 if ($proceed) {
-    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) $reallydelete=true;
-        else $reallydelete=false;
+    if (isset($_REQUEST['reallydelete']) && $_REQUEST['reallydelete']) {
+        $reallydelete=true;
+    } else {
+        $reallydelete=false;
+    }
     $allow=check_allow('participationstatus_delete','participation_status_edit.php?pstatus_id='.$pstatus_id);
 }
 
@@ -45,12 +57,12 @@ if ($proceed) {
 
     if ($reallydelete) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/participation_status_delete.php?pstatus_id='.$pstatus_id);
+            redirect('admin/participation_status_delete.php?pstatus_id='.$pstatus_id);
         }
 
         $participation_statuses=expregister__get_participation_statuses();
         if (!isset($_REQUEST['merge_with']) || !isset($participation_statuses[$_REQUEST['merge_with']])) {
-            redirect ('admin/participation_status_delete.php?pstatus_id='.$pstatus_id);
+            redirect('admin/participation_status_delete.php?pstatus_id='.$pstatus_id);
         } else {
             $merge_with=$_REQUEST['merge_with'];
 
@@ -80,16 +92,16 @@ if ($proceed) {
 
             log__admin("participation_status_delete","pstatus:".$pstatus_internal_name[lang('lang')].' ('.$pstatus['pstatus_id']."), ".
                         "merged_to:".$participation_statuses[$merge_with]['internal_name'].' ('.$merge_with.")");
-            message (lang('participation_status_deleted_part_moved_to').' "'.$participation_statuses[$merge_with]['internal_name'].'".');
-            redirect ("admin/participation_status_main.php");
+            message(lang('participation_status_deleted_part_moved_to').' "'.$participation_statuses[$merge_with]['internal_name'].'".');
+            redirect("admin/participation_status_main.php");
         }
     }
 }
 
 if ($proceed) {
-        // form
+    // form
 
-        echo '<div class="orsee-panel orsee-form-shell">
+    echo '<div class="orsee-panel orsee-form-shell">
                 <div class="orsee-panel-title">'.lang('delete_participation_status').'</div>
                 <div class="orsee-content">
                     <div class="orsee-callout orsee-message-box orsee-callout-warning">'.lang('really_delete_participation_status?').'</div>
@@ -119,7 +131,7 @@ if ($proceed) {
                     </form>
                 </div>
             </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

@@ -1,13 +1,18 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 if (isset($_REQUEST['export']) && $_REQUEST['export']) {
-    include ("nonoutputheader.php");
+    include("nonoutputheader.php");
     if ($proceed) {
-        if (isset($_REQUEST['lang_id']) && $_REQUEST['lang_id']) $lang_id=$_REQUEST['lang_id']; else $lang_id='';
+        if (isset($_REQUEST['lang_id']) && $_REQUEST['lang_id']) {
+            $lang_id=$_REQUEST['lang_id'];
+        } else {
+            $lang_id='';
+        }
         $languages=get_languages();
-        if (!$lang_id || !in_array($lang_id,$languages)) redirect ("admin/lang_main.php");
+        if (!$lang_id || !in_array($lang_id,$languages)) {
+            redirect("admin/lang_main.php");
+        }
     }
     if ($proceed) {
         $allow=check_allow('lang_lang_export','lang_lang_edit.php?elang='.$lang_id);
@@ -42,19 +47,24 @@ if (isset($_REQUEST['export']) && $_REQUEST['export']) {
         header("Expires: 0");
         header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
         header("Content-Type: ".$mime_type);
-        header( "Content-Disposition: attachment; filename=\"$filename\"");
-        header( "Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header("Content-Description: File Transfer");
         echo $file;
     }
 } else {
-
     $menu__area="options";
     $title="export_language";
-    include ("header.php");
+    include("header.php");
     if ($proceed) {
-        if (isset($_REQUEST['lang_id']) && $_REQUEST['lang_id']) $lang_id=$_REQUEST['lang_id']; else $lang_id='';
+        if (isset($_REQUEST['lang_id']) && $_REQUEST['lang_id']) {
+            $lang_id=$_REQUEST['lang_id'];
+        } else {
+            $lang_id='';
+        }
         $languages=get_languages();
-        if (!$lang_id || !in_array($lang_id,$languages)) redirect ("admin/lang_main.php");
+        if (!$lang_id || !in_array($lang_id,$languages)) {
+            redirect("admin/lang_main.php");
+        }
     }
     if ($proceed) {
         $allow=check_allow('lang_lang_export','lang_lang_edit.php?elang='.$lang_id);
@@ -75,6 +85,6 @@ if (isset($_REQUEST['export']) && $_REQUEST['export']) {
                 </div>
             </div>';
     }
-    include ("footer.php");
+    include("footer.php");
 }
 ?>

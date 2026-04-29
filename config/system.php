@@ -1797,6 +1797,6 @@ $system__colors[]=array(
 
 // DATABASE UPGRADE DEFINITIONS //
 $system__database_upgrades=array();
-include ("dbupdates.php");
+include("dbupdates.php");
 
 ?>

@@ -14,12 +14,18 @@ function experiment__current_experiment_summary($experimenter="",$finished="n",$
     if (isset($_REQUEST['experimenter_search']) && $_REQUEST['experimenter_search']) {
         $experimenter_arr=multipicker_json_to_array($_REQUEST['experimenter_search']);
     }
-    if ($experimenter && count($experimenter_arr)==0) $experimenter_arr=array($experimenter);
+    if ($experimenter && count($experimenter_arr)==0) {
+        $experimenter_arr=array($experimenter);
+    }
     $exp_clause=query__get_experimenter_or_clause($experimenter_arr);
     if ($exp_clause['clause']) {
         $expq=' AND '.$exp_clause['clause'];
-        foreach ($exp_clause['pars'] as $k=>$v) $pars[$k]=$v;
-    } else $expq="";
+        foreach ($exp_clause['pars'] as $k=>$v) {
+            $pars[$k]=$v;
+        }
+    } else {
+        $expq="";
+    }
 
     $class_arr=array();
     if (isset($_REQUEST['class_search']) && $_REQUEST['class_search']) {
@@ -28,15 +34,19 @@ function experiment__current_experiment_summary($experimenter="",$finished="n",$
     $class_clause=query__get_class_or_clause($class_arr);
     if ($class_clause['clause']) {
         $classq=' AND '.$class_clause['clause'];
-        foreach ($class_clause['pars'] as $k=>$v) $pars[$k]=$v;
-    } else $classq="";
+        foreach ($class_clause['pars'] as $k=>$v) {
+            $pars[$k]=$v;
+        }
+    } else {
+        $classq="";
+    }
 
     $finq=" ".table('experiments').".experiment_finished= :finished";
     $pars[':finished']=$finished;
 
     $aquery=$finq.$expq.$classq;
 
-        $query="SELECT ".table('experiments').".*,
+    $query="SELECT ".table('experiments').".*,
                 (SELECT count(*) from ".table('sessions')." as s1 WHERE s1.experiment_id=".table('experiments').".experiment_id) as num_sessions,
                 if((SELECT count(*) from ".table('sessions')." as s2 WHERE s2.experiment_id=".table('experiments').".experiment_id)=0,1,0) as no_sessions,
                 (SELECT min(if(session_start > date_format(now(),'%Y%m%d%H%i'),session_start,NULL)) from ".table('sessions')." as s3 WHERE s3.experiment_id=".table('experiments').".experiment_id) as time,
@@ -46,103 +56,105 @@ function experiment__current_experiment_summary($experimenter="",$finished="n",$
                 WHERE ".table('experiments').".experiment_id IS NOT NULL
                 AND ".$aquery."
                 ORDER BY no_sessions, time, last_session_date DESC, experiment_id";
-        $result=or_query($query,$pars);
-        $experiments=array(); $eids=array();
-        while ($line=pdo_fetch_assoc($result)) {
-            $line['sessions']=array();
-            $experiments[$line['experiment_id']]=$line;
-            $eids[]=$line['experiment_id'];
-        }
+    $result=or_query($query,$pars);
+    $experiments=array();
+    $eids=array();
+    while ($line=pdo_fetch_assoc($result)) {
+        $line['sessions']=array();
+        $experiments[$line['experiment_id']]=$line;
+        $eids[]=$line['experiment_id'];
+    }
 
-        if (count($eids)>0) {
-            $query="SELECT *
+    if (count($eids)>0) {
+        $query="SELECT *
                     FROM ".table('sessions')."
                     WHERE (session_status='planned' OR session_status='live')
                     AND experiment_id IN (".
-                    implode(',',$eids).")
+                implode(',',$eids).")
                     ORDER BY session_start, session_id";
-            $result=or_query($query); $sids=array();
-            while ($line=pdo_fetch_assoc($result)) {
-                $experiments[$line['experiment_id']]['sessions'][$line['session_id']]=$line;
-                $sids[]=$line['session_id'];
-            }
+        $result=or_query($query);
+        $sids=array();
+        while ($line=pdo_fetch_assoc($result)) {
+            $experiments[$line['experiment_id']]['sessions'][$line['session_id']]=$line;
+            $sids[]=$line['session_id'];
+        }
 
-            // get counts at experiment level
-            // performance is better if doing this separately
-            $query="SELECT experiment_id,
+        // get counts at experiment level
+        // performance is better if doing this separately
+        $query="SELECT experiment_id,
                     count(*) as num_assigned
                     FROM ".table('participate_at')."
                     WHERE experiment_id IN (".
-                    implode(',',$eids).")
+                implode(',',$eids).")
                     GROUP BY experiment_id";
-            $result=or_query($query);
-            while ($line=pdo_fetch_assoc($result)) {
-                $experiments[$line['experiment_id']]['num_assigned']=$line['num_assigned'];
-            }
+        $result=or_query($query);
+        while ($line=pdo_fetch_assoc($result)) {
+            $experiments[$line['experiment_id']]['num_assigned']=$line['num_assigned'];
+        }
 
-            $query="SELECT experiment_id,
+        $query="SELECT experiment_id,
                     count(*) as num_registered
                     FROM ".table('participate_at')."
                     WHERE session_id!=0
                     AND experiment_id IN (".
-                    implode(',',$eids).")
+                implode(',',$eids).")
                     GROUP BY experiment_id";
-            $result=or_query($query);
-            while ($line=pdo_fetch_assoc($result)) {
-                $experiments[$line['experiment_id']]['num_registered']=$line['num_registered'];
-            }
+        $result=or_query($query);
+        while ($line=pdo_fetch_assoc($result)) {
+            $experiments[$line['experiment_id']]['num_registered']=$line['num_registered'];
+        }
 
-            $participated_clause=expregister__get_pstatus_query_snippet("participated");
-            $query="SELECT experiment_id,
+        $participated_clause=expregister__get_pstatus_query_snippet("participated");
+        $query="SELECT experiment_id,
                     count(*) as num_participated
                     FROM ".table('participate_at')."
                     WHERE ".$participated_clause."
                     AND experiment_id IN (".
-                    implode(',',$eids).")
+                implode(',',$eids).")
                     GROUP BY experiment_id";
-            $result=or_query($query);
-            while ($line=pdo_fetch_assoc($result)) {
-                $experiments[$line['experiment_id']]['num_participated']=$line['num_participated'];
-            }
-            //
-            if ($finished=='y') {
-                $noshow_clause=expregister__get_pstatus_query_snippet("noshow");
-                // get showup counts at session level
-                // couldn't get much better performance if separating counts
-                $query="SELECT ".table('participate_at').".experiment_id,
+        $result=or_query($query);
+        while ($line=pdo_fetch_assoc($result)) {
+            $experiments[$line['experiment_id']]['num_participated']=$line['num_participated'];
+        }
+        //
+        if ($finished=='y') {
+            $noshow_clause=expregister__get_pstatus_query_snippet("noshow");
+            // get showup counts at session level
+            // couldn't get much better performance if separating counts
+            $query="SELECT ".table('participate_at').".experiment_id,
                         count(*) as comp_num_registered,
                         sum(if(".$noshow_clause.",1,0)) as comp_num_noshow
                         FROM ".table('participate_at').", ".table('sessions')."
                         WHERE ".table('participate_at').".session_id=".table('sessions').".session_id
                         AND (".table('sessions').".session_status='completed' OR ".table('sessions').".session_status='balanced')
                         AND ".table('participate_at').".experiment_id IN (".
-                        implode(',',$eids).")
+                    implode(',',$eids).")
                         GROUP BY ".table('participate_at').".experiment_id";
-                $result=or_query($query);
-                while ($line=pdo_fetch_assoc($result)) {
-                    $experiments[$line['experiment_id']]['comp_num_registered']=$line['comp_num_registered'];
-                    $experiments[$line['experiment_id']]['comp_num_noshow']=$line['comp_num_noshow'];
-                }
+            $result=or_query($query);
+            while ($line=pdo_fetch_assoc($result)) {
+                $experiments[$line['experiment_id']]['comp_num_registered']=$line['comp_num_registered'];
+                $experiments[$line['experiment_id']]['comp_num_noshow']=$line['comp_num_noshow'];
             }
+        }
 
-            if (count($sids)>0) {
-                $query="SELECT experiment_id, session_id,
+        if (count($sids)>0) {
+            $query="SELECT experiment_id, session_id,
                         count(*) as num_registered
                         FROM ".table('participate_at')."
                         WHERE session_id IN (".
-                        implode(',',$sids).")
+                    implode(',',$sids).")
                         GROUP BY experiment_id, session_id";
-                $result=or_query($query);
-                while ($line=pdo_fetch_assoc($result)) {
-                    $experiments[$line['experiment_id']]['sessions'][$line['session_id']]['num_registered']=$line['num_registered'];
-                }
+            $result=or_query($query);
+            while ($line=pdo_fetch_assoc($result)) {
+                $experiments[$line['experiment_id']]['sessions'][$line['session_id']]['num_registered']=$line['num_registered'];
             }
         }
+    }
 
     if ($show_filter) {
         echo '<div class="orsee-panel">';
         $experimenter_options=array();
-        foreach($experimenters as $k=>$e) {
+        foreach ($experimenters as $k=>$e) {
             if (in_array($e['admin_id'],$experimenter_arr) || ($e['experimenter_list']=='y' && $e['disabled']!='y')) {
                 $experimenter_options[(string)$e['admin_id']]=$e['lname'].', '.$e['fname'];
             }
@@ -235,25 +247,36 @@ function experiment__current_experiment_summary($experimenter="",$finished="n",$
     echo '<div class="orsee-panel-title">';
     echo '<div>';
     echo count($experiments).' ';
-    if ($finished=="n") echo lang('xxx_current_experiments');
-    else echo lang('xxx_finished_experiments');
+    if ($finished=="n") {
+        echo lang('xxx_current_experiments');
+    } else {
+        echo lang('xxx_finished_experiments');
+    }
     echo '</div>';
     echo '<div class="orsee-panel-actions">';
-    if ($addbutton && check_allow('experiment_edit')) echo button_link("experiment_edit.php?addit=true",lang('register_new_experiment'),'plus-circle');
+    if ($addbutton && check_allow('experiment_edit')) {
+        echo button_link("experiment_edit.php?addit=true",lang('register_new_experiment'),'plus-circle');
+    }
     if ($experimenter && $finished=="n" && (check_allow('calendar_view_my') || check_allow('calendar_view_all'))) {
         echo button_link("calendar_main.php?experimenter_id=".urlencode((string)$experimenter),lang('show_my_calendar'),'calendar');
     }
-    if(!$experimenter) {
-        if ($finished=="n") echo button_link("experiment_old.php",lang('finished_experiments'),'fast-backward','','data-orsee-mobile-hide="exp-switch"');
-        else echo button_link("experiment_main.php",lang('current_experiments'),'fast-forward','','data-orsee-mobile-hide="exp-switch"');
+    if (!$experimenter) {
+        if ($finished=="n") {
+            echo button_link("experiment_old.php",lang('finished_experiments'),'fast-backward','','data-orsee-mobile-hide="exp-switch"');
+        } else {
+            echo button_link("experiment_main.php",lang('current_experiments'),'fast-forward','','data-orsee-mobile-hide="exp-switch"');
+        }
     }
     echo '</div>';
     echo '</div>';
 
     echo '<div class="orsee-dense-list">';
     foreach ($experiments as $id=>$exp) {
-        if ($finished=="n") experiment__experiments_format_alist($exp);
-        else experiment__old_experiments_format_alist($exp);
+        if ($finished=="n") {
+            experiment__experiments_format_alist($exp);
+        } else {
+            experiment__old_experiments_format_alist($exp);
+        }
     }
     echo '</div>';
     echo '</div><br><br>';
@@ -262,7 +285,8 @@ function experiment__current_experiment_summary($experimenter="",$finished="n",$
 function experiment__list_experimenters($namelist,$showlinks=true,$realnames=false,$just_emails=false,$reverse_names=false) {
     global $settings, $expadmindata;
     $selected=db_string_to_id_array($namelist);
-    $list=array(); $emails=array();
+    $list=array();
+    $emails=array();
     $experimenters=experiment__load_experimenters();
 
     if (!$just_emails) {
@@ -277,20 +301,30 @@ function experiment__list_experimenters($namelist,$showlinks=true,$realnames=fal
                     } else {
                         $item.=$experimenters[$admin]['fname'].' '.$experimenters[$admin]['lname'];
                     }
-                } else $item.=$experimenters[$admin]['adminname'];
+                } else {
+                    $item.=$experimenters[$admin]['adminname'];
+                }
                 //if ($showlinks) $item.='</A>';
-            }  else {
+            } else {
                 $item=$admin;
             }
             $list[]=$item;
         }
         $string='';
-        if ($showlinks && count($emails)>0) $string.='<A HREF="mailto:'.implode(",",$emails).'">';
+        if ($showlinks && count($emails)>0) {
+            $string.='<A HREF="mailto:'.implode(",",$emails).'">';
+        }
         natsort($list);
         $string.=implode(", ",$list);
-        if ($showlinks && count($emails)>0) $string.='</A>';
+        if ($showlinks && count($emails)>0) {
+            $string.='</A>';
+        }
     } else {
-        foreach ($selected as $admin) if (isset($experimenters[$admin])) $list[]=$experimenters[$admin]['email'];
+        foreach ($selected as $admin) {
+            if (isset($experimenters[$admin])) {
+                $list[]=$experimenters[$admin]['email'];
+            }
+        }
         $string=implode(",",$list);
     }
     return $string;
@@ -299,9 +333,9 @@ function experiment__list_experimenters($namelist,$showlinks=true,$realnames=fal
 function experiment__load_experimenters() {
     global $settings, $preloaded_experimenters;
     if (isset($preloaded_experimenters) && is_array($preloaded_experimenters)
-        && count($preloaded_experimenters)>0)
-            return $preloaded_experimenters;
-    else {
+        && count($preloaded_experimenters)>0) {
+        return $preloaded_experimenters;
+    } else {
         $admins=array();
         $query="SELECT * from ".table('admin')." order by adminname";
         $result=or_query($query);
@@ -314,18 +348,21 @@ function experiment__load_experimenters() {
 }
 
 
-function check_experiment_allowed ($experiment_var,$redirect="admin/experiment_main.php") {
+function check_experiment_allowed($experiment_var,$redirect="admin/experiment_main.php") {
     if (!experiment__allowed($experiment_var)) {
         global $lang;
         message(lang('error_experiment_access_restricted'),'error');
-        redirect ($redirect);
-        }
+        redirect($redirect);
+    }
 }
 
 
 function experiment__allowed($experiment_var) {
-    if (is_array($experiment_var)) $experiment=$experiment_var;
-        else $experiment=orsee_db_load_array("experiments",$experiment_var,"experiment_id");
+    if (is_array($experiment_var)) {
+        $experiment=$experiment_var;
+    } else {
+        $experiment=orsee_db_load_array("experiments",$experiment_var,"experiment_id");
+    }
 
     $return=true;
 
@@ -336,9 +373,9 @@ function experiment__allowed($experiment_var) {
             $experimenters=db_string_to_id_array($experiment['experimenter']);
             if (!in_array($expadmindata['admin_id'],$experimenters)) {
                 $return=false;
-                }
             }
         }
+    }
     return $return;
 }
 
@@ -348,10 +385,9 @@ function experiment__check_required($varname) {
     if ((!isset($_REQUEST[$varname])) || $test=="nix" || $test=="" || $test=" ") {
         $error__error=true;
         return true;
-        }
-       else {
+    } else {
         return false;
-        }
+    }
 }
 
 
@@ -361,14 +397,28 @@ function experiment__experiments_format_alist($alist) {
 
     $exptypes=load_external_experiment_types();
 
-    if (!isset($roweven) || $roweven==true) $roweven=false; else $roweven=true;
+    if (!isset($roweven) || $roweven==true) {
+        $roweven=false;
+    } else {
+        $roweven=true;
+    }
 
-    if (!isset($num_assigned)) $num_assigned=0;
-    if (!isset($num_participated)) $num_participated=0;
-    if (!isset($num_registered)) $num_registered=0;
-    if ($no_sessions==1) $num_sessions=0;
+    if (!isset($num_assigned)) {
+        $num_assigned=0;
+    }
+    if (!isset($num_participated)) {
+        $num_participated=0;
+    }
+    if (!isset($num_registered)) {
+        $num_registered=0;
+    }
+    if ($no_sessions==1) {
+        $num_sessions=0;
+    }
 
-    if (!isset($exptypes[$experiment_ext_type]['exptype_name'])) $exptypes[$experiment_ext_type]['exptype_name']='type undefined';
+    if (!isset($exptypes[$experiment_ext_type]['exptype_name'])) {
+        $exptypes[$experiment_ext_type]['exptype_name']='type undefined';
+    }
     $ssicons=array("planned"=>"wrench","live"=>"spinner fa-spin fa-fw","completed"=>"thumbs-o-up","balanced"=>"money");
 
     $rowclass=$roweven ? 'is-even' : 'is-odd';
@@ -377,11 +427,17 @@ function experiment__experiments_format_alist($alist) {
     echo '<div class="orsee-dense-grid">';
 
     echo '<div class="orsee-dense-cell is-row1">';
-    if (check_allow('experiment_show')) echo '<a href="experiment_show.php?experiment_id='.$experiment_id.'" class="orsee-dense-row-title">';
-    else echo '<span class="orsee-dense-row-title">';
+    if (check_allow('experiment_show')) {
+        echo '<a href="experiment_show.php?experiment_id='.$experiment_id.'" class="orsee-dense-row-title">';
+    } else {
+        echo '<span class="orsee-dense-row-title">';
+    }
     echo $experiment_name.' ('.$experiment_public_name.')';
-    if (check_allow('experiment_show')) echo '</a>';
-    else echo '</span>';
+    if (check_allow('experiment_show')) {
+        echo '</a>';
+    } else {
+        echo '</span>';
+    }
     echo '</div>';
 
     echo '<div class="orsee-dense-cell is-row1 is-col2">';
@@ -419,10 +475,14 @@ function experiment__experiments_format_alist($alist) {
     if (count($sessions)>0) {
         echo '<div class="orsee-dense-sessions-list">';
         foreach ($sessions as $s) {
-            if (isset($s['num_registered'])) $reg=$s['num_registered']; else $reg=0;
+            if (isset($s['num_registered'])) {
+                $reg=$s['num_registered'];
+            } else {
+                $reg=0;
+            }
             if ($reg < $s['part_needed']) {
                 $regfontcolor='var(--color-session-not-enough-participants)';
-            }  elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
+            } elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
                 $regfontcolor='var(--color-session-not-enough-reserve)';
             } else {
                 $regfontcolor='var(--color-session-complete)';
@@ -444,7 +504,6 @@ function experiment__experiments_format_alist($alist) {
 
     echo '</div>';
     echo '</div>';
-
 }
 //-----------------------------------------------------------------------
 
@@ -457,14 +516,28 @@ function experiment__old_experiments_format_alist($alist) {
 
     $exptypes=load_external_experiment_types();
 
-    if ($shade) $shade=false; else $shade=true;
+    if ($shade) {
+        $shade=false;
+    } else {
+        $shade=true;
+    }
 
-    if (!isset($num_assigned)) $num_assigned=0;
-    if (!isset($num_registered)) $num_registered=0;
-    if (!isset($num_participated)) $num_participated=0;
-    if ($no_sessions==1) $num_sessions=0;
+    if (!isset($num_assigned)) {
+        $num_assigned=0;
+    }
+    if (!isset($num_registered)) {
+        $num_registered=0;
+    }
+    if (!isset($num_participated)) {
+        $num_participated=0;
+    }
+    if ($no_sessions==1) {
+        $num_sessions=0;
+    }
 
-    if (!isset($exptypes[$experiment_ext_type]['exptype_name'])) $exptypes[$experiment_ext_type]['exptype_name']='type undefined';
+    if (!isset($exptypes[$experiment_ext_type]['exptype_name'])) {
+        $exptypes[$experiment_ext_type]['exptype_name']='type undefined';
+    }
 
     $rowclass=$shade ? 'is-even' : 'is-odd';
     $ssicons=array("planned"=>"wrench","live"=>"spinner fa-spin fa-fw","completed"=>"thumbs-o-up","balanced"=>"money");
@@ -474,11 +547,17 @@ function experiment__old_experiments_format_alist($alist) {
     echo '<div class="orsee-dense-grid">';
 
     echo '<div class="orsee-dense-cell is-row1">';
-    if (check_allow('experiment_show')) echo '<a href="experiment_show.php?experiment_id='.$experiment_id.'" class="orsee-dense-row-title">';
-    else echo '<span class="orsee-dense-row-title">';
+    if (check_allow('experiment_show')) {
+        echo '<a href="experiment_show.php?experiment_id='.$experiment_id.'" class="orsee-dense-row-title">';
+    } else {
+        echo '<span class="orsee-dense-row-title">';
+    }
     echo $experiment_name.' ('.$experiment_public_name.')';
-    if (check_allow('experiment_show')) echo '</a>';
-    else echo '</span>';
+    if (check_allow('experiment_show')) {
+        echo '</a>';
+    } else {
+        echo '</span>';
+    }
     echo '</div>';
 
     echo '<div class="orsee-dense-cell is-row1 is-col2">';
@@ -501,10 +580,17 @@ function experiment__old_experiments_format_alist($alist) {
 
     echo '<div class="orsee-dense-cell is-row2 is-col2">';
     if ($experiment_type=="laboratory") {
-        if (!isset($comp_num_registered)) $comp_num_registered=0;
-        if (!isset($comp_num_noshow)) $comp_num_noshow=0;
-        if ($comp_num_registered==0) $noshowrate="??";
-        else $noshowrate=round(($comp_num_noshow/$comp_num_registered)*100,1).'%';
+        if (!isset($comp_num_registered)) {
+            $comp_num_registered=0;
+        }
+        if (!isset($comp_num_noshow)) {
+            $comp_num_noshow=0;
+        }
+        if ($comp_num_registered==0) {
+            $noshowrate="??";
+        } else {
+            $noshowrate=round(($comp_num_noshow/$comp_num_registered)*100,1).'%';
+        }
         echo '<span><strong>'.lang('sessions').':</strong> '.$num_sessions.' <strong><i class="fa fa-users"></i>:</strong> '.$num_assigned.'/'.$num_registered.'/'.$num_participated.' <strong>'.str_replace("-","&#8209;",lang('noshowup')).':</strong> '.$noshowrate.'</span>';
     } else {
         echo '-';
@@ -516,10 +602,14 @@ function experiment__old_experiments_format_alist($alist) {
         echo '<div class="orsee-dense-row-warning"><i class="fa fa-exclamation-triangle"></i> Incomplete sessions!</div>';
         echo '<div class="orsee-dense-sessions-list">';
         foreach ($sessions as $s) {
-            if (isset($s['num_registered'])) $reg=$s['num_registered']; else $reg=0;
+            if (isset($s['num_registered'])) {
+                $reg=$s['num_registered'];
+            } else {
+                $reg=0;
+            }
             if ($reg < $s['part_needed']) {
                 $regfontcolor='var(--color-session-not-enough-participants)';
-            }  elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
+            } elseif ($reg < $s['part_needed'] + $s['part_reserve']) {
                 $regfontcolor='var(--color-session-not-enough-reserve)';
             } else {
                 $regfontcolor='var(--color-session-complete)';
@@ -541,14 +631,14 @@ function experiment__old_experiments_format_alist($alist) {
 
     echo '</div>';
     echo '</div>';
-
 }
 
 
 function experiment__exptype_select_field($postvarname,$var,$showvar,$selected,$hidden='',$compact=false) {
-
     echo '<span class="select is-primary';
-    if ($compact) echo ' select-compact';
+    if ($compact) {
+        echo ' select-compact';
+    }
     echo '"><SELECT name="'.$postvarname.'">';
     $query="SELECT *
             FROM ".table('experiment_types')." as ttype, ".table('lang')." as tlang
@@ -560,7 +650,9 @@ function experiment__exptype_select_field($postvarname,$var,$showvar,$selected,$
     while ($line = pdo_fetch_assoc($result)) {
         if ($line[$var] != $hidden) {
             echo '<OPTION value="'.$line[$var].'"';
-            if ($line[$var]==$selected) echo " SELECTED";
+            if ($line[$var]==$selected) {
+                echo " SELECTED";
+            }
             echo '>'.$line[$showvar];
             echo '</OPTION>';
         }
@@ -574,25 +666,33 @@ function experiment__experimenters_select_field($postvarname,$selected,$multi=tr
     // selected - array of pre-selected experimenter usernames
     global $lang;
     $out="";
-    if (!is_array($mpoptions)) $mpoptions=array();
+    if (!is_array($mpoptions)) {
+        $mpoptions=array();
+    }
 
     $experimenters=experiment__load_experimenters();
 
     $mylist=array();
-    foreach($experimenters as $k=>$e) {
-        if (in_array($e['admin_id'],$selected) || ($e['experimenter_list']=='y' && $e['disabled']!='y'))
+    foreach ($experimenters as $k=>$e) {
+        if (in_array($e['admin_id'],$selected) || ($e['experimenter_list']=='y' && $e['disabled']!='y')) {
             $mylist[$e['admin_id']]=$e['lname'].', '.$e['fname'];
+        }
     }
     asort($mylist);
     if ($multi) {
         $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
     } else {
         $out.= '<span class="select is-primary select-compact"><SELECT name="'.$postvarname.'">
-                <OPTION value=""'; if (!$selected) $out.= ' SELECTED'; $out.= '>-</OPTION>
+                <OPTION value=""';
+        if (!$selected) {
+            $out.= ' SELECTED';
+        } $out.= '>-</OPTION>
                 ';
         foreach ($mylist as $k=>$v) {
             $out.= '<OPTION value="'.$k.'"';
-                if ($selected==$k) $out.= ' SELECTED'; $out.= '>'.$v.'</OPTION>
+            if ($selected==$k) {
+                $out.= ' SELECTED';
+            } $out.= '>'.$v.'</OPTION>
                 ';
         }
         $out.= '</SELECT></span>
@@ -606,20 +706,26 @@ function experiment__experiment_class_select_field($postvarname,$selected,$multi
     // selected - array of pre-selected class ids
     global $lang;
     $out="";
-    if (!is_array($mpoptions)) $mpoptions=array();
+    if (!is_array($mpoptions)) {
+        $mpoptions=array();
+    }
 
     $experimentclasses=experiment__load_experimentclassnames();
     $mylist=$experimentclasses;
     if ($multi) {
         $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
-    }
-    else {
+    } else {
         $out.= '<SELECT name="'.$postvarname.'">
-                <OPTION value=""'; if (!$selected) $out.= ' SELECTED'; $out.= '>-</OPTION>
+                <OPTION value=""';
+        if (!$selected) {
+            $out.= ' SELECTED';
+        } $out.= '>-</OPTION>
                 ';
         foreach ($mylist as $k=>$v) {
             $out.= '<OPTION value="'.$k.'"';
-                if ($selected==$k) $out.= ' SELECTED'; $out.= '>'.$v.'</OPTION>
+            if ($selected==$k) {
+                $out.= ' SELECTED';
+            } $out.= '>'.$v.'</OPTION>
                 ';
         }
         $out.= '</SELECT>
@@ -643,16 +749,22 @@ function experiment__get_ethics_approval_desc($experiment,$maxsessiontime=-1) {
             $row_bgcolor='var(--color-ethics-approval-valid)';
         } else {
             $expiration_unixtime=ortime__sesstime_to_unixtime($experiment['ethics_expire_date']);
-            if ($maxsessiontime==-1) $last_session_unixtime=time();
-            else $last_session_unixtime=ortime__sesstime_to_unixtime($maxsessiontime);
+            if ($maxsessiontime==-1) {
+                $last_session_unixtime=time();
+            } else {
+                $last_session_unixtime=ortime__sesstime_to_unixtime($maxsessiontime);
+            }
             if ($expiration_unixtime>$last_session_unixtime) {
                 $out.='<br>'.lang('ethics_expires_on').' '.ortime__format($expiration_unixtime,'hide_time:true');
                 $expired=false;
                 $row_bgcolor='var(--color-ethics-approval-valid)';
             } else {
                 $out.='<br><B>';
-                if ($expiration_unixtime>time()) $out.=lang('ethics_will_expire_on');
-                else $out.=lang('ethics_has_expired_on');
+                if ($expiration_unixtime>time()) {
+                    $out.=lang('ethics_will_expire_on');
+                } else {
+                    $out.=lang('ethics_has_expired_on');
+                }
                 $out.=' '.ortime__format($expiration_unixtime,'hide_time:true').'</B>';
                 $expired=true;
                 $row_bgcolor='var(--color-ethics-approval-expired)';
@@ -670,7 +782,7 @@ function experiment__experiment_class_field_to_list($experiment_class) {
     foreach ($experiment_class as $class) {
         if (isset($experimentclasses[$class])) {
             $out[]=$experimentclasses[$class];
-        } elseif($class=='0') {
+        } elseif ($class=='0') {
             $out[]='-';
         } else {
             $out[]=$class;
@@ -682,16 +794,18 @@ function experiment__experiment_class_field_to_list($experiment_class) {
 function experiment__load_experimentclassnames() {
     global $lang, $preloaded_experimentclasses;
     if (isset($preloaded_experimentclasses) && is_array($preloaded_experimentclasses)
-        && count($preloaded_experimentclasses)>0)
+        && count($preloaded_experimentclasses)>0) {
         return $preloaded_experimentclasses;
-    else {
+    } else {
         $names=array();
         $query="SELECT *
                 FROM ".table('lang')."
                 WHERE content_type='experimentclass'
                 ORDER BY ".lang('lang');
         $result=or_query($query);
-        while ($line = pdo_fetch_assoc($result)) $names[$line['content_name']]=$line[lang('lang')];
+        while ($line = pdo_fetch_assoc($result)) {
+            $names[$line['content_name']]=$line[lang('lang')];
+        }
         $preloaded_experimentclasses=$names;
         return $names;
     }
@@ -699,13 +813,16 @@ function experiment__load_experimentclassnames() {
 
 function experiment__get_public_name($experiment_id) {
     $exp=orsee_db_load_array("experiments",$experiment_id,"experiment_id");
-        return $exp['experiment_public_name'];
+    return $exp['experiment_public_name'];
 }
 
 
 function experiment__count_experiments($constraint="",$const_pars=array()) {
-    if ($constraint) $whereclause="WHERE ".$constraint;
-    else $whereclause="";
+    if ($constraint) {
+        $whereclause="WHERE ".$constraint;
+    } else {
+        $whereclause="";
+    }
 
     $query="SELECT COUNT(*) as cnt
             FROM ".table('experiments')." ".$whereclause;
@@ -715,7 +832,8 @@ function experiment__count_experiments($constraint="",$const_pars=array()) {
 
 
 function experiment__count_participate_at($experiment_id,$session_id="",$condition="",$cond_pars=array()) {
-    $query=""; $pars=array();
+    $query="";
+    $pars=array();
     $query="SELECT COUNT(*) as regcount FROM ".table('participate_at')." WHERE ";
     if ($session_id) {
         $query.="session_id= :tsession_id";
@@ -738,7 +856,9 @@ function experiment__count_pstatus($experiment_id,$session_id="") {
     $pstatuses=expregister__get_participation_statuses();
     $pars=array();
     $query="SELECT COUNT(*) as regcount, pstatus_id";
-    if (!$session_id) $query.=", session_id";
+    if (!$session_id) {
+        $query.=", session_id";
+    }
     $query.=" FROM ".table('participate_at')." WHERE";
     if ($session_id) {
         $query=$query." session_id=:session_id";
@@ -748,18 +868,36 @@ function experiment__count_pstatus($experiment_id,$session_id="") {
         $pars[':experiment_id']=$experiment_id;
     }
     $query.=' GROUP BY pstatus_id';
-    if (!$session_id) $query.=", session_id";
+    if (!$session_id) {
+        $query.=", session_id";
+    }
     $result=or_query($query, $pars);
-    $pstatus_counts=array(); $assigned=0; $enroled=0; $participated=0; $noshow=0;
+    $pstatus_counts=array();
+    $assigned=0;
+    $enroled=0;
+    $participated=0;
+    $noshow=0;
     while ($line=pdo_fetch_assoc($result)) {
-        if (!isset($pstatus_counts[$line['pstatus_id']])) $pstatus_counts[$line['pstatus_id']]=0;
-        if ($line['pstatus_id']>0) $pstatus_counts[$line['pstatus_id']]=$pstatus_counts[$line['pstatus_id']]+$line['regcount'];
-        elseif ($line['session_id']>0) $pstatus_counts[0]=$pstatus_counts[0]+$line['regcount'];
+        if (!isset($pstatus_counts[$line['pstatus_id']])) {
+            $pstatus_counts[$line['pstatus_id']]=0;
+        }
+        if ($line['pstatus_id']>0) {
+            $pstatus_counts[$line['pstatus_id']]=$pstatus_counts[$line['pstatus_id']]+$line['regcount'];
+        } elseif ($line['session_id']>0) {
+            $pstatus_counts[0]=$pstatus_counts[0]+$line['regcount'];
+        }
         $assigned=$assigned+$line['regcount'];
-        if (!$session_id && $line['session_id']>0) $enroled=$enroled+$line['regcount'];
-        elseif ($session_id) $enroled=$enroled+$line['regcount'];
-        if ($pstatuses[$line['pstatus_id']]['participated']) $participated=$participated+$line['regcount'];
-        if ($pstatuses[$line['pstatus_id']]['noshow']) $noshow=$noshow+$line['regcount'];
+        if (!$session_id && $line['session_id']>0) {
+            $enroled=$enroled+$line['regcount'];
+        } elseif ($session_id) {
+            $enroled=$enroled+$line['regcount'];
+        }
+        if ($pstatuses[$line['pstatus_id']]['participated']) {
+            $participated=$participated+$line['regcount'];
+        }
+        if ($pstatuses[$line['pstatus_id']]['noshow']) {
+            $noshow=$noshow+$line['regcount'];
+        }
     }
     $counts=array();
     $counts['assigned']=$assigned;
@@ -779,8 +917,12 @@ function load_external_experiment_types($expinttype="",$enabled=true) {
     if (is_array($preloaded_experiment_types) && count($preloaded_experiment_types)>0 && (!$expinttype)) {
         return $preloaded_experiment_types;
     } else {
-        $exttypes=array(); $enstring=""; $pars=array();
-        if ($enabled) $enstring.=" AND texpt.enabled='y' ";
+        $exttypes=array();
+        $enstring="";
+        $pars=array();
+        if ($enabled) {
+            $enstring.=" AND texpt.enabled='y' ";
+        }
         if ($expinttype) {
             $enstring.=" AND texpt.exptype_mapping LIKE :expinttype";
             $pars[':expinttype']="%".$expinttype."%";
@@ -795,7 +937,9 @@ function load_external_experiment_types($expinttype="",$enabled=true) {
         while ($line=pdo_fetch_assoc($result)) {
             $exttypes[$line['exptype_id']]=$line;
         }
-        if (!$expinttype) $preloaded_experiment_types=$exttypes;
+        if (!$expinttype) {
+            $preloaded_experiment_types=$exttypes;
+        }
         return $exttypes;
     }
 }
@@ -805,7 +949,9 @@ function experiment__exp_id_list_to_exp_names($experiment_list) {
     $expids=explode(",",$experiment_list);
     $expnames=array();
     foreach ($expids as $id) {
-        if ($id!='') $expnames[]=$allexperiments[$id]['experiment_name'];
+        if ($id!='') {
+            $expnames[]=$allexperiments[$id]['experiment_name'];
+        }
     }
     return implode(", ",$expnames);
 }
@@ -814,9 +960,9 @@ function experiment__preload_experiments() {
     global $lang, $preloaded_experiments;
 
     if (isset($preloaded_experiments) && is_array($preloaded_experiments)
-            && count($preloaded_experiments)>0)
-                return $preloaded_experiments;
-    else {
+            && count($preloaded_experiments)>0) {
+        return $preloaded_experiments;
+    } else {
         $experiments=array();
         $query="SELECT experiment_id, experiment_name, experimenter from ".table('experiments');
         $result=or_query($query);
@@ -841,12 +987,16 @@ function experiment__preload_experiments() {
 
         $query="SELECT experiment_id FROM ".table('participate_at')." GROUP BY experiment_id";
         $result=or_query($query);
-        while ($line=pdo_fetch_assoc($result)) { $experiments[$line['experiment_id']]['assigned']='y'; }
+        while ($line=pdo_fetch_assoc($result)) {
+            $experiments[$line['experiment_id']]['assigned']='y';
+        }
 
         $participated_clause=expregister__get_pstatus_query_snippet("participated");
         $query="SELECT experiment_id FROM ".table('participate_at')." WHERE ".$participated_clause." GROUP BY experiment_id";
         $result=or_query($query);
-        while ($line=pdo_fetch_assoc($result)) { $experiments[$line['experiment_id']]['participated']='y'; }
+        while ($line=pdo_fetch_assoc($result)) {
+            $experiments[$line['experiment_id']]['participated']='y';
+        }
 
         $sort_order = array("time", "experiment_name");
         multi_array_sort($experiments,$sort_order);
@@ -877,34 +1027,52 @@ function experiment__other_experiments_select_field($postvarname,$type="assigned
     global $lang, $preloaded_experiments, $settings;
 
     $out="";
-    if (!(is_array($preloaded_experiments) && count($preloaded_experiments)>0))
-    $preloaded_experiments=experiment__preload_experiments();
+    if (!(is_array($preloaded_experiments) && count($preloaded_experiments)>0)) {
+        $preloaded_experiments=experiment__preload_experiments();
+    }
 
     $mylist=array();
-    foreach($preloaded_experiments as $e) {
-        if ( $e['experiment_id']!=$experiment_id &&
+    foreach ($preloaded_experiments as $e) {
+        if ($e['experiment_id']!=$experiment_id &&
              ($type=='all' || ($type=='assigned' && $e['assigned']=='y') || ($type=='participated' && $e['participated']=='y'))
-             ) {
+        ) {
             $ename=$e['experiment_name'];
-            if ($e['time'] || $e['experimenter']) $ename.=' (';
-            if ($e['experimenter']) $ename.=experiment__list_experimenters($e['experimenter'],false,false);
-            if ($e['time'] && $e['experimenter']) $ename.=', ';
-            if ($e['time']) $ename.=ortime__format(ortime__sesstime_to_unixtime($e['start_date']),'hide_time:true').'-'.ortime__format(ortime__sesstime_to_unixtime($e['end_date']),'hide_time:true');
-            if ($e['time'] || $e['experimenter']) $ename.=')';
+            if ($e['time'] || $e['experimenter']) {
+                $ename.=' (';
+            }
+            if ($e['experimenter']) {
+                $ename.=experiment__list_experimenters($e['experimenter'],false,false);
+            }
+            if ($e['time'] && $e['experimenter']) {
+                $ename.=', ';
+            }
+            if ($e['time']) {
+                $ename.=ortime__format(ortime__sesstime_to_unixtime($e['start_date']),'hide_time:true').'-'.ortime__format(ortime__sesstime_to_unixtime($e['end_date']),'hide_time:true');
+            }
+            if ($e['time'] || $e['experimenter']) {
+                $ename.=')';
+            }
             $mylist[$e['experiment_id']]=$ename;
         }
     }
 
-    if (!is_array($mpoptions)) $mpoptions=array();
+    if (!is_array($mpoptions)) {
+        $mpoptions=array();
+    }
     if ($multi) {
         $out.= get_tag_picker($postvarname,$mylist,$selected,$mpoptions);
     } else {
         $out.= '<SELECT name="'.$postvarname.'">
-                <OPTION value=""'; if (!$selected) $out.= ' SELECTED'; $out.= '>-</OPTION>
+                <OPTION value=""';
+        if (!$selected) {
+            $out.= ' SELECTED';
+        } $out.= '>-</OPTION>
                 ';
         foreach ($mylist as $k=>$v) {
             $out.= '<OPTION value="'.$k.'"';
-                if ($selected==$k) $out.= ' SELECTED'; $out.= '>'.$v.'</OPTION>
+            if ($selected==$k) {
+                $out.= ' SELECTED';
+            } $out.= '>'.$v.'</OPTION>
                 ';
         }
         $out.= '</SELECT>

@@ -1,10 +1,9 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="faq_long";
 $menu__area="options";
-include ("header.php");
+include("header.php");
 
 if ($proceed) {
     $allow=check_allow('faq_edit','options_main.php');
@@ -57,7 +56,7 @@ if ($proceed) {
     echo '</div>';
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

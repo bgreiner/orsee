@@ -9,8 +9,12 @@ function content__get_content($content_name) {
               WHERE content_type='public_content'
               AND content_name=:content_name";
     $line = orsee_query($query,$pars);
-    if (!is_array($line)) return '';
-    if (!isset($line[$this_lang])) return '';
+    if (!is_array($line)) {
+        return '';
+    }
+    if (!isset($line[$this_lang])) {
+        return '';
+    }
     return helpers__render_richtext(stripslashes($line[$this_lang]));
 }
 

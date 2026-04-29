@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="edit_language";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('lang_lang_edit','lang_main.php');
 }
@@ -16,18 +16,25 @@ if ($proceed) {
         $tlang=trim($_REQUEST['elang']);
         $tlang_name=load_language_symbol('lang_name',$tlang);
         $tlang_flag_iso2=strtolower(trim((string)load_language_symbol('lang_flag_iso2',$tlang)));
-        if ($tlang_flag_iso2==='lang_flag_iso2') $tlang_flag_iso2='';
-        if ($tlang_flag_iso2==='') $tlang_flag_iso2=lang__guess_flag_for_language($tlang);
+        if ($tlang_flag_iso2==='lang_flag_iso2') {
+            $tlang_flag_iso2='';
+        }
+        if ($tlang_flag_iso2==='') {
+            $tlang_flag_iso2=lang__guess_flag_for_language($tlang);
+        }
         $tlang_is_rtl=load_language_symbol('lang_is_rtl',$tlang);
-        if ($tlang_is_rtl!=='y') $tlang_is_rtl='n';
-    } else redirect ("admin/lang_main.php");
+        if ($tlang_is_rtl!=='y') {
+            $tlang_is_rtl='n';
+        }
+    } else {
+        redirect("admin/lang_main.php");
+    }
 }
 
 if ($proceed) {
-
     if (isset($_REQUEST['add']) && $_REQUEST['add']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/lang_lang_edit.php?elang=".$tlang);
+            redirect("admin/lang_lang_edit.php?elang=".$tlang);
         }
 
         // check for errors
@@ -46,7 +53,9 @@ if ($proceed) {
             $done=or_query($query,$pars);
 
             $tlang_flag_iso2=strtolower(trim((string)$_REQUEST['lang_flag_iso2']));
-            if ($tlang_flag_iso2!=='none' && !preg_match('/^[a-z]{2}$/',$tlang_flag_iso2)) $tlang_flag_iso2='';
+            if ($tlang_flag_iso2!=='none' && !preg_match('/^[a-z]{2}$/',$tlang_flag_iso2)) {
+                $tlang_flag_iso2='';
+            }
             $pars=array(':lang_flag_iso2'=>$tlang_flag_iso2);
             $query="UPDATE ".table('lang')." SET ".$tlang."= :lang_flag_iso2
                     WHERE content_type='lang' AND content_name='lang_flag_iso2'";
@@ -58,13 +67,15 @@ if ($proceed) {
                     WHERE content_type='lang' AND content_name='lang_is_rtl'";
             $done=or_query($query,$pars);
 
-            message (lang('changes_saved'));
+            message(lang('changes_saved'));
             log__admin("language_edit","language:".$tlang);
-            redirect ("admin/lang_lang_edit.php?elang=".$tlang);
+            redirect("admin/lang_lang_edit.php?elang=".$tlang);
         }
         $tlang_name=$_REQUEST['lang_name'];
         $tlang_flag_iso2=strtolower(trim((string)$_REQUEST['lang_flag_iso2']));
-        if ($tlang_flag_iso2!=='none' && !preg_match('/^[a-z]{2}$/',$tlang_flag_iso2)) $tlang_flag_iso2='';
+        if ($tlang_flag_iso2!=='none' && !preg_match('/^[a-z]{2}$/',$tlang_flag_iso2)) {
+            $tlang_flag_iso2='';
+        }
         $tlang_is_rtl=(isset($_REQUEST['lang_is_rtl']) && $_REQUEST['lang_is_rtl']==='y' ? 'y' : 'n');
     }
 }
@@ -100,7 +111,9 @@ if ($proceed) {
                         <label class="label">'.lang('flag_for_language').':</label>
                         <div class="control"><span class="select is-primary"><select name="lang_flag_iso2">';
     echo '<option value="none"';
-    if ($tlang_flag_iso2==='none') echo ' selected';
+    if ($tlang_flag_iso2==='none') {
+        echo ' selected';
+    }
     echo '>No flag</option>';
     $country_options=pform_options_phone_country_options();
     if ($tlang_flag_iso2!=='' && $tlang_flag_iso2!=='none' && !isset($country_options[$tlang_flag_iso2])) {
@@ -108,7 +121,9 @@ if ($proceed) {
     }
     foreach ($country_options as $iso2=>$label) {
         echo '<option value="'.htmlspecialchars((string)$iso2,ENT_QUOTES).'"';
-        if ($tlang_flag_iso2===(string)$iso2) echo ' selected';
+        if ($tlang_flag_iso2===(string)$iso2) {
+            echo ' selected';
+        }
         echo '>'.htmlspecialchars((string)$label,ENT_QUOTES).'</option>';
     }
     echo '                  </select></span>
@@ -133,7 +148,7 @@ if ($proceed) {
                 <div class="orsee-options-actions">'.button_back('lang_main.php').'</div>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

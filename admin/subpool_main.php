@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="sub_subjectpools";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('subjectpool_edit','options_main.php');
 }
@@ -29,7 +29,9 @@ if ($proceed) {
     $part_counts=array();
     $query="SELECT count(*) as part_count, subpool_id FROM ".table('participants')." GROUP BY subpool_id";
     $result=or_query($query);
-    while ($line=pdo_fetch_assoc($result)) $part_counts[$line['subpool_id']]=$line['part_count'];
+    while ($line=pdo_fetch_assoc($result)) {
+        $part_counts[$line['subpool_id']]=$line['part_count'];
+    }
 
     $query="SELECT * FROM ".table('subpools')." ORDER BY subpool_id";
     $result=or_query($query);
@@ -49,8 +51,11 @@ if ($proceed) {
         echo '<div class="orsee-table-cell" data-label="'.lang('name').'" style="white-space: nowrap;">'.$line['subpool_name'].'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('description').'">'.$line['subpool_description'].'</div>';
         echo '<div class="orsee-table-cell" data-label="'.lang('subjects').'" style="white-space: nowrap;">';
-        if (isset($part_counts[$line['subpool_id']])) echo $part_counts[$line['subpool_id']];
-        else echo '0';
+        if (isset($part_counts[$line['subpool_id']])) {
+            echo $part_counts[$line['subpool_id']];
+        } else {
+            echo '0';
+        }
         echo '</div>';
         echo '<div class="orsee-table-cell orsee-table-action" data-label="'.lang('action').'" style="white-space: nowrap;">';
         echo button_link('subpool_edit.php?subpool_id='.$line['subpool_id'],lang('edit'),'pencil-square-o');
@@ -61,7 +66,7 @@ if ($proceed) {
     echo '</div>';
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

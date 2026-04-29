@@ -1,11 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="participant_profile_fields";
 $js_modules=array('flatpickr','switchy','intltelinput');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $item_name='profile_form_public';
     if (isset($_REQUEST['item_name']) && in_array($_REQUEST['item_name'],array('profile_form_public','profile_form_admin_part'))) {
@@ -17,7 +17,7 @@ if ($proceed) {
 }
 if ($proceed) {
     $subpools=subpools__get_subpools();
-    if(isset($_REQUEST['subpool_id']) && trim($_REQUEST['subpool_id']) && isset($subpools[trim($_REQUEST['subpool_id'])])) {
+    if (isset($_REQUEST['subpool_id']) && trim($_REQUEST['subpool_id']) && isset($subpools[trim($_REQUEST['subpool_id'])])) {
         $subpool_id=(int)trim($_REQUEST['subpool_id']);
     } elseif (isset($_SESSION['profile_form_preview_subpool_id']) && isset($subpools[$_SESSION['profile_form_preview_subpool_id']])) {
         $subpool_id=(int)$_SESSION['profile_form_preview_subpool_id'];
@@ -32,7 +32,9 @@ if ($proceed) {
     }
     $_SESSION['profile_form_preview_subpool_id']=$subpool_id;
     $subpool=orsee_db_load_array("subpools",$subpool_id,"subpool_id");
-    if (!$subpool['subpool_id']) $subpool=orsee_db_load_array("subpools",1,"subpool_id");
+    if (!$subpool['subpool_id']) {
+        $subpool=orsee_db_load_array("subpools",1,"subpool_id");
+    }
 
     $profile_field_specs=participant__profile_field_editor_specs();
     $scope_options=array();
@@ -64,7 +66,9 @@ if ($proceed && isset($_REQUEST['activate']) && $_REQUEST['activate']) {
         }
         foreach (array('profile_form_public','profile_form_admin_part') as $activate_item_name) {
             $draft=participant__load_profile_layout($activate_item_name,'draft');
-            if (!isset($draft['blocks']) || !is_array($draft['blocks'])) $draft['blocks']=array();
+            if (!isset($draft['blocks']) || !is_array($draft['blocks'])) {
+                $draft['blocks']=array();
+            }
             if (!participant__save_profile_layout($activate_item_name,'current',$draft)) {
                 $done=false;
                 break;
@@ -83,7 +87,9 @@ if ($proceed && isset($_REQUEST['activate']) && $_REQUEST['activate']) {
 
 if ($proceed) {
     $edit=array();
-    if (isset($subpool_id)) $edit['subpool_id']=$subpool_id;
+    if (isset($subpool_id)) {
+        $edit['subpool_id']=$subpool_id;
+    }
 
     echo '<div class="orsee-panel">';
     echo '<div class="orsee-panel-title"><div>'.lang('activate_layout').'</div></div>';
@@ -167,5 +173,6 @@ if ($proceed) {
     echo '</div>';
 }
 
-include ("footer.php");
+include("footer.php");
+
 ?>

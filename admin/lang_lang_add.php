@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="add_language";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('lang_lang_add','lang_main.php');
 }
@@ -13,13 +13,25 @@ if ($proceed) {
     // load languages
     $languages=get_languages();
 
-    if (isset($_REQUEST['nlang_sc'])) $nlang_sc=strtolower(trim($_REQUEST['nlang_sc'])); else $nlang_sc="";
-    if (isset($_REQUEST['nlang_name'])) $nlang_name=trim($_REQUEST['nlang_name']); else $nlang_name="";
-    if (isset($_REQUEST['nlang_base'])) $nlang_base=trim($_REQUEST['nlang_base']); else $nlang_base="";
+    if (isset($_REQUEST['nlang_sc'])) {
+        $nlang_sc=strtolower(trim($_REQUEST['nlang_sc']));
+    } else {
+        $nlang_sc="";
+    }
+    if (isset($_REQUEST['nlang_name'])) {
+        $nlang_name=trim($_REQUEST['nlang_name']);
+    } else {
+        $nlang_name="";
+    }
+    if (isset($_REQUEST['nlang_base'])) {
+        $nlang_base=trim($_REQUEST['nlang_base']);
+    } else {
+        $nlang_base="";
+    }
 
     if (isset($_REQUEST['add']) && $_REQUEST['add']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/lang_lang_add.php");
+            redirect("admin/lang_lang_add.php");
         }
 
         // check for errors
@@ -52,15 +64,18 @@ if ($proceed) {
 
         // add language
         if ($continue) {
-
             // as transaction?
             $query="ALTER TABLE ".table('lang')." ADD COLUMN ".$nlang_sc." text";
             $done=or_query($query);
-            if ($done) message (lang('language_created').' '.$nlang_sc);
+            if ($done) {
+                message(lang('language_created').' '.$nlang_sc);
+            }
 
             $query="UPDATE ".table('lang')." SET ".$nlang_sc."=".$nlang_base." ";
             $done=or_query($query);
-            if ($done) message (lang('language_items_copied_from_base_language').' '.$nlang_base);
+            if ($done) {
+                message(lang('language_items_copied_from_base_language').' '.$nlang_base);
+            }
 
             $pars=array(':nlang_sc'=>$nlang_sc);
             $query="UPDATE ".table('lang')." SET ".$nlang_sc."= :nlang_sc
@@ -84,9 +99,13 @@ if ($proceed) {
                 $menu_config=html__menu_load_config($menu_area);
                 $menu_changed=false;
                 foreach ($menu_config['items'] as $menu_id=>$menu_item) {
-                    if (!is_array($menu_item)) continue;
+                    if (!is_array($menu_item)) {
+                        continue;
+                    }
                     foreach (array('menu_term_lang','page_title_lang') as $lang_key) {
-                        if (!isset($menu_item[$lang_key]) || !is_array($menu_item[$lang_key])) continue;
+                        if (!isset($menu_item[$lang_key]) || !is_array($menu_item[$lang_key])) {
+                            continue;
+                        }
                         if (!array_key_exists($nlang_sc,$menu_item[$lang_key])) {
                             $menu_item[$lang_key][$nlang_sc]=(isset($menu_item[$lang_key][$nlang_base]) ? (string)$menu_item[$lang_key][$nlang_base] : '');
                             $menu_changed=true;
@@ -94,7 +113,9 @@ if ($proceed) {
                     }
                     $menu_config['items'][$menu_id]=$menu_item;
                 }
-                if ($menu_changed) html__menu_save_config($menu_area,$menu_config);
+                if ($menu_changed) {
+                    html__menu_save_config($menu_area,$menu_config);
+                }
             }
 
             // copy localized profile layout block texts from base language to new language
@@ -103,16 +124,24 @@ if ($proceed) {
                     $layout=participant__load_profile_layout($layout_context,$layout_state);
                     $layout_changed=false;
                     foreach ($layout['blocks'] as $block_index=>$block) {
-                        if (!is_array($block) || !isset($block['type'])) continue;
-                        if (!in_array($block['type'],array('text','section'),true)) continue;
-                        if (!isset($block['text_lang']) || !is_array($block['text_lang'])) continue;
+                        if (!is_array($block) || !isset($block['type'])) {
+                            continue;
+                        }
+                        if (!in_array($block['type'],array('text','section'),true)) {
+                            continue;
+                        }
+                        if (!isset($block['text_lang']) || !is_array($block['text_lang'])) {
+                            continue;
+                        }
                         if (!array_key_exists($nlang_sc,$block['text_lang'])) {
                             $block['text_lang'][$nlang_sc]=(isset($block['text_lang'][$nlang_base]) ? (string)$block['text_lang'][$nlang_base] : '');
                             $layout['blocks'][$block_index]=$block;
                             $layout_changed=true;
                         }
                     }
-                    if ($layout_changed) participant__save_profile_layout($layout_context,$layout_state,$layout);
+                    if ($layout_changed) {
+                        participant__save_profile_layout($layout_context,$layout_state,$layout);
+                    }
                 }
             }
 
@@ -120,7 +149,9 @@ if ($proceed) {
             $profile_field_specs=participant__profile_field_editor_specs();
             $localized_policy_keys=array();
             foreach ($profile_field_specs['fields'] as $field_key=>$field_spec) {
-                if (!isset($field_spec['control']['kind'])) continue;
+                if (!isset($field_spec['control']['kind'])) {
+                    continue;
+                }
                 if (in_array($field_spec['control']['kind'],array('localized_text','localized_textarea'),true)) {
                     $localized_policy_keys[]=$field_key;
                 }
@@ -132,16 +163,22 @@ if ($proceed) {
                 $policy_changed=false;
                 foreach (array('current','draft') as $policy_state) {
                     foreach ($localized_policy_keys as $policy_key) {
-                        if (!isset($policy[$policy_state]['baseline'][$policy_key]) || !is_array($policy[$policy_state]['baseline'][$policy_key])) continue;
+                        if (!isset($policy[$policy_state]['baseline'][$policy_key]) || !is_array($policy[$policy_state]['baseline'][$policy_key])) {
+                            continue;
+                        }
                         if (!array_key_exists($nlang_sc,$policy[$policy_state]['baseline'][$policy_key])) {
                             $policy[$policy_state]['baseline'][$policy_key][$nlang_sc]=(isset($policy[$policy_state]['baseline'][$policy_key][$nlang_base]) ? (string)$policy[$policy_state]['baseline'][$policy_key][$nlang_base] : '');
                             $policy_changed=true;
                         }
                     }
                     foreach ($policy[$policy_state]['variants'] as $variant_id=>$variant) {
-                        if (!isset($variant['overrides']) || !is_array($variant['overrides'])) continue;
+                        if (!isset($variant['overrides']) || !is_array($variant['overrides'])) {
+                            continue;
+                        }
                         foreach ($localized_policy_keys as $policy_key) {
-                            if (!isset($variant['overrides'][$policy_key]) || !is_array($variant['overrides'][$policy_key])) continue;
+                            if (!isset($variant['overrides'][$policy_key]) || !is_array($variant['overrides'][$policy_key])) {
+                                continue;
+                            }
                             if (!array_key_exists($nlang_sc,$variant['overrides'][$policy_key])) {
                                 $variant['overrides'][$policy_key][$nlang_sc]=(isset($variant['overrides'][$policy_key][$nlang_base]) ? (string)$variant['overrides'][$policy_key][$nlang_base] : '');
                                 $policy[$policy_state]['variants'][$variant_id]=$variant;
@@ -172,9 +209,8 @@ if ($proceed) {
             }
 
             log__admin("language_add","language:".$_REQUEST['nlang_sc']);
-            redirect ("admin/lang_main.php");
+            redirect("admin/lang_main.php");
         }
-
     }
 }
 
@@ -203,11 +239,15 @@ if ($proceed) {
                         <div class="control">';
     $lang_names=lang__get_language_names();
 
-    if (!$nlang_base) $nlang_base=$settings['admin_standard_language'];
+    if (!$nlang_base) {
+        $nlang_base=$settings['admin_standard_language'];
+    }
     echo '<span class="select is-primary"><SELECT name="nlang_base">';
     foreach ($languages as $language) {
         echo '<OPTION value="'.$language.'"';
-        if ($language==$nlang_base) echo ' SELECTED';
+        if ($language==$nlang_base) {
+            echo ' SELECTED';
+        }
         echo '>'.$lang_names[$language].'</OPTION>
                 ';
     }
@@ -221,7 +261,7 @@ if ($proceed) {
                 <div class="orsee-options-actions">'.button_back('lang_main.php').'</div>
             </div>
         </div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

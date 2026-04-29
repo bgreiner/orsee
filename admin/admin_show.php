@@ -1,12 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="user_management";
 $menu__area="options";
-include ("header.php");
-if ($proceed) {
+include("header.php");
 
+if ($proceed) {
     $allow=check_allow('admin_edit','options_main.php');
     if (check_allow('admin_edit')) {
         if (isset($_REQUEST['change']) && $_REQUEST['change']) {
@@ -43,10 +42,10 @@ if ($proceed) {
                         WHERE admin_id= :a";
                 $done=or_query($query,$pars);
             }
-                log__admin("admin_show_edit");
-                message(lang('changes_saved'));
-                redirect("admin/admin_show.php");
-                $proceed=false;
+            log__admin("admin_show_edit");
+            message(lang('changes_saved'));
+            redirect("admin/admin_show.php");
+            $proceed=false;
         }
     }
 }
@@ -84,12 +83,15 @@ if ($proceed) {
             ORDER BY disabled, lname, fname";
     $result=or_query($query);
 
-    $enabled_emails=array(); $emails=array(); $shade=false;
+    $enabled_emails=array();
+    $emails=array();
+    $shade=false;
     while ($admin=pdo_fetch_assoc($result)) {
-
         if ($admin['email']) {
             $emails[]=$admin['email'];
-            if ($admin['disabled']=='n') $enabled_emails[]=$admin['email'];
+            if ($admin['disabled']=='n') {
+                $enabled_emails[]=$admin['email'];
+            }
         }
 
         $row_class='orsee-table-row';
@@ -118,27 +120,42 @@ if ($proceed) {
         echo '<div class="orsee-table-cell" data-label="'.lang('is_experimenter').'">';
         if ($can_edit) {
             echo '<input name="experimenter_list['.$admin['admin_id'].']" type="radio" value="y"';
-            if ($admin['experimenter_list']=='y') echo ' checked';
+            if ($admin['experimenter_list']=='y') {
+                echo ' checked';
+            }
             echo '>'.lang('yes').'&nbsp;&nbsp;';
             echo '<input name="experimenter_list['.$admin['admin_id'].']" type="radio" value="n"';
-            if ($admin['experimenter_list']!='y') echo ' checked';
+            if ($admin['experimenter_list']!='y') {
+                echo ' checked';
+            }
             echo '>'.lang('no');
         } else {
-            if ($admin['experimenter_list']=='n') echo lang('n'); else echo lang('y');
+            if ($admin['experimenter_list']=='n') {
+                echo lang('n');
+            } else {
+                echo lang('y');
+            }
         }
         echo '</div>';
 
         echo '<div class="orsee-table-cell" data-label="'.lang('account').'">';
         if ($can_edit) {
             echo '<input name="disabled['.$admin['admin_id'].']" type="radio" value="n"';
-            if ($admin['disabled']!='y') echo ' checked';
+            if ($admin['disabled']!='y') {
+                echo ' checked';
+            }
             echo '>'.lang('account_enabled').'&nbsp;&nbsp;';
             echo '<input name="disabled['.$admin['admin_id'].']" type="radio" value="y"';
-            if ($admin['disabled']=='y') echo ' checked';
+            if ($admin['disabled']=='y') {
+                echo ' checked';
+            }
             echo '>'.lang('account_disabled');
         } else {
-            if($admin['disabled']!='y') echo lang('account_enabled');
-            else echo lang('account_disabled');
+            if ($admin['disabled']!='y') {
+                echo lang('account_enabled');
+            } else {
+                echo lang('account_disabled');
+            }
         }
         echo '</div>';
 
@@ -163,7 +180,7 @@ if ($proceed) {
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
     echo '</form>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

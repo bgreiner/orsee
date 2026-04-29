@@ -25,8 +25,11 @@ function log__participant($action,$participant_id,$target="") {
 
 function log__admin($action="unknown",$target="") {
     global $expadmindata;
-    if (isset($expadmindata['admin_id'])) $admin_id= $expadmindata['admin_id'];
-    else $admin_id='system';
+    if (isset($expadmindata['admin_id'])) {
+        $admin_id= $expadmindata['admin_id'];
+    } else {
+        $admin_id='system';
+    }
     $darr=getdate();
     $pars=array(':admin_id'=>$admin_id,
                 ':year'=>$darr['year'],
@@ -48,7 +51,9 @@ function log__admin($action="unknown",$target="") {
 }
 
 function log__cron_job($action="unknown",$target="",$now="",$id="") {
-    if ($now=="") $now=time();
+    if ($now=="") {
+        $now=time();
+    }
     $darr=getdate($now);
 
     $pars=array(':id'=>$id,
@@ -74,16 +79,17 @@ function log__cron_job($action="unknown",$target="",$now="",$id="") {
 
 function log__link() {
     $post=$_REQUEST;
-    unset($post['SID']); unset ($post['PHPSESSID']);
+    unset($post['SID']);
+    unset($post['PHPSESSID']);
     $arg_list=func_get_args();
     foreach ($arg_list as $arg) {
         $var=explode("=",$arg);
         $post[$var[0]]=$var[1];
-        }
+    }
     $link='<A HREF="'.thisdoc().'?';
     foreach ($post as $key=>$value) {
         $link.=$key.'='.urlencode($value).'&';
-        }
+    }
     $link.='">';
     return $link;
 }
@@ -105,7 +111,9 @@ function log__render_target_links($target_value,$can_edit_participants=false) {
 
     foreach ($entries as $entry) {
         $entry_trim=trim($entry);
-        if ($entry_trim==='') continue;
+        if ($entry_trim==='') {
+            continue;
+        }
         if (preg_match('/^participant_id\s*[:=]\s*(\d+)$/i',$entry_trim,$m)) {
             $participant_id=$m[1];
             continue;
@@ -122,7 +130,9 @@ function log__render_target_links($target_value,$can_edit_participants=false) {
 
     foreach ($entries as $entry) {
         $entry_trim=trim($entry);
-        if ($entry_trim==='') continue;
+        if ($entry_trim==='') {
+            continue;
+        }
 
         if (preg_match('/^participant_id\s*[:=]\s*(\d+)$/i',$entry_trim)) {
             if ($participant_id!=='') {
@@ -206,8 +216,14 @@ function log__render_target_links($target_value,$can_edit_participants=false) {
 function log__show_log($log) {
     global $limit;
 
-    if (!$limit) $limit=50;
-    if (isset($_REQUEST['os']) && $_REQUEST['os']>0) $offset=$_REQUEST['os']; else $offset=0;
+    if (!$limit) {
+        $limit=50;
+    }
+    if (isset($_REQUEST['os']) && $_REQUEST['os']>0) {
+        $offset=$_REQUEST['os'];
+    } else {
+        $offset=0;
+    }
 
     global $lang;
 
@@ -216,17 +232,23 @@ function log__show_log($log) {
     if (isset($_REQUEST['action']) && $_REQUEST['action']) {
         $aquery=" AND action=:action ";
         $pars[':action']=$_REQUEST['action'];
-    } else $aquery="";
+    } else {
+        $aquery="";
+    }
 
     if (isset($_REQUEST['id']) && $_REQUEST['id']) {
         $idquery=" AND id=:id ";
         $pars[':id']=$_REQUEST['id'];
-    } else $idquery="";
+    } else {
+        $idquery="";
+    }
 
     if (isset($_REQUEST['target']) && $_REQUEST['target']) {
         $tquery=" AND target LIKE :target ";
         $pars[':target']='%'.$_REQUEST['target'].'%';
-    } else $tquery="";
+    } else {
+        $tquery="";
+    }
 
     $logtable=table('participants_log');
     switch ($log) {
@@ -246,12 +268,13 @@ function log__show_log($log) {
 
     if (isset($_REQUEST['delete']) && $_REQUEST['delete'] && isset($_REQUEST['days']) && $_REQUEST['days']) {
         if (!csrf__validate_request_message()) {
-            redirect ("admin/statistics_show_log.php?log=".$log);
+            redirect("admin/statistics_show_log.php?log=".$log);
         }
 
         $allow=check_allow('log_file_'.$log.'_delete','statistics_show_log.php?log='.$log);
-        if (isset($_REQUEST['days']) && $_REQUEST['days']=="all") $where_clause="";
-        else {
+        if (isset($_REQUEST['days']) && $_REQUEST['days']=="all") {
+            $where_clause="";
+        } else {
             $now=time();
             $dsec= (int) $_REQUEST['days']*24*60*60;
             $dtime=$now-$dsec;
@@ -260,9 +283,11 @@ function log__show_log($log) {
         $query="DELETE FROM ".$logtable.$where_clause;
         $done=or_query($query);
         $number=pdo_num_rows($done);
-        message ($number.' '.lang('xxx_log_entries_deleted'));
-        if ($number>0) log__admin("log_delete_entries","log:".$log."\ndays:".$_REQUEST['days']);
-        redirect ("admin/statistics_show_log.php?log=".$log);
+        message($number.' '.lang('xxx_log_entries_deleted'));
+        if ($number>0) {
+            log__admin("log_delete_entries","log:".$log."\ndays:".$_REQUEST['days']);
+        }
+        redirect("admin/statistics_show_log.php?log=".$log);
     }
 
 
@@ -291,12 +316,22 @@ function log__show_log($log) {
         echo '<span class="select is-primary select-compact"><select name="days">';
         echo '<option value="all">'.lang('all_entries').'</option>';
         $ddays=array(1,7,30,90,180,360);
-        if (isset($_REQUEST['days']) && $_REQUEST['days']) $selected=$_REQUEST['days']; else $selected=90;
+        if (isset($_REQUEST['days']) && $_REQUEST['days']) {
+            $selected=$_REQUEST['days'];
+        } else {
+            $selected=90;
+        }
         foreach ($ddays as $day) {
             echo '<option value="'.$day.'"';
-            if ($day==$selected) echo ' SELECTED';
+            if ($day==$selected) {
+                echo ' SELECTED';
+            }
             echo '>'.$day.' ';
-            if ($day==1) echo lang('day'); else echo lang('days');
+            if ($day==1) {
+                echo lang('day');
+            } else {
+                echo lang('days');
+            }
             echo '</option>';
         }
         echo '</select></span>';
@@ -369,20 +404,26 @@ function log__show_log($log) {
                 } else {
                     echo $participant_label;
                 }
-            } else echo $line['id'];
+            } else {
+                echo $line['id'];
+            }
         } elseif ($log=='experimenter_actions' || $log=='regular_tasks') {
             echo $line['adminname'];
         }
-        if (!isset($_REQUEST['id']) || $_REQUEST['id']!=$line['id']) echo ' '.log__restrict_link('id',$line['id']);
+        if (!isset($_REQUEST['id']) || $_REQUEST['id']!=$line['id']) {
+            echo ' '.log__restrict_link('id',$line['id']);
+        }
         echo '</div>';
         echo '<div class="orsee-table-cell" data-label="'.htmlspecialchars(strip_tags($action_header)).'">'.$line['action'];
-        if (!isset($_REQUEST['action']) || $_REQUEST['action']!=$line['action'])
+        if (!isset($_REQUEST['action']) || $_REQUEST['action']!=$line['action']) {
             echo ' '.log__restrict_link('action',$line['action']);
+        }
         echo '</div>';
         $target_value=log__render_target_links(stripslashes($line['target']),$can_edit_participants);
         echo '<div class="orsee-table-cell" data-label="'.htmlspecialchars(strip_tags($target_header)).'">'.nl2br($target_value);
-        if (!isset($_REQUEST['target']) || $_REQUEST['target']!=$line['target'] && $log!='regular_tasks')
+        if (!isset($_REQUEST['target']) || $_REQUEST['target']!=$line['target'] && $log!='regular_tasks') {
             echo ' '.log__restrict_link('target',$line['target']);
+        }
         echo '</div>';
         echo '</div>';
     }

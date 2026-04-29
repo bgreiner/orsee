@@ -1,11 +1,11 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="edit_colors";
 $include_coloris=true;
 $menu__area="options";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('settings_view_colors','options_main.php');
 }
@@ -62,7 +62,9 @@ if ($proceed) {
     if (isset($_REQUEST['export_colors_json']) && (string)$_REQUEST['export_colors_json']==='1') {
         $export_colors=load_colors($style);
         $json=json_encode($export_colors,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
-        if ($json===false) $json='{}';
+        if ($json===false) {
+            $json='{}';
+        }
         while (ob_get_level()>0) {
             ob_end_clean();
         }
@@ -76,10 +78,13 @@ if ($proceed) {
 
     if (check_allow('settings_edit_colors') && isset($_REQUEST['change']) && $_REQUEST['change']) {
         if (!csrf__validate_request_message()) {
-            redirect ('admin/options_colors.php?style='.$style);
+            redirect('admin/options_colors.php?style='.$style);
         }
-        $newcolors=$_REQUEST['mycolors']; $now=time();
-        $pars_new=array(); $pars_update=array(); $pars_delete=array();
+        $newcolors=$_REQUEST['mycolors'];
+        $now=time();
+        $pars_new=array();
+        $pars_update=array();
+        $pars_delete=array();
         foreach ($newcolors as $oname => $ovalue) {
             if (trim((string)$ovalue)==='') {
                 if (isset($dbcolors[$oname])) {
@@ -126,7 +131,7 @@ if ($proceed) {
         }
         message(lang('changes_saved'));
         log__admin("options_colors_edit","style:".$style);
-        redirect ('admin/options_colors.php?style='.$style);
+        redirect('admin/options_colors.php?style='.$style);
     }
 }
 
@@ -140,7 +145,9 @@ if ($proceed) {
     echo '<span class="select is-primary select-compact"><select name="style">';
     foreach ($styles_array as $style_item) {
         echo '<option value="'.htmlspecialchars($style_item,ENT_QUOTES).'"';
-        if ($style_item==$style) echo ' selected';
+        if ($style_item==$style) {
+            echo ' selected';
+        }
         echo '>'.htmlspecialchars($style_item,ENT_QUOTES).'</option>';
     }
     echo '</select></span>';
@@ -205,5 +212,6 @@ if ($proceed) {
     echo '</div>';
     echo '</div>';
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

@@ -1,19 +1,25 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $menu__area="options";
 $title="participant_profile_form_template_legacy";
 $js_modules=array('switchy','intltelinput');
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('pform_templates_edit','options_main.php');
 }
 
 if ($proceed) {
-    if (!isset($_REQUEST['subpool_id'])) $subpool_id=1; else $subpool_id=$_REQUEST['subpool_id'];
+    if (!isset($_REQUEST['subpool_id'])) {
+        $subpool_id=1;
+    } else {
+        $subpool_id=$_REQUEST['subpool_id'];
+    }
     $subpool=orsee_db_load_array("subpools",$subpool_id,"subpool_id");
-    if (!$subpool['subpool_id']) $subpool=orsee_db_load_array("subpools",1,"subpool_id");
+    if (!$subpool['subpool_id']) {
+        $subpool=orsee_db_load_array("subpools",1,"subpool_id");
+    }
 }
 
 if ($proceed) {
@@ -46,7 +52,9 @@ if ($proceed) {
             </div>';
 
     $edit=array();
-    if (isset($subpool_id)) $edit['subpool_id']=$subpool_id;
+    if (isset($subpool_id)) {
+        $edit['subpool_id']=$subpool_id;
+    }
 
     $query="SELECT *
             FROM ".table('objects')."
@@ -96,7 +104,7 @@ if ($proceed) {
     echo '</div>';
     echo '<div class="orsee-options-actions">'.button_back('options_main.php').'</div>';
     echo '</div>';
-
 }
-include ("footer.php");
+include("footer.php");
+
 ?>

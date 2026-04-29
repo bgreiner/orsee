@@ -1,10 +1,10 @@
 <?php
 // part of orsee. see orsee.org
 ob_start();
-
 $title="configure_oauth_tokens";
 $menu__area="options_main";
-include ("header.php");
+include("header.php");
+
 if ($proceed) {
     $allow=check_allow('settings_oauth_edit','options_main.php');
 }
@@ -300,5 +300,6 @@ if ($proceed) {
     }
 }
 
-include ("footer.php");
+include("footer.php");
+
 ?>
