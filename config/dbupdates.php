@@ -405,7 +405,7 @@ $system__database_upgrades[]=array(
         updated_at int(20) NOT NULL DEFAULT '0',
         PRIMARY KEY (token_id),
         UNIQUE KEY identity_purpose_provider (purpose,identity_email,provider)
-    ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci"
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci"
     )
 );
 
