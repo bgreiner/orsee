@@ -1,11 +1,13 @@
 <?php
 
-//////////////////////////////////////////////////////////////////
+// THIS FILE IS FOR IMPORTING DATA FROM ORSEE VERSIONS 2.x TO ORSEE >=3.4.0.
 // CREATE THE CONFIGURATION CODE IN Options/Prepare data import //
-// THEN COPY YOUR IMPORT CONFIGURATION CODE BELOW HERE          //
+// THEN COPY YOUR IMPORT CONFIGURATION CODE           //
+
+//////////////////////////////////////////////////////////////////
+// COPY YOUR IMPORT CONFIGURATION CODE BELOW HERE               //
 
 $old_db_name="orsee_old";
-$new_db_name="orsee_3_0_0";
 
 // mapping of participant statuses
 // participant_status_mapping[deleted y/n][excluded y/n]=status_id
@@ -36,6 +38,17 @@ $pform_mapping["field_of_studies"]="field_of_studies";
 $pform_mapping["profession"]="profession";
 $pform_mapping["gender"]="gender";
 
+// mappings from old IDs to target IDs
+$subpool_mapping=array();
+$subpool_mapping[1]=1; // not specified
+$subpool_mapping[2]=2; // Students
+$subpool_mapping[3]=3; // Professionals
+$subpool_mapping[4]=4; // Others/Internet
+
+$experiment_type_mapping=array();
+$experiment_type_mapping[1]=1; // Laboratory experiments
+$experiment_type_mapping[2]=2; // Internet experiments
+
 // other settings
 $import_type="all";
 $replace_tokens="n";
@@ -43,6 +56,14 @@ $replace_tokens="n";
 
 // COPY YOUR IMPORT CONFIGURATION CODE ABOVE HERE               //
 //////////////////////////////////////////////////////////////////
+
+if (PHP_SAPI!=='cli') {
+    http_response_code(403);
+    exit("This script can only be executed from the command line.\n");
+}
+
+$data_import_dir=__DIR__;
+chdir($data_import_dir.'/..');
 
 // for debugging purposes
 $do_delete=true;
@@ -73,9 +94,9 @@ if ($import_type=='all') {
     $import_admin_log=true;
     $import_custom_admin_types=true;
     $import_cron_log=true;
-    $import_experiment_types=true;
+    $import_experiment_types=false;
     $import_experiments=true;
-    $import_faqs=true;
+    $import_faqs=false;
     $import_lab_bookings=true;
     $import_lang_items=true;
     $import_userform_select_langs=true;
@@ -83,7 +104,7 @@ if ($import_type=='all') {
     $import_sessions=true;
     $import_participant_log=true;
     $import_participate_at=true;
-    $import_subpools=true;
+    $import_subpools=false;
     $import_files=true;
     $update_last_enrolment_date=true;
 } elseif ($import_type=='participation') {
@@ -99,7 +120,12 @@ if ($import_type=='all') {
 }
 
 // get tagsets
-include("../admin/nonoutputheader.php");
+include("../admin/cronheader.php");
+
+if ($old_db_name===$site__database_database) {
+    exit("The source database must be different from the configured target database.\n");
+}
+$new_db_name=$site__database_database;
 
 
 // some functions we will need
@@ -179,10 +205,19 @@ function copy_table($table, $idvar,$cond="",$delete=true) {
     }
 }
 
+function import__map_id($value,$mapping) {
+    if ($value==='' || $value===null) {
+        return $value;
+    }
+    return isset($mapping[$value]) ? $mapping[$value] : $value;
+}
+
 // IMPORT STARTS HERE
 if (isset($participant_status_mapping) && is_array($participant_status_mapping) && count($participant_status_mapping)>0 &&
     isset($participation_mapping) && is_array($participation_mapping) && count($participation_mapping)>0 &&
-    isset($pform_mapping) && is_array($pform_mapping) && count($pform_mapping)>0) {
+    isset($pform_mapping) && is_array($pform_mapping) && count($pform_mapping)>0 &&
+    isset($subpool_mapping) && is_array($subpool_mapping) && count($subpool_mapping)>0 &&
+    isset($experiment_type_mapping) && is_array($experiment_type_mapping) && count($experiment_type_mapping)>0) {
     $allset=true;
 } else {
     $allset=false;
@@ -264,6 +299,7 @@ if (!$allset) {
             } elseif (isset($old_exptype_name_to_id[trim($line['experiment_ext_type'])])) {
                 $line['experiment_ext_type']=$old_exptype_name_to_id[trim($line['experiment_ext_type'])];
             }
+            $line['experiment_ext_type']=import__map_id($line['experiment_ext_type'],$experiment_type_mapping);
             $line=convert_array_to_UTF8($line);
             if ($do_insert) {
                 $done=orsee_db_save_array($line,"experiments",$line['experiment_id'],"experiment_id");
@@ -298,8 +334,7 @@ if (!$allset) {
     }
 
     if ($import_lang_items) {
-        $cats=array('experimentclass','experiment_invitation_mail','experiment_type','faq_answer',
-            'faq_question','laboratory','public_content','subjectpool');
+        $cats=array('experimentclass','experiment_invitation_mail','laboratory');
         $new_langs=get_languages();
         $first=true;
         $old_langs=array();
@@ -380,7 +415,7 @@ if (!$allset) {
         echo "\n";
 
 
-        $copy_directly=array('participant_id','participant_id_crypt','creation_time','subpool_id',
+        $copy_directly=array('participant_id','participant_id_crypt','creation_time',
             'number_reg','number_noshowup','language','remarks','rules_signed');
         $dquery="DELETE FROM ".$new_db_name.".".table('participants')."";
         if ($do_delete) {
@@ -395,13 +430,14 @@ if (!$allset) {
                     $n[$cf]=$o[$cf];
                 }
             }
+            $n['subpool_id']=import__map_id($o['subpool_id'],$subpool_mapping);
             $oldsubs=explode(",",$o['subscriptions']);
             $sub_arr=array();
             foreach ($oldsubs as $sub) {
                 if (isset($old_exptype_name_to_id[$sub])) {
-                    $sub_arr[]=$old_exptype_name_to_id[$sub];
+                    $sub_arr[]=import__map_id($old_exptype_name_to_id[$sub],$experiment_type_mapping);
                 } elseif (isset($old_exptype_name_to_id[trim($sub)])) {
-                    $sub_arr[]=$old_exptype_name_to_id[trim($sub)];
+                    $sub_arr[]=import__map_id($old_exptype_name_to_id[trim($sub)],$experiment_type_mapping);
                 }
             }
             $n['subscriptions']=id_array_to_db_string($sub_arr);
@@ -506,9 +542,9 @@ if (!$allset) {
             $et_arr=array();
             foreach ($oldets as $et) {
                 if (isset($old_exptype_name_to_id[$et])) {
-                    $et_arr[]=$old_exptype_name_to_id[$et];
+                    $et_arr[]=import__map_id($old_exptype_name_to_id[$et],$experiment_type_mapping);
                 } elseif (isset($old_exptype_name_to_id[trim($et)])) {
-                    $et_arr[]=$old_exptype_name_to_id[trim($et)];
+                    $et_arr[]=import__map_id($old_exptype_name_to_id[trim($et)],$experiment_type_mapping);
                 }
             }
             $line['experiment_types']=id_array_to_db_string($et_arr);
@@ -587,7 +623,7 @@ if (!$allset) {
         $uquery="UPDATE ".$new_db_name.".".table('participants')."
                  SET last_enrolment = :last_enrolment
                  WHERE participant_id = :participant_id";
-        if ($do_insert) {
+        if ($do_insert && count($pars)>0) {
             $result=or_query($uquery,$pars);
         }
     }
