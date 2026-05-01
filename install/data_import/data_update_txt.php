@@ -10,7 +10,7 @@
 // - Prepare a data file, where the columns contain the values for participant profile fields. If you update select_lang/radioline_lang items, the data needs to contain the ID of the respective value (e.g. the column for fields of studies should not contain values like "Economics", but the internal ORSEE Id number for "Economics", as listed in the respective table in Options/Items for profile fields of type "select_lang"/"radioline_lang"/Main field of studies.) For select/radioline fields (e.g. the original "gender"), the data needs to contain the option values (see Options/Participant profile fields/Edit ...).
 // - The data file should *not* contain a header. You will need the respective column numbers below, column numbering starts with 0.
 // - Save the file as "tab-separated txt file".
-// - Put the participant data file into the install/ folder, next to this script.
+// - Put the participant data file into the install/data_import/ folder, next to this script.
 // - Fill in the configuration section below.
 
 // NOTES
@@ -44,6 +44,13 @@ $check_regexp=true; // check data field against regexp defined for ORSEE pform f
 // END CONFIG
 //////////////////////////////////////////////////////////////////
 
+if (PHP_SAPI!=='cli') {
+    http_response_code(403);
+    exit("This script can only be executed from the command line.\n");
+}
+
+$data_import_dir=__DIR__;
+chdir($data_import_dir.'/..');
 
 // THE IMPORT SCRIPT
 include("../admin/cronheader.php");
@@ -82,7 +89,7 @@ if ($continue) {
     foreach ($formfields as $f) {
         $pfields[]=$f['mysql_column_name'];
         if (preg_match("/(radioline|select_list)/",$f['type'])) {
-            $allowed_values[$f['mysql_column_name']]=explode(",",$f['option_values']);
+            $allowed_values[$f['mysql_column_name']]=array_keys($f['option_values']);
         } elseif (preg_match("/(select_lang|radioline_lang)/",$f['type'])) {
             $langvals=lang__load_lang_cat($f['mysql_column_name']);
             foreach ($langvals as $k=>$v) {
@@ -111,7 +118,7 @@ if ($continue) {
     $taberror=false;
     $colerror=false;
     $col_count=-1;
-    $data_file=file($txt_file_name);
+    $data_file=file($data_import_dir.'/'.$txt_file_name);
     $participants=array();
     $unique_values=array();
 
@@ -171,8 +178,6 @@ if ($continue) {
 if ($continue) {
     echo "All checks succeeded.\n";
     foreach ($participants as $participant) {
-        $new_id=participant__create_participant_id($participant);
-        $participant['participant_id_crypt']=$new_id['participant_id_crypt'];
         $participant['last_profile_update']=time();
 
         if (isset($participant_status_id) && $participant_status_id) {
