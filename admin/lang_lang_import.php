@@ -91,7 +91,7 @@ if ($proceed) {
                         }
                         $content_type=trim((string)$row['content_type']);
                         $content_name=trim((string)$row['content_name']);
-                        if ($content_type==='' || $content_name==='') {
+                        if ($content_type==='' || $content_type==='default_text' || $content_name==='') {
                             continue;
                         }
                         $parsed_items[]=array(
@@ -112,7 +112,7 @@ if ($proceed) {
                         if (count($tarr)==3) {
                             $tarr[0]=trim((string)$tarr[0]);
                             $tarr[1]=trim((string)$tarr[1]);
-                            if ($tarr[0]==='' || $tarr[1]==='') {
+                            if ($tarr[0]==='' || $tarr[0]==='default_text' || $tarr[1]==='') {
                                 continue;
                             }
                             $parsed_items[]=$tarr;

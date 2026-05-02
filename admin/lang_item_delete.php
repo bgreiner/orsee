@@ -105,12 +105,6 @@ if ($proceed) {
             $reset_part_field="";
             $deletion_message=lang('default_mail_deleted');
             break;
-        case 'default_text':
-            $header=lang('delete_default_text');
-            $headervar="content_name";
-            $reset_part_field="";
-            $deletion_message=lang('default_text_deleted');
-            break;
         case 'laboratory':
             $header=lang('delete_laboratory');
             $headervar="content_name";

@@ -86,16 +86,6 @@ if ($proceed) {
                 $chnl2br=true;
                 $id_nowrap=true;
                 break;
-            case 'default_text':
-                $item=$sent_item;
-                $header=lang('default_texts');
-                $where="";
-                $order=" content_name ";
-                $allow_order=false;
-                $show_part_stats=false;
-                $show_id=true;
-                $id_nowrap=true;
-                break;
             case 'laboratory':
                 $item=$sent_item;
                 $header=lang('laboratories');

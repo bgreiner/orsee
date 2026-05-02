@@ -111,16 +111,6 @@ if ($proceed) {
                 $inputform='area';
                 $check_allow_content_shortcut=true;
                 break;
-            case 'default_text':
-                if ($id) {
-                    $header=lang('edit_default_text');
-                } else {
-                    $header=lang('add_default_text');
-                }
-                $new_id='content_shortcut';
-                $inputform='area';
-                $check_allow_content_shortcut=true;
-                break;
             case 'laboratory':
                 if ($id) {
                     $header=lang('edit_laboratory');

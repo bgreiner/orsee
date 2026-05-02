@@ -19,7 +19,7 @@ if (isset($_REQUEST['export']) && $_REQUEST['export']) {
     }
     if ($proceed) {
         $query="SELECT * FROM ".table('lang')."
-                WHERE content_type IN ('lang','mail','default_text')
+                WHERE content_type IN ('lang','mail')
                 AND TRIM(content_type)<>''
                 AND TRIM(content_name)<>''
                 ORDER by lang_id";
@@ -36,7 +36,7 @@ if (isset($_REQUEST['export']) && $_REQUEST['export']) {
             'format'=>'orsee_language_export_json',
             'version'=>1,
             'language'=>$lang_id,
-            'content_types'=>array('lang','mail','default_text'),
+            'content_types'=>array('lang','mail'),
             'items'=>$items
         );
         $file=json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
