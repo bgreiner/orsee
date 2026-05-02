@@ -58,7 +58,11 @@ if ($proceed) {
         // add and process option values which may be differently submitted
         foreach ($opts as $o) {
             if ($o['type']=='date') {
-                $newoptions[$o['option_name']]=ortime__array_to_sesstime($_REQUEST,'options__'.$o['option_name'].'_');
+                $date_value=ortime__array_to_sesstime($_REQUEST,'options__'.$o['option_name'].'_');
+                if ((int)$date_value<=0) {
+                    $date_value=0;
+                }
+                $newoptions[$o['option_name']]=$date_value;
             }
         }
 
