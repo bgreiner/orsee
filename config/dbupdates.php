@@ -2257,7 +2257,7 @@ $system__database_upgrades[]=array(
 'specs'=> array(
     'content_name'=>'query_auth_migration_status',
     'content_type'=>'lang',
-    'content'=>array('en'=>'Auth migration status','de'=>'Auth-Migrations-Status')
+    'content'=>array('en'=>'Auth migration status ...','de'=>'Auth-Migrations-Status ...')
     )
 );
 

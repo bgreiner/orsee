@@ -85,7 +85,6 @@ if ($proceed) {
     if (check_allow('mail_edit')) {
         $optionlist[]='<A HREF="lang_item_main.php?item=mail" class="option">'.oicon('envelope').lang('default_mails').'</A>';
     }
-    //  if (check_allow('default_text_edit')) $optionlist[]='<A HREF="lang_item_main.php?item=default_text" class="option">'.lang('default_texts').'</A>';
     if (check_allow('faq_edit')) {
         $optionlist[]='<A HREF="faq_main.php" class="option">'.oicon('question-circle').lang('faqs').'</A>';
     }

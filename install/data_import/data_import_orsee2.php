@@ -370,7 +370,7 @@ if (!$allset) {
     }
 
     if ($import_userform_select_langs) {
-        $protected_cats=array('datetime_format','default_text','experiment_enrolment_conf_mail','experiment_invitation_mail',
+        $protected_cats=array('datetime_format','experiment_enrolment_conf_mail','experiment_invitation_mail',
                             'experiment_session_reminder_mail','experiment_type','experimentclass',
                             'faq_answer','faq_question','laboratory','lang','mail',
                             'participant_status_error','participant_status_name','participation_status_display_name',
