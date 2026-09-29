@@ -83,6 +83,11 @@ if ($proceed) {
             $participant=orsee_db_load_array("participants",$_SESSION['pauthdata']['participant_id'],"participant_id");
             $participant_id=$participant['participant_id'];
         } else {
+            if ($settings['subject_authentication']!='token' &&
+                in_array(thisdoc(),array('participant_edit.php','participant_show.php'))) {
+                $_SESSION['requested_url']='public/'.thisdoc();
+            }
+
             if ($settings['subject_authentication']=='token') {
                 // if we work with tokens, check whether we are logged in and load participant data
                 if ($participant_id) {

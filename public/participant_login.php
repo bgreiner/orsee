@@ -14,10 +14,6 @@ if ($proceed) {
         message(lang('password_changed_log_in_again'));
     }
 
-    if (isset($_REQUEST['requested_url']) && $_REQUEST['requested_url']) {
-        $_SESSION['requested_url']=$_REQUEST['requested_url'];
-    }
-
     if (isset($_REQUEST['login']) && isset($_REQUEST['email']) && isset($_REQUEST['password'])) {
         if (!csrf__validate_request_message()) {
             redirect("public/participant_login.php");
